@@ -1,0 +1,115 @@
+#!/usr/bin/nodejs
+var debug = require('debug')('my-application');
+const indy = require('../indy');
+var adminApp = require('../adminApp');
+var app = require('../connectionApp');
+const config = require('../config')
+
+
+/**
+ * Create HTTP server for admin API.
+ */
+const adminPort = config.adminPort
+adminApp.set('port', adminPort);
+const adminServer = require('http').Server(adminApp);
+
+
+/**
+ * Create HTTP server for connections API.
+ */
+const inboundPort = config.inboundPort
+app.set('port', inboundPort);
+const server = require('http').Server(app);
+
+
+/**
+ * Connect to indy pool (ledger)
+ */
+return indy.setupPool()
+    .then(() => {
+        adminServer.listen(adminPort);
+        adminServer.on('error', onErrorAdmin);
+        adminServer.on('listening', onListeningAdmin);
+        console.log(`Admin server listening on port ${adminPort}`);
+
+        server.listen(inboundPort);
+        server.on('error', onErrorConnection);
+        server.on('listening', onListeningConnection);
+        console.log(`HTTP Inbound Transport listening on port ${inboundPort}`);
+    })
+    .catch((e) => {
+        console.error(e);
+    });
+
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onErrorAdmin(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof adminPort === 'string'
+    ? 'Pipe ' + adminPort
+    : 'Port ' + adminPort;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+function onErrorConnection(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof port === 'string'
+    ? 'Pipe ' + inboundPort
+    : 'Port ' + inboundPort;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListeningAdmin() {
+  const addr = adminServer.address();
+  const bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+
+function onListeningConnection() {
+  const addr = server.address();
+  const bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}

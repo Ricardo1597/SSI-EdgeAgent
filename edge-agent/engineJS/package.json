@@ -1,0 +1,42 @@
+{
+  "name": "indy-agent",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "test": "mocha test/**/*.js"
+  },
+  "dependencies": {
+    "aries-framework-javascript": "file:../../../../aries/aries-framework-javascript/aries-framework-javascript-1.0.0.tgz",
+    "axios": "^0.19.2",
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.4",
+    "debug": "~2.6.9",
+    "ejs": "~2.5.7",
+    "express": "^4.16.4",
+    "express-session": "^1.16.1",
+    "express-validator": "^6.4.0",
+    "home-dir": "^1.0.0",
+    "http-errors": "~1.6.2",
+    "indy-sdk": "^1.8.3",
+    "js-sha256": "^0.9.0",
+    "json-stringify-pretty-compact": "^1.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.7",
+    "morgan": "^1.9.1",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0",
+    "pug": "^2.0.4",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "request-promise-native": "^1.0.7",
+    "session-file-store": "^1.2.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^5.1.1",
+    "sinon": "^5.1.1"
+  }
+}
