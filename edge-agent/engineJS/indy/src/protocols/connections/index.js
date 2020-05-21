@@ -49,10 +49,12 @@ exports.createInvitation = async (invitationAlias, multiUse=true) => {
         timesUsed: 0,
         myDid: myDid,
         myVerkey: myVerkey,
-        myDidDoc: myDidDoc
     }
 
-    // Update invitation record
+    // Save created did document in the wallet
+    await indy.didDoc.addLocalDidDocument(myDidDoc);
+
+    // Add invitation record to the wallet
     await indy.wallet.addWalletRecord(
         indy.recordTypes.RecordType.Invitation, 
         invitation.invitationId, 
@@ -73,16 +75,15 @@ exports.receiveInvitation = async (connectionAlias, invitation, autoAccept=false
         invitation: invitation
     };
     
-    // Update connection record
-    await indy.wallet.addWalletRecord(
-        indy.recordTypes.RecordType.Connection, 
+    // Add connection record to the wallet
+    await this.addConnection(
         connection.connectionId, 
         JSON.stringify(connection), 
         {}
     );
 
     if(autoAccept) {
-        connection = (await acceptInvitationAndSendRequest(connection.connectionId)).connection
+        connection = await acceptInvitationAndSendRequest(connection.connectionId);
     }
 
     return connection;
@@ -96,15 +97,18 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     }
 
     // Create did and did document for this specific connection
-    const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc();
+    const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc();    
+    
+    // Save created did document in the wallet
+    await indy.didDoc.addLocalDidDocument(myDidDoc);
+
     connection.myDid = myDid;
     connection.myVerkey = myVerkey;
-    connection.myDidDoc = myDidDoc;
 
     const connectionRequest = messages.createConnectionRequestMessage(myDid, myDidDoc);
     
     // Prepare and send connection request
-    let [message, endpoint] = await indy.messages.prepareMessage(
+    const [message, endpoint] = await indy.messages.prepareMessage(
         connectionRequest, 
         connection,
         connection.invitation
@@ -138,7 +142,7 @@ exports.createAndSendResponse = async (connectionId) => {
     const connectionResponse = messages.createConnectionResponseMessage(
         connection.threadId,
         connection.myDid,
-        connection.myDidDoc
+        await indy.didDoc.getLocalDidDocument(connection.myDid)
     );
     const signedConnectionResponse = await indy.wallet.sign(
         connectionResponse, 
@@ -146,7 +150,7 @@ exports.createAndSendResponse = async (connectionId) => {
         connection.invitation.myVerkey
     );
 
-    let [message, endpoint] = await indy.messages.prepareMessage(
+    const [message, endpoint] = await indy.messages.prepareMessage(
         signedConnectionResponse, 
         connection
     );
@@ -173,7 +177,7 @@ exports.createAndSendAck = async (connectionId) => {
 
     const connectionAck = messages.createAckMessage(connection.threadId);
 
-    let [message, endpoint] = await indy.messages.prepareMessage(connectionAck, connection);
+    const [message, endpoint] = await indy.messages.prepareMessage(connectionAck, connection);
     indy.messages.sendMessage(message, endpoint);
 
     // Update connection record
@@ -192,12 +196,13 @@ exports.createConnection = async (initiator, threadId, state=null) => {
     if(!state) {
         state = ConnectionState.Null;
     }
-    const [did, verkey, didDoc] = await indy.didDoc.createDidAndDidDoc();
+    // option: { method_name: 'sov' }
+    const [did, verkey, didDoc] = await indy.didDoc.createDidAndDidDoc({});
+    await indy.didDoc.addLocalDidDocument(didDoc);
     return {
         connectionId: uuid(),
         myDid: did,
         myVerkey: verkey,
-        myDidDoc: didDoc,
         state: state,
         initiator: initiator,
         threadId, threadId
@@ -212,20 +217,44 @@ const createInvitationDetails = (myDidDoc) => {
     };
 }
 
+exports.validateSenderKey = async (theirDid, senderKey) => { 
+    // TODO: < Get did document here instead of saving it in the connection record >
+    const theirDidDoc = await indy.did.resolveDid(theirDid);
+
+    const theirKey = theirDidDoc.service[0].recipientKeys[0];
+    if (theirKey !== senderKey) {
+        throw new Error(
+            `Inbound message 'sender_key' ${senderKey} is different from connection.theirKey ${theirKey}`
+        );
+    }
+}
+
 exports.getConnection = async (connectionId) => {
-    return await indy.wallet.getWalletRecord(
-        indy.recordTypes.RecordType.Connection, 
-        connectionId, 
-        {}
-    );
+    try {
+        return await indy.wallet.getWalletRecord(
+            indy.recordTypes.RecordType.Connection, 
+            connectionId, 
+            {}
+        );
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 212){
+            console.log("Unable to get connection record. Wallet item not found.");
+        }
+        throw error;
+    }
 }
 
 exports.searchConnection = async (query) => {
-    return await indy.wallet.searchWalletRecord(
+    const connections = await indy.wallet.searchWalletRecord(
         indy.recordTypes.RecordType.Connection,
         query, 
         {}
     );
+
+    if(connections.length < 1)
+        throw new Error(`Connection not found!`);
+
+    return connections[0];
 }
 
 exports.getAllConnections = async () => {
@@ -234,6 +263,22 @@ exports.getAllConnections = async () => {
         {}, 
         {}
     );
+}
+
+exports.addConnection = async (id, value, tags={}) => {
+    try {
+        return await indy.wallet.addWalletRecord(
+            indy.recordTypes.RecordType.Connection,
+            id,
+            value,
+            tags
+        );
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 213){
+            console.log("Unable to add connection record. Wallet item already exists.");
+        }
+        throw error;
+    }
 }
 
 exports.removeConnection = async (connectionId) => {

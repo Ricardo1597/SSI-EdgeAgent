@@ -41,17 +41,16 @@ exports.sign = async (wh, message, field, signer) => {
   }
   
   
-  exports.verify = async (message, field) => {
+  exports.verify = async (message, field, keysToCompare=null) => {
     const { [`${field}~sig`]: data, ...signedMessage } = message;
   
     const signerVerkey = data.signer;
+    if(keysToCompare && keysToCompare.indexOf(signerVerkey) == -1) {
+      throw new Error("Verkey used to sign field not recognized");
+    } 
     // first 8 bytes are for 64 bit integer from unix epoch
     const signedData = base64url.toBuffer(data.sig_data);
     const signature = base64url.toBuffer(data.signature);
-  
-    console.log(signerVerkey);
-    console.log(signedData);
-    console.log(signature);
 
     // check signature
     const valid = await sdk.cryptoVerify(signerVerkey, signedData, signature);

@@ -90,10 +90,6 @@ exports.sign = async (message, attribute, verkey) => {
     return await indy.crypto.sign(walletHandle, message, attribute, verkey);
 }
 
-exports.verify = async (message, attribute) => {
-    return await indy.crypto.verify(message, attribute);
-}
-
 
 exports.createCredentialOffer = async (credDefId) => {
     if (!walletHandle) {

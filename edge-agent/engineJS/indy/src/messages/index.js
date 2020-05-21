@@ -4,7 +4,7 @@ const indy = require('../../index')
 
 
 exports.prepareMessage = async (payload, connection, invitation=null) => {
-  let {endpoint, recipientKeys, routingKeys, senderVk} = getMessageArgs(connection, invitation);
+  let {endpoint, recipientKeys, routingKeys, senderVk} = await getMessageArgs(connection, invitation);
   let message = await indy.wallet.pack(payload, recipientKeys, senderVk);
 
   // Check for routing keys (not in use right now)
@@ -31,17 +31,17 @@ exports.sendMessage = (payload, endpoint) => {
   axios.post(`${endpoint}`, payload)
   .then((res) => {
     if(res.status < 200 || res.status > 299){
-      console.log("Unexpected response status: ", res.status)
+      console.log("Unexpected response status: ", res.status);
     }
   })
   .catch((error) => {
-    console.error(error)
+    console.error(error);
   })
 }
 
 
 
-function getMessageArgs(connection, invitation=null) {
+async function getMessageArgs(connection, invitation=null) {
   if (invitation) {
     return {
       endpoint: invitation.serviceEndpoint,
@@ -51,7 +51,7 @@ function getMessageArgs(connection, invitation=null) {
     };
   }
 
-  const { theirDidDoc } = connection;
+  const theirDidDoc = await indy.didDoc.getLocalDidDocument(connection.theirDid);
 
   if (!theirDidDoc) {
     throw new Error(`DidDoc for connection with verkey ${connection.myVerkey} not found!`);

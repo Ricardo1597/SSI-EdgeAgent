@@ -27,39 +27,38 @@ exports.MessageType = messages.MessageType;
 // Prover starts exchange at presentation proposal
 exports.proverCreateAndSendProposal = async (connectionId, comment, presentationPreview) => {
     // Get connection to send message (presentation proposal)
-    let connection = await indy.connections.getConnection(
-        presentationExchangeRecord.connectionId
+    const connection = await indy.connections.getConnection(
+        connectionId
     );
     
-    let presentationlProposalMessage = messages.createPresentationProposal(
+    const presentationProposalMessage = messages.createPresentationProposal(
         comment, 
         presentationPreview
     );
 
     let presentationExchangeRecord = this.createPresentationExchangeRecord(
         connectionId, 
-        presentationlProposalMessage, 
+        presentationProposalMessage, 
         generalTypes.Initiator.Self, 
         generalTypes.Roles.Prover, 
         PresentationExchangeState.ProposalSent
     );
     
     // Create and send proposal message to a given endpoint
-    let [message, endpoint] = await indy.messages.prepareMessage(
-        presentationlProposalMessage, 
+    const [message, endpoint] = await indy.messages.prepareMessage(
+        presentationProposalMessage, 
         connection
     );
     indy.messages.sendMessage(message, endpoint);
 
     // Save created presentation exchange record in the wallet
-    await indy.wallet.addWalletRecord(
-        indy.recordTypes.RecordType.PresentationExchange, 
+    await this.addPresentationExchangeRecord(
         presentationExchangeRecord.presentationExchangeId, 
         JSON.stringify(presentationExchangeRecord), 
         {'connectionId': connection.connectionId, 'threadId': presentationExchangeRecord.threadId}
     );
     
-    return [presentationExchangeRecord, presentationlProposalMessage];
+    return [presentationExchangeRecord, presentationProposalMessage];
 }
 
 
@@ -78,14 +77,14 @@ exports.verifierCreatePresentationExchangeRecord = (connectionId) => {
 
 
 exports.verifierCreateAndSendRequest = async (presentationExchangeRecord, comment, presentationRequest) => {
-    const {state} = presentationExchangeRecord.state
+    const state = presentationExchangeRecord.state
     if( state != PresentationExchangeState.Init && state != PresentationExchangeState.ProposalReceived) {
         throw new Error(`Invalid state trasition.`);
     }
 
     console.log("Cheguei 3")
     // Get connection to send message (presentation request)
-    let connection = await indy.connections.getConnection(
+    const connection = await indy.connections.getConnection(
         presentationExchangeRecord.connectionId
     );
 
@@ -102,7 +101,7 @@ exports.verifierCreateAndSendRequest = async (presentationExchangeRecord, commen
     );
 
     // Prepare and send message to prover
-    let [message, endpoint] = await indy.messages.prepareMessage(
+    const [message, endpoint] = await indy.messages.prepareMessage(
         presentationRequestMessage, 
         connection
     );
@@ -118,19 +117,14 @@ exports.verifierCreateAndSendRequest = async (presentationExchangeRecord, commen
     // Save presentation exchange record in the wallet
     if(presentationExchangeRecord.initiator === "self") {
         // Prover sent proposal first
-        try {
-            await indy.wallet.addWalletRecord(
-                indy.recordTypes.RecordType.PresentationExchange, 
-                presentationExchangeRecord.presentationExchangeId, 
-                JSON.stringify(presentationExchangeRecord),
-                {
-                    'connectionId': connection.connectionId, 
-                    'threadId': presentationRequestMessage['~thread']['thid']
-                }
-            );
-            } catch (e) {
-                console.log(e);
+        await this.addPresentationExchangeRecord(
+            presentationExchangeRecord.presentationExchangeId, 
+            JSON.stringify(presentationExchangeRecord),
+            {
+                'connectionId': connection.connectionId, 
+                'threadId': presentationRequestMessage['~thread']['thid']
             }
+        );
     } else {
         // Verifier sent request first
         await indy.wallet.updateWalletRecordValue(
@@ -276,13 +270,13 @@ const getRevocationStates = async (revocRegs, revocRegDeltas) => {
 
 
 exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, reqCredentials) => {
-    if( presentationlExchangeRecord.state != PresentationExchangeState.RequestReceived) {
+    if( presentationExchangeRecord.state != PresentationExchangeState.RequestReceived) {
         throw new Error(`Invalid state trasition.`);
     }
 
     console.log("Cheguei 4")
     // Get connection to send message (presentation response)
-    let connection = await indy.connections.getConnection(
+    const connection = await indy.connections.getConnection(
         presentationExchangeRecord.connectionId
     );
     console.log("Cheguei 4.1")
@@ -306,7 +300,7 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
 
     // Get delta with non-revocation interval defined in "non_revoked" of the presentation request
     // or requested credentials 
-    let revocRegDeltas = {}
+    let revocRegDeltas = {};
     [revocRegDeltas, reqReferents] = await getNonRevocationInterval(credentials, reqReferents);
 
     console.log("Cheguei 4.8")
@@ -345,7 +339,7 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
     );
 
     // Prepare and send presentation message to prover
-    let [message, endpoint] = await indy.messages.prepareMessage(
+    const [message, endpoint] = await indy.messages.prepareMessage(
         presentationMessage, 
         connection
     );
@@ -365,12 +359,12 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
 
 
 exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
-    if( presentationlExchangeRecord.state != PresentationExchangeState.PresentationReceived) {
+    if( presentationExchangeRecord.state != PresentationExchangeState.PresentationReceived) {
         throw new Error(`Invalid state trasition.`);
     }
 
     // Get connection to send message (presentation ack)
-    let connection = await indy.connections.getConnection(
+    const connection = await indy.connections.getConnection(
         presentationExchangeRecord.connectionId
     );
 
@@ -426,12 +420,12 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
     }
     
     // Create ack message
-    let ackMessage = messages.createPresentationAckMessage(
+    const ackMessage = messages.createPresentationAckMessage(
         presentationExchangeRecord.threadId
     );
 
     // Prepare and send message to prover
-    let [message, endpoint] = await indy.messages.prepareMessage(ackMessage, connection);
+    const [message, endpoint] = await indy.messages.prepareMessage(ackMessage, connection);
     indy.messages.sendMessage(message, endpoint);
 
     // Update presentation exchange record
@@ -461,19 +455,47 @@ exports.createPresentationExchangeRecord = (connectionId, message, initiator, ro
 }
 
 exports.getPresentationExchangeRecord = async (id) => {
-  return await indy.wallet.getWalletRecord(indy.recordTypes.RecordType.PresentationExchange, id, {});
+    try {
+        return await indy.wallet.getWalletRecord(indy.recordTypes.RecordType.PresentationExchange, id, {});
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 212){
+            console.log("Unable to get presentation exchange record. Wallet item not found.");
+        }
+        throw error;
+    }
 }
 
 exports.searchPresentationExchangeRecord = async (query) => {
-    return await indy.wallet.searchWalletRecord(
+    const records = await indy.wallet.searchWalletRecord(
         indy.recordTypes.RecordType.PresentationExchange,
         query, 
         {}
     );
+        
+    if(records.length < 1)
+        throw new Error(`Presentation exchange record not found!`);
+
+    return records[0];
 }
 
 exports.getAllPresentationExchangeRecords = async () => {
     return await indy.wallet.searchWalletRecord(indy.recordTypes.RecordType.PresentationExchange, {}, {});
+}
+
+exports.addPresentationExchangeRecord = async (id, value, tags={}) => {
+    try {
+        return await indy.wallet.addWalletRecord(
+            indy.recordTypes.RecordType.PresentationExchange,
+            id,
+            value,
+            tags
+        );
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 213){
+            console.log("Unable to add presentation exchange record. Wallet item already exists.");
+        }
+        throw error;
+    }
 }
 
 exports.removePresentationExchangeRecord = async (id) => {

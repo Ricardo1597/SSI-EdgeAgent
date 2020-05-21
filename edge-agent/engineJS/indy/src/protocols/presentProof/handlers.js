@@ -6,14 +6,12 @@ const presentationsIndex = require('./index')
 
 exports.proposalHandler = async (decryptedMessage) => {
     console.log("Cheguei 6")
-    let {message, recipient_verkey, sender_verkey} = decryptedMessage
-    let connections = await indy.connections.searchConnection(
+    const {message, recipient_verkey, sender_verkey} = decryptedMessage
+    const connection = await indy.connections.searchConnection(
         {'myVerkey': recipient_verkey}
-    );
-    if(connections.length < 1)
-        throw new Error(`Connection for verkey ${recipient_verkey} not found!`);
+    );   
 
-    let connection = connections[0]
+    await indy.connections.validateSenderKey(connection.theirDid, sender_verkey);
 
     let presentationExchangeRecord = presentationsIndex.createPresentationExchangeRecord(
         connection.connectionId, 
@@ -23,8 +21,7 @@ exports.proposalHandler = async (decryptedMessage) => {
         presentationsIndex.PresentationExchangeState.ProposalReceived
     );
     
-    await indy.wallet.addWalletRecord(
-        indy.recordTypes.RecordType.PresentationExchange, 
+    await presentationsIndex.addPresentationExchangeRecord(
         presentationExchangeRecord.presentationExchangeId, 
         JSON.stringify(presentationExchangeRecord), 
         {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
@@ -37,29 +34,25 @@ exports.proposalHandler = async (decryptedMessage) => {
 
 
 exports.requestHandler = async (decryptedMessage) => {
-    let {message, recipient_verkey, sender_verkey} = decryptedMessage
-    let connections = await indy.connections.searchConnection(
+    const {message, recipient_verkey, sender_verkey} = decryptedMessage
+    const connection = await indy.connections.searchConnection(
         {'myVerkey': recipient_verkey}
     );
-    if(connections.length < 1)
-        throw new Error(`Connection for verkey ${recipient_verkey} not found!`);
 
-    let connection = connections[0]
+    await indy.connections.validateSenderKey(connection.theirDid, sender_verkey);
 
     let presentationRequest = JSON.parse(Buffer.from(message['request_presentations~attach'][0]['data']["base64"], 'base64').toString('ascii'));
 
-    const presentationExchangeRecords = await presentationsIndex.searchPresentationExchangeRecord(
-        {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
-    );
-
     let presentationExchangeRecord = {}
-    if(presentationExchangeRecords.length > 0) {
-        presentationExchangeRecord = presentationExchangeRecords[0]
+    try {
+        presentationExchangeRecord = await presentationsIndex.searchPresentationExchangeRecord(
+            {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
+        );
         if( presentationExchangeRecord.state != presentationsIndex.PresentationExchangeState.ProposalSent) {
             throw new Error(`Invalid state trasition.`);
         }
         presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.RequestReceived;
-    } else {
+    } catch (error) {
         presentationExchangeRecord = presentationsIndex.createPresentationExchangeRecord(
             connection.connectionId,
             message,
@@ -74,8 +67,7 @@ exports.requestHandler = async (decryptedMessage) => {
     // Save credential exchange record in the wallet
     if(presentationExchangeRecord.initiator === "external") {
         // Verifier sent request first
-        await indy.wallet.addWalletRecord(
-            indy.recordTypes.RecordType.PresentationExchange, 
+        await presentationsIndex.addPresentationExchangeRecord(
             presentationExchangeRecord.presentationExchangeId, 
             JSON.stringify(presentationExchangeRecord), 
             {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
@@ -96,22 +88,16 @@ exports.requestHandler = async (decryptedMessage) => {
 
 exports.presentationHandler = async (decryptedMessage) => {
     console.log("Cheguei 8")
-    let {message, recipient_verkey, sender_verkey} = decryptedMessage
-    let connections = await indy.connections.searchConnection(
+    const {message, recipient_verkey, sender_verkey} = decryptedMessage
+    const connection = await indy.connections.searchConnection(
         {'myVerkey': recipient_verkey}
     );
-    if(connections.length < 1)
-        throw new Error(`Connection for verkey ${recipient_verkey} not found!`);
 
-    let connection = connections[0]
+    await indy.connections.validateSenderKey(connection.theirDid, sender_verkey);
 
-    const presentationExchangeRecords = await presentationsIndex.searchPresentationExchangeRecord(
+    let presentationExchangeRecord = await presentationsIndex.searchPresentationExchangeRecord(
         {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
     );
-
-    if(presentationExchangeRecords.length < 1)
-        throw new Error(`Presentation exchange record for connection ${connection.connectionId} and thread ${message['~thread']['thid']} not found!`);
-    let presentationExchangeRecord = presentationExchangeRecords[0]
     
     if( presentationExchangeRecord.state != presentationsIndex.PresentationExchangeState.RequestSent) {
         throw new Error(`Invalid state trasition.`);
@@ -134,34 +120,24 @@ exports.presentationHandler = async (decryptedMessage) => {
 
 
 exports.acknowledgeHandler = async (decryptedMessage) => {
-    let {message, recipient_verkey, sender_verkey} = decryptedMessage
+    const {message, recipient_verkey, sender_verkey} = decryptedMessage
 
     if (!message['status']) {
         throw new Error('Invalid message');
     }
-    let connections = await indy.connections.searchConnection(
+    const connection = await indy.connections.searchConnection(
         {'myVerkey': recipient_verkey}
     );
 
-    if(connections.length < 1) {
-        throw new Error(`Connection for verkey ${recipient_verkey} not found!`);
-    }
-
-    let connection = connections[0]
+    await indy.connections.validateSenderKey(connection.theirDid, sender_verkey);
     
-    const presentationExchangeRecords = await presentationsIndex.searchPresentationExchangeRecord(
+    let presentationExchangeRecord = await presentationsIndex.searchPresentationExchangeRecord(
         {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
     );
-        
-    if(presentationExchangeRecords.length < 1)
-        throw new Error(`presentation exchange record for connection ${connection.connectionId} and thread ${message['~thread']['thid']} not found!`);
-    let presentationExchangeRecord = presentationExchangeRecords[0]
 
     if( presentationExchangeRecord.state != presentationsIndex.PresentationExchangeState.PresentationSent) {
         throw new Error(`Invalid state trasition.`);
     }
-
-    // validateSenderKey(connection, sender_verkey);
 
     if (message['status'] === "OK"){
         if(presentationExchangeRecord.state !== presentationsIndex.PresentationExchangeState.Done) {

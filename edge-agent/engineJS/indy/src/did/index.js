@@ -87,3 +87,19 @@ exports.getTheirEndpointDid = async function (theirDid) {
     return metadata.theirEndpointDid;
 };
 
+exports.resolveDid = async (did) => {
+    const didParts = did.split(':');
+    switch (didParts.length) {
+        case 1:
+            return await indy.didDoc.getLocalDidDocument(did);
+        case 3: // This case should also lookup in other blockchains according with method name 
+            if (didParts[2] == "mybc") {
+                indy.ledger.getDidDocument(did);
+            } else {
+                // use did universal resolver here
+            }
+        default:
+            throw new Error('Unable to resolve did: invalid did format.')
+    }
+}
+

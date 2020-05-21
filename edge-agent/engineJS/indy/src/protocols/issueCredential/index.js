@@ -45,11 +45,11 @@ exports.MessageType = messages.MessageType;
 // Holder starts exchange at credential proposal
 exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, schemaId, credDefId, issuerDid) => {
     // Get connection to send message (credential proposal)
-    let connection = await indy.connections.getConnection(connectionId);
+    const connection = await indy.connections.getConnection(connectionId);
 
-    let credentialPreview = messages.createCredentialPreview(attributes);
+    const credentialPreview = messages.createCredentialPreview(attributes);
     
-    let credentialProposalMessage = messages.createCredentialProposal(
+    const credentialProposalMessage = messages.createCredentialProposal(
         comment, 
         schemaId, 
         credentialPreview, 
@@ -65,16 +65,17 @@ exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, 
         generalTypes.Roles.Holder, 
         CredentialExchangeState.Init
     );
+    
+    const [message, endpoint] = await indy.messages.prepareMessage(credentialProposalMessage, connection);
+    indy.messages.sendMessage(message, endpoint);
 
-    await indy.wallet.addWalletRecord(
-        indy.recordTypes.RecordType.CredentialExchange, 
+    // Add credential exchange record to the wallet
+    credentialExchangeRecord.state = CredentialExchangeState.ProposalSent
+    await this.addCredentialExchangeRecord(
         credentialExchangeRecord.credentialExchangeId, 
         JSON.stringify(credentialExchangeRecord), 
         {'connectionId': connection.connectionId, 'threadId': credentialProposalMessage['~thread']['thid']}
     );
-    
-    let [message, endpoint] = await indy.messages.prepareMessage(credentialProposalMessage, connection);
-    indy.messages.sendMessage(message, endpoint);
 
     return [credentialExchangeRecord, credentialProposalMessage];
 }
@@ -82,12 +83,12 @@ exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, 
 
 // Issuer starts exchange at credential offer (jumpping credential proposal phase)
 exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDefId) => {
-    let credentialPreview = messages.createCredentialPreview(attributes);
+    const credentialPreview = messages.createCredentialPreview(attributes);
 
     const [,credDef] = await indy.ledger.getCredDef(null, credDefId)
-    let schemaId = credDef['schemaId']
+    const schemaId = credDef['schemaId']
 
-    let credentialProposalMessage = messages.createCredentialProposal(
+    const credentialProposalMessage = messages.createCredentialProposal(
         comment, 
         schemaId, 
         credentialPreview, 
@@ -101,11 +102,10 @@ exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDef
         credentialProposalMessage, 
         generalTypes.Initiator.Self, 
         generalTypes.Roles.Issuer, 
-        CredentialExchangeState.OfferSent
+        CredentialExchangeState.Init
     );
 
-    await indy.wallet.addWalletRecord(
-        indy.recordTypes.RecordType.CredentialExchange, 
+    await this.addCredentialExchangeRecord(
         credentialExchangeRecord.credentialExchangeId, 
         JSON.stringify(credentialExchangeRecord),
         {'connectionId': connectionId, 'threadId': credentialProposalMessage['~thread']['thid']}
@@ -115,13 +115,13 @@ exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDef
 }
 
 exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => {
-    const {state} = credentialExchangeRecord.state
+    const state = credentialExchangeRecord.state
     if( state != CredentialExchangeState.Init && state != CredentialExchangeState.ProposalReceived) {
         throw new Error(`Invalid state trasition.`);
     }
 
     // Get connection to send message (credential offer)
-    let connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
+    const connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
 
     // Get credential preview and credential definition id from record
     const credentialProposalMessage = JSON.parse(credentialExchangeRecord.credentialProposalDict);
@@ -141,7 +141,7 @@ exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => 
     );
 
     // Create and send credential offer message to a given endpoint
-    let [message, endpoint] = await indy.messages.prepareMessage(credentialOfferMessage, connection);
+    const [message, endpoint] = await indy.messages.prepareMessage(credentialOfferMessage, connection);
     indy.messages.sendMessage(message, endpoint);
 
     // Update credential exchange record
@@ -162,12 +162,13 @@ exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => 
 
 
 exports.holderCreateAndSendRequest = async (credentialExchangeRecord) => {
+    console.log(credentialExchangeRecord.state);
     if( credentialExchangeRecord.state != CredentialExchangeState.OfferReceived) {
         throw new Error(`Invalid state trasition.`);
     }
 
     // Get connection to send message (credential request)
-    let connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
+    const connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
     
     // if(credentialExchangeRecord.credentialRequest)
     //     throw new Error(`Create request called multiple times for credential exchange ${credentialExchangeRecord.credentialExchangeId}`);
@@ -178,7 +179,8 @@ exports.holderCreateAndSendRequest = async (credentialExchangeRecord) => {
     if(!credOffer['nonce'])
         throw new Error('Missing nonce in credential offer');
 
-    let myDid = connection.myDid.split(':')[2]
+    const myDidParts = connection.myDid.split(':')
+    const myDid = myDidParts[myDidParts.length-1];
     console.log(myDid)
     console.log(credOffer)
     console.log(credDef)
@@ -195,7 +197,7 @@ exports.holderCreateAndSendRequest = async (credentialExchangeRecord) => {
     );
 
     // Create and send credential request message to a given endpoint
-    let [message, endpoint] = await indy.messages.prepareMessage(credentialRequestMessage, connection);
+    const [message, endpoint] = await indy.messages.prepareMessage(credentialRequestMessage, connection);
     indy.messages.sendMessage(message, endpoint);
 
     // Update credential exchange record
@@ -217,25 +219,23 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
         throw new Error(`Invalid state trasition.`);
     }
     // Get connection to send message (credential)
-    let connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
+    const connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
     
     // if(credentialExchangeRecord.credential)
     //     throw new Error(`Create credential called multiple times for credential exchange ${credentialExchangeRecord.credentialExchangeId}`);
     
     // Calculate credential request "data"   
     const [,schema] = await indy.ledger.getSchema(null, credentialExchangeRecord.schemaId);
-    console.log(schema['attrNames']);
     const encodedValues = createEncodedCredentialValues(credentialValues, schema['attrNames']);
-    console.log(encodedValues);
     const credentialOffer = credentialExchangeRecord.credentialOffer;
     const credentialRequest = credentialExchangeRecord.credentialRequest;
-    const credential = await indy.issuer.createCredential(
+    const [credential,,] = await indy.issuer.createCredential(
         credentialOffer, 
         credentialRequest, 
         encodedValues, 
         null, 
         -1
-    )[0];
+    );
     const data = Buffer.from(JSON.stringify(credential)).toString("base64");
 
     let credentialIssuedMessage = messages.createCredentialResponse(
@@ -244,7 +244,7 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
     );
 
     // Create and send credential message to a given endpoint
-    let [message, endpoint] = await indy.messages.prepareMessage(credentialIssuedMessage, connection);
+    const [message, endpoint] = await indy.messages.prepareMessage(credentialIssuedMessage, connection);
     indy.messages.sendMessage(message, endpoint);
     
     // Update credential exchange record
@@ -292,12 +292,12 @@ exports.createAndSendAck = async (credentialExchangeRecord) => {
     }
 
     // Get connection to send message (ack)
-    let connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
+    const connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
 
-    let credentialAckMessage = messages.createCredentialAckMessage(credentialExchangeRecord.threadId);
+    const credentialAckMessage = messages.createCredentialAckMessage(credentialExchangeRecord.threadId);
 
     // Create and send ack message to a given endpoint
-    let [message, endpoint] = await indy.messages.prepareMessage(credentialAckMessage, connection);
+    const [message, endpoint] = await indy.messages.prepareMessage(credentialAckMessage, connection);
     indy.messages.sendMessage(message, endpoint);
 
     // Update credential exchange record
@@ -325,19 +325,31 @@ exports.createCredentialExchangeRecord = (connectionId, message, initiator, role
 }
 
 exports.getCredentialExchangeRecord = async (id) => {
-  return await indy.wallet.getWalletRecord(
-        indy.recordTypes.RecordType.CredentialExchange, 
-        id, 
-        {}
-    );
+    try {
+        return await indy.wallet.getWalletRecord(
+            indy.recordTypes.RecordType.CredentialExchange, 
+            id, 
+            {}
+        );
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 212){
+            console.log("Unable to get credential exchange record. Wallet item not found.");
+        }
+        throw error;
+    }
 }
 
 exports.searchCredentialExchangeRecord = async (query) => {
-    return await indy.wallet.searchWalletRecord(
+    const records = await indy.wallet.searchWalletRecord(
         indy.recordTypes.RecordType.CredentialExchange,
         query, 
         {}
     );
+        
+    if(records.length < 1)
+        throw new Error(`Credential exchange record not found!`);
+
+    return records[0];
 }
 
 exports.getAllCredentialExchangeRecords = async () => {
@@ -346,6 +358,22 @@ exports.getAllCredentialExchangeRecords = async () => {
         {}, 
         {}
     );
+}
+
+exports.addCredentialExchangeRecord = async (id, value, tags={}) => {
+    try {
+        return await indy.wallet.addWalletRecord(
+            indy.recordTypes.RecordType.CredentialExchange,
+            id,
+            value,
+            tags
+        );
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 213){
+            console.log("Unable to add credential exchange record. Wallet item already exists.");
+        }
+        throw error;
+    }
 }
 
 exports.removeCredentialExchangeRecord = async (id) => {

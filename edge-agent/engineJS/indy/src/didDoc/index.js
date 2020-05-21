@@ -9,8 +9,8 @@ exports.PublicKeyType = {
 }
 
 
-exports.createDidAndDidDoc = async () => {
-    const [did, verkey] = await indy.did.createDid({ method_name: 'sov' });
+exports.createDidAndDidDoc = async (options) => {
+    const [did, verkey] = await indy.did.createDid(options);
     const publicKey = indy.didDoc.createPublicKey(
         `${did}#1`, 
         indy.didDoc.PublicKeyType.ED25519_SIG_2018, 
@@ -71,6 +71,45 @@ exports.createService = (id, serviceEndpoint, recipientKeys, routingKeys, priori
     return res;
 };
 
+
+exports.getLocalDidDocument = async (id) => {
+    return await indy.wallet.getWalletRecord(
+        indy.recordTypes.RecordType.DidDocument, 
+        id, 
+        {}
+    );
+}
+
+exports.addLocalDidDocument = async (didDoc) => {
+    try {
+        return await indy.wallet.addWalletRecord(
+            indy.recordTypes.RecordType.DidDocument, 
+            didDoc.id, 
+            JSON.stringify(didDoc),
+            {}
+        );
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 213){
+            console.log("Unable to add did document record. Wallet item already exists.");
+        }
+        throw error;
+    }    
+}
+
+exports.updateLocalDidDocument = async (didDoc) => {
+    return await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.DidDocument, 
+        didDoc.id, 
+        JSON.stringify(didDoc)
+    );
+}
+
+exports.deleteLocalDidDocument = async (id) => {
+    return await indy.wallet.deleteWalletRecord(
+        indy.recordTypes.RecordType.DidDocument, 
+        id
+    );
+}
 
 // Replace publickKey.verkey with the correct field
 // exports.getServiceVerkey = (didId, didDoc) => {
