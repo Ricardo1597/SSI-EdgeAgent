@@ -64,6 +64,25 @@ async function mkdir(filePath) {
 }
 
 
+exports.sendNym = async (authDid, newDid, newVerKey, role) => {
+    let nymRequest = await sdk.buildNymRequest(authDid, newDid, newVerKey, null, role);
+    return await sdk.signAndSubmitRequest(poolHandle, await indy.wallet.get(), authDid, nymRequest);
+};
+
+exports.getNym = async (did) => {
+    let getDidRequest = await sdk.buildGetNymRequest(null, did);
+    return await sdk.submitRequest(poolHandle, getDidRequest);
+};
+
+exports.createNymDocument = async (did, verkey=null) => {
+    if(!verkey) verkey = await sdk.keyForDid(poolHandle, await indy.wallet.get(), did);
+    const didDoc = await indy.didDoc.createDidDoc(did, verkey);
+
+    // Set created did doc as an attribute of the ledger did
+    return await this.setDidAttribute(did, did, null, {"did-document": didDoc}, null); 
+}
+
+
 exports.getSchema = async (did, schemaId) => {
     let getSchemaRequest = await sdk.buildGetSchemaRequest(did, schemaId);
     let getSchemaResponse = await sdk.submitRequest(poolHandle, getSchemaRequest);
@@ -94,16 +113,17 @@ exports.getRevocRegEntry = async (did, revocRegDefId, timestamp) => {
     return await sdk.parseGetRevocRegResponse(getRevocRegResponse);
 };
 
-// exports.setEndpointForDid = async function (did, endpoint) {
-//     let attributeRequest = await sdk.buildAttribRequest(await indy.did.getEndpointDid(), did, null, {endpoint: {ha: endpoint}}, null);
-//     await sdk.signAndSubmitRequest(poolHandler, await indy.wallet.get(), await indy.did.getEndpointDid(), attributeRequest);
-// };
+exports.getDidAttribute = async (submitterDid, targetDid, hash, raw, enc) => {
+    let getAttribRequest = await sdk.buildGetAttribRequest(submitterDid, targetDid, raw, hash, enc);
+    let attributeResponse = await sdk.submitRequest(poolHandle, getAttribRequest);
+    return JSON.parse(attributeResponse.result.data)[raw];
+};
 
-// exports.getEndpointForDid = async function (did) {
-//     let getAttrRequest = await sdk.buildGetAttribRequest(await indy.did.getEndpointDid(), did, 'endpoint', null, null);
-//     let res = await waitUntilApplied(pool, getAttrRequest, data => data['result']['data'] != null);
-//     return JSON.parse(res.result.data).endpoint.ha;
-// };
+exports.setDidAttribute = async (submitterDid, targetDid, hash, raw, enc) => {
+    let setAttribRequest = await sdk.buildAttribRequest(submitterDid, targetDid, hash, raw, enc);
+    return await sdk.signAndSubmitRequest(poolHandle, await indy.wallet.get(), submitterDid, setAttribRequest);
+};
+
 
 // exports.proverGetEntitiesFromLedger = async function(identifiers) {
 //     let schemas = {};

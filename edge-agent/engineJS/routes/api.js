@@ -8,23 +8,27 @@ const indy = require('../indy/index.js');
 
 
 // Create and store the DID in the given wallet
-router.post('/createDID', passport.authenticate('jwt', {session: false}), async (req, res) => {  
+router.post('/createDid', passport.authenticate('jwt', {session: false}), async (req, res) => {  
   const { seed } = req.body;
-  seedObj = (seed !== '') ? {'seed': seed} : null
 
-  let [newDID,] = await indy.did.createDid(seedObj);
-  console.log('DID created: ', newDID);
+  options = {};
+  options.method_name= 'mybc'; // to create did:sov:<identifier>
+  if(seed !== '') options.seed= seed; // to create from seed
 
+  let [newDid, newVerKey] = await indy.did.createDid(options);
+  console.log('DID created: ', newDid);
+
+  // If did is a already a nym (created with seed), create and send his did document to the ledger
+  if(JSON.parse((await indy.ledger.getNym(newDid)).result.data)) {
+    await indy.ledger.createNymDocument(newDid, newVerKey);
+  }
 
   let dids = await sdk.listMyDidsWithMeta(await indy.wallet.get());
   console.log('List of DIDs: ', dids);
 
   dids = await Promise.all(dids.map(async (did) => {    
-    let getDidResponse = await indy.did.getNym(did.did);
-    let didInfo = JSON.parse(getDidResponse.result.data) 
-
+    let didInfo = JSON.parse((await indy.ledger.getNym(did.did)).result.data) 
     did.role = (didInfo ? didInfo.role : "no role");
-
     return did;
   }))
 
@@ -36,15 +40,16 @@ router.post('/createDID', passport.authenticate('jwt', {session: false}), async 
 router.post('/sendNym', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let { did, newDid, newVerKey, role } = req.body
   if(role === 'COMMON_USER') role = null
-  await indy.did.sendNym(did, newDid, newVerKey, role);
+  const nym = await indy.ledger.sendNym(did, newDid, newVerKey, role);
+  const didDoc = await indy.ledger.createNymDocument(newDid, newVerKey);
 
-  res.status(200).send({did: newDid, role: role})
+  res.status(200).send({did: nym, role: role, didDoc:didDoc})
 });
 
 
 // Get did from the ledger
 router.get('/getNym', passport.authenticate('jwt', {session: false}), async (req, res) => {
-  let getDidResponse = await indy.did.getNym(req.query.did);
+  let getDidResponse = await indy.ledger.getNym(req.query.did);
 
   res.status(200).send({did: getDidResponse.result.data})
 });
@@ -102,7 +107,8 @@ router.get('/connections', passport.authenticate('jwt', {session: false}), async
 
 // Create connection invitation
 router.post('/create_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
-  const invitation = await indy.connections.createInvitation(req.body.alias);
+  const [myDid, myVerkey, myDidDoc] = await indy.connections.getDidAndDocument(req.body.public, req.body.did)
+  const invitation = await indy.connections.createInvitation(myDid, myVerkey, myDidDoc, req.body.alias, req.body.public);
   if (!invitation) {
     throw new Error('Error while creating invitation.');
   }

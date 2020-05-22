@@ -6,24 +6,8 @@ const generalTypes = require('../generalTypes');
 exports.requestHandler = async (decryptedMessage) => {
     const {message, recipient_verkey, sender_verkey} = decryptedMessage
 
-    if (!message.connection) 
-        throw new Error('Invalid message');
-
-    if(!message.connection.did) 
-        throw new Error('No DID provided.')
-    if(!message.connection.did_doc) 
-        throw new Error('No DIDDoc provided.')
-    if(message.connection.did != message.connection.did_doc.id) 
-        throw new Error("Connection Did does not match DidDoc id.")
-    
-    const service = message.connection.did_doc.service[0]
-    if (!service) 
-        throw new Error('No communication service provided.');
-    if (service.recipientKeys && service.recipientKeys.length == 0) 
-        throw new Error('No service recipient keys provided.');
-    // Check if sender verkey is in service recipient keys
-    if (service.recipientKeys.indexOf(sender_verkey) == -1) 
-        throw new Error('Sender verkey is not in the provided service recipient keys.');
+    // verify if did and did document are present and are valid
+    validateConnectionField(message, sender_verkey);
 
     const invitations = await indy.wallet.searchWalletRecord(
         indy.recordTypes.RecordType.Invitation,
@@ -38,7 +22,25 @@ exports.requestHandler = async (decryptedMessage) => {
         throw new Error('Invitation can only be used once!');
     }
 
-    let connection = await connectionsIndex.createConnection(
+    let connection = {};
+    // This is intended to let the issuer use the same public did/verkey for 
+    // all the connection. The main problem with this is the need of saving
+    // the verkey of the other party as well.
+    // if(invitation.public) {
+    //     connection = await connectionsIndex.createPublicDidConnection(
+    //         invitation.myDid,
+    //         generalTypes.Initiator.Self,
+    //         message['@id']
+    //     );    
+    // } else {
+    //     connection = await connectionsIndex.createPeerDidConnection(
+    //         generalTypes.Initiator.Self,
+    //         message['@id']
+    //     );
+    // }
+    
+    // Just create a new did/verkey for each new connection
+    connection = await connectionsIndex.createPeerDidConnection(
         generalTypes.Initiator.Self,
         message['@id']
     );
@@ -72,34 +74,23 @@ exports.responseHandler = async (decryptedMessage) => {
         {'myVerkey': recipient_verkey}
     );
 
+    console.log(connection)
     const originalMessage = await indy.crypto.verify(message, 'connection', connection.invitation.recipientKeys);
 
-    if(!originalMessage.connection.did) 
-        throw new Error('No DID provided.')
-    if(!originalMessage.connection.did_doc) 
-        throw new Error('No DIDDoc provided.')
-    if(originalMessage.connection.did != originalMessage.connection.did_doc.id) 
-        throw new Error("Connection Did does not match DidDoc id.")
-    const service = originalMessage.connection.did_doc.service[0]
-    if (!service) 
-        throw new Error('No communication service provided.');
-    if (service.recipientKeys && service.recipientKeys.length == 0) 
-        throw new Error('No service recipient keys provided.');
-    // Check if sender verkey is in service recipient keys
-    if (service.recipientKeys.indexOf(sender_verkey) == -1) 
-        throw new Error('Sender verkey is not in the provided service recipient keys.');
-
+    // verify if did and did document are present and are valid
+    validateConnectionField(originalMessage, sender_verkey);
     
     connection.theirDid = originalMessage.connection.did;
-    await indy.didDoc.addLocalDidDocument(originalMessage.connection.did_doc);
-
+    // If it is a public did then it's in the blockchain and there's no need to save it in the wallet
+    if(connection.theirDid.split(':')[1] === "peer") {
+        await indy.didDoc.addLocalDidDocument(originalMessage.connection.did_doc);
+    }
     if(connection.state != connectionsIndex.ConnectionState.Requested){
         throw new Error(`Invalid state trasition.`)
     }
 
     if (!message['connection~sig'])
       throw new Error('Invalid message');
-
 
     // Update connection record
     connection.state = connectionsIndex.ConnectionState.Responded;
@@ -108,7 +99,7 @@ exports.responseHandler = async (decryptedMessage) => {
         connection.connectionId, 
         JSON.stringify(connection)
     );
-
+    
     let autoAccept = true // REMOVE LATER AND USE USER OPTION
     if(autoAccept)
         await indy.connections.createAndSendAck(connection.connectionId);
@@ -147,3 +138,25 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
 
     return null;
 };
+
+
+const validateConnectionField = (message, sender_verkey) => {
+    if (!message.connection) 
+        throw new Error('Invalid message');
+
+    if(!message.connection.did) 
+        throw new Error('No DID provided.')
+    if(!message.connection.did_doc) 
+        throw new Error('No DIDDoc provided.')
+    if(message.connection.did != message.connection.did_doc.id) 
+        throw new Error("Connection Did does not match DidDoc id.")
+    
+    const service = message.connection.did_doc.service[0]
+    if (!service) 
+        throw new Error('No communication service provided.');
+    if (service.recipientKeys && service.recipientKeys.length == 0) 
+        throw new Error('No service recipient keys provided.');
+    // Check if sender verkey is in service recipient keys
+    if (service.recipientKeys.indexOf(sender_verkey) == -1) 
+        throw new Error('Sender verkey is not in the provided service recipient keys.');
+}

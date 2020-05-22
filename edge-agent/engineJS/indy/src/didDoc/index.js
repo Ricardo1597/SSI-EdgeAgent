@@ -11,6 +11,13 @@ exports.PublicKeyType = {
 
 exports.createDidAndDidDoc = async (options) => {
     const [did, verkey] = await indy.did.createDid(options);
+    const didDoc = this.createDidDoc(did, verkey);
+
+    return [did, verkey, didDoc]
+}
+
+
+exports.createDidDoc = (did, verkey) => {
     const publicKey = indy.didDoc.createPublicKey(
         `${did}#1`, 
         indy.didDoc.PublicKeyType.ED25519_SIG_2018, 
@@ -18,27 +25,20 @@ exports.createDidAndDidDoc = async (options) => {
         verkey
     );
     const service = indy.didDoc.createService(
-        `${did}#did-communication`, 
+        `${did}#agent`, 
         config.endpoint, 
         [verkey], 
         [], 
-        0, 
-        'did-communication'
+        'agent'
     );
     const auth = indy.didDoc.createAuthentication(publicKey);
-    const didDoc = indy.didDoc.createDidDoc(did, [auth], [publicKey], [service]);
 
-    return [did, verkey, didDoc]
-}
-
-
-exports.createDidDoc = (id, authentication, publicKey, service) => {
     return {
         '@context': 'https://w3id.org/did/v1',
-        id: id,
-        authentication: authentication,
-        publicKey: publicKey,
-        service: service,
+        id: did,
+        authentication: [auth],
+        publicKey: [publicKey],
+        service: [service],
     }
 };
 
@@ -58,11 +58,10 @@ exports.createAuthentication = (publicKey, embed=false) => {
         : publicKey.id;
 };
 
-exports.createService = (id, serviceEndpoint, recipientKeys, routingKeys, priority, type) => {
+exports.createService = (id, serviceEndpoint, recipientKeys, routingKeys, type) => {
     let res = {
         id: id,
         type: type,
-        priority: priority,
         serviceEndpoint: serviceEndpoint,
     };
     if(recipientKeys) res['recipientKeys'] = recipientKeys;

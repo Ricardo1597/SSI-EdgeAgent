@@ -179,13 +179,8 @@ exports.holderCreateAndSendRequest = async (credentialExchangeRecord) => {
     if(!credOffer['nonce'])
         throw new Error('Missing nonce in credential offer');
 
-    const myDidParts = connection.myDid.split(':')
-    const myDid = myDidParts[myDidParts.length-1];
-    console.log(myDid)
-    console.log(credOffer)
-    console.log(credDef)
     const [credentialRequest, credentialRequestMetadata] = await indy.holder.createCredentialRequest(
-        myDid, 
+        connection.myDid, 
         credOffer, 
         credDef
     );

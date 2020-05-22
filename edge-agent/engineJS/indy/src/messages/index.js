@@ -51,7 +51,7 @@ async function getMessageArgs(connection, invitation=null) {
     };
   }
 
-  const theirDidDoc = await indy.didDoc.getLocalDidDocument(connection.theirDid);
+  const theirDidDoc = await indy.did.resolveDid(connection.theirDid);
 
   if (!theirDidDoc) {
     throw new Error(`DidDoc for connection with verkey ${connection.myVerkey} not found!`);

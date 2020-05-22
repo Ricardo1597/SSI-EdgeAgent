@@ -99,7 +99,7 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
             let dids = await sdk.listMyDidsWithMeta(await indy.wallet.get());
             
             dids = await Promise.all(dids.map(async (did) => {    
-              let getDidResponse = await indy.did.getNym(did.did);
+              let getDidResponse = await indy.ledger.getNym(did.did);
               let didInfo = JSON.parse(getDidResponse.result.data) 
           
               console.log(didInfo)

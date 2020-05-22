@@ -10,7 +10,7 @@ exports.handlers = require('./handlers');
 exports.MessageType = messages.MessageType;
 
 const ConnectionState = {
-    Null: "null",
+    Init: "init",
     Invited: "invited",
     Requested: "requested",
     Responded: "responded",
@@ -34,13 +34,11 @@ exports.encodeInvitationToUrl = function (invitation) {
 }
   
 
-exports.createInvitation = async (invitationAlias, multiUse=true) => {
-    // Create did and did document to support the invitation
-    const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc();
+exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, isPublic=false, multiUse=true) => {
 
     const invitationDetails = createInvitationDetails(myDidDoc);
     const invitationMessage = await messages.createInvitationMessage(invitationDetails);
-    
+
     let invitation = {
         invitationId: uuid(),
         invitation: invitationMessage,
@@ -49,10 +47,8 @@ exports.createInvitation = async (invitationAlias, multiUse=true) => {
         timesUsed: 0,
         myDid: myDid,
         myVerkey: myVerkey,
+        public: isPublic
     }
-
-    // Save created did document in the wallet
-    await indy.didDoc.addLocalDidDocument(myDidDoc);
 
     // Add invitation record to the wallet
     await indy.wallet.addWalletRecord(
@@ -67,6 +63,12 @@ exports.createInvitation = async (invitationAlias, multiUse=true) => {
 
 
 exports.receiveInvitation = async (connectionAlias, invitation, autoAccept=false) => {
+    // Validate id verkey in invitation is the same as in the did document agent service.
+    // (only if did document is in a blockchain)
+    if(invitation.did.split(':')[1] !== "peer") {
+        validateInvitationKeys(invitation.did, invitation.recipientKeys);
+    }
+
     let connection = {
         connectionId: uuid(),     
         state: ConnectionState.Invited,
@@ -97,7 +99,9 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     }
 
     // Create did and did document for this specific connection
-    const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc();    
+    const options = {method_name: 'peer'};
+    const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(options);    
+    console.log("DID Document:", myDidDoc.service[0])
     
     // Save created did document in the wallet
     await indy.didDoc.addLocalDidDocument(myDidDoc);
@@ -142,7 +146,7 @@ exports.createAndSendResponse = async (connectionId) => {
     const connectionResponse = messages.createConnectionResponseMessage(
         connection.threadId,
         connection.myDid,
-        await indy.didDoc.getLocalDidDocument(connection.myDid)
+        await indy.did.resolveDid(connection.myDid)
     );
     const signedConnectionResponse = await indy.wallet.sign(
         connectionResponse, 
@@ -170,11 +174,10 @@ exports.createAndSendResponse = async (connectionId) => {
 
 exports.createAndSendAck = async (connectionId) => {
     let connection = await this.getConnection(connectionId);
-
+    console.log(connection)
     if(connection.state != ConnectionState.Responded){
         throw new Error(`Invalid state trasition.`)
     }
-
     const connectionAck = messages.createAckMessage(connection.threadId);
 
     const [message, endpoint] = await indy.messages.prepareMessage(connectionAck, connection);
@@ -191,26 +194,82 @@ exports.createAndSendAck = async (connectionId) => {
     return connection;
 }
 
-
-exports.createConnection = async (initiator, threadId, state=null) => {
+exports.createPeerDidConnection = async (initiator, threadId, state=null) => {
     if(!state) {
-        state = ConnectionState.Null;
+        state = ConnectionState.Init;
     }
-    // option: { method_name: 'sov' }
-    const [did, verkey, didDoc] = await indy.didDoc.createDidAndDidDoc({});
-    await indy.didDoc.addLocalDidDocument(didDoc);
+    const [did, verkey, didDoc] = await this.getDidAndDocument(false);
+    
     return {
         connectionId: uuid(),
         myDid: did,
         myVerkey: verkey,
         state: state,
         initiator: initiator,
-        threadId, threadId
+        threadId: threadId
     }
+}
+
+
+exports.createPublicDidConnection = async (did, initiator, threadId, state=null) => {
+    if(!state) {
+        state = ConnectionState.Init;
+    }
+    const [myDid, myVerkey, myDidDoc] = await this.getDidAndDocument(true, did);
+
+    return {
+        connectionId: uuid(),
+        myDid: myDid,
+        myVerkey: myVerkey,
+        state: state,
+        initiator: initiator,
+        threadId: threadId
+    }
+}
+
+
+exports.getDidAndDocument = async (isPublic, myDid=null) => {
+    let myVerkey = null;
+    let myDidDoc = {};
+
+    if(isPublic) {
+        if(!myDid){
+            console.log('No did provided');
+            myDid = await indy.did.getEndpointDid();
+        }
+        // Get agent service recipient key and did document to create a public invitation
+        myDidDoc = await indy.did.resolveDid(myDid);
+        console.log(myDidDoc);
+        // Look for one agent service recipient key in the did document
+        if(!myDidDoc) {
+            throw new Error('No document found for the provided did')
+        }
+        if(!myDidDoc.service || myDidDoc.service.length == 0) {
+            throw new Error('No agent service provided')
+        }
+        for(let service of myDidDoc.service){
+            if(service.type == "agent" && service.recipientKeys && service.recipientKeys.length > 0){
+                myVerkey = service.recipientKeys[0];
+                break;
+            }
+        }
+        if(myVerkey === null) {
+            throw new Error('No agent service recipient keys provided')
+        }
+      } else {
+        // Create local did and did document
+        const options = {method_name: 'peer'};
+        [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(options);
+    
+        // Save created did document in the wallet
+        await indy.didDoc.addLocalDidDocument(myDidDoc);
+      }
+      return [myDid, myVerkey, myDidDoc];
 }
 
 const createInvitationDetails = (myDidDoc) => {
     return {
+        did: myDidDoc.id,
         recipientKeys: myDidDoc.service[0].recipientKeys,
         serviceEndpoint: myDidDoc.service[0].serviceEndpoint,
         routingKeys: myDidDoc.service[0].routingKeys,
@@ -218,14 +277,24 @@ const createInvitationDetails = (myDidDoc) => {
 }
 
 exports.validateSenderKey = async (theirDid, senderKey) => { 
-    // TODO: < Get did document here instead of saving it in the connection record >
     const theirDidDoc = await indy.did.resolveDid(theirDid);
-
-    const theirKey = theirDidDoc.service[0].recipientKeys[0];
-    if (theirKey !== senderKey) {
+    const theirKeys = theirDidDoc.service[0].recipientKeys;
+    if (theirKeys.indexOf(senderKey) == -1) {
         throw new Error(
-            `Inbound message 'sender_key' ${senderKey} is different from connection.theirKey ${theirKey}`
+            `Inbound message 'sender_key' ${senderKey} is different from theirKey ${theirKey}`
         );
+    }
+}
+
+const validateInvitationKeys = async (did, recipientKeys) => {
+    const didDoc = await indy.did.resolveDid(did);
+    const servicekeys = didDoc.service[0].recipientKeys;
+    for (let key of recipientKeys) {
+        if (servicekeys.indexOf(key) == -1) {
+            throw new Error(
+                `Inbound message invitation key ${key} is not in agent service recipient keys.`
+            );
+        }
     }
 }
 

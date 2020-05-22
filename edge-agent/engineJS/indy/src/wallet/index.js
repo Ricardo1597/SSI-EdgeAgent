@@ -20,10 +20,11 @@ exports.setup = async function (walletName, password) {
             {id: walletName},
             {key: password}
         );
-    } catch (e) {
-        if (e.message !== 'WalletAlreadyExistsError') {
-            console.warn('create wallet failed with message: ' + e.message);
-            throw e;
+    } catch (error) {
+        // Code 203 = "WalletAlreadyExistsError"
+        if (error.indyCode !== 203) {
+            console.warn('create wallet failed with message: ' + error.message);
+            throw error;
         }
     } finally {
         console.info('wallet already exist, try to open wallet');
@@ -35,10 +36,16 @@ exports.open = async function (walletName, password) {
         {id: walletName},
         {key: password}
     );
+    // Try to create a master secret. If it already exists, we will use it.
     try {
         masterSecretId = await sdk.proverCreateMasterSecret(walletHandle, walletName);
-    } catch (e) {
-        masterSecretId = walletName;
+    } catch (error) {
+        // Code 404 = "AnoncredsMasterSecretDuplicateNameError"
+        if(error.indyCode == 404) {
+            masterSecretId = walletName;
+        } else {
+            throw error;
+        }
     }
 };
 
@@ -88,6 +95,13 @@ exports.sign = async (message, attribute, verkey) => {
     }
 
     return await indy.crypto.sign(walletHandle, message, attribute, verkey);
+}
+
+exports.getDidVerkey = async (did) => {
+    if (!walletHandle) {
+        throw new Error(`Wallet has not been initialized yet`);
+    }
+    return await sdk.keyForLocalDid(walletHandle, did);
 }
 
 

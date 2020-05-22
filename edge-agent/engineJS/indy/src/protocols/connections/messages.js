@@ -14,6 +14,7 @@ exports.createInvitationMessage = (invitationDetails) => {
   return {
     '@type': MessageType.ConnectionInvitation,
     '@id': uuid(),
+    did: invitationDetails.did,
     recipientKeys: invitationDetails.recipientKeys,
     serviceEndpoint: invitationDetails.serviceEndpoint,
     routingKeys: invitationDetails.routingKeys,
