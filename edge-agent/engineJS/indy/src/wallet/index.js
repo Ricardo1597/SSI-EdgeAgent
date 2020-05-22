@@ -20,7 +20,7 @@ exports.setup = async function (walletName, password) {
             {id: walletName},
             {key: password}
         );
-    } catch (error) {
+    } catch (error) { 
         // Code 203 = "WalletAlreadyExistsError"
         if (error.indyCode !== 203) {
             console.warn('create wallet failed with message: ' + error.message);
