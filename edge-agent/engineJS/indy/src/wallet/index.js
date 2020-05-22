@@ -20,18 +20,18 @@ exports.setup = async function (walletName, password) {
             {id: walletName},
             {key: password}
         );
-    } catch (error) {
+    } catch (error) { 
         // Code 203 = "WalletAlreadyExistsError"
         if (error.indyCode !== 203) {
             console.warn('create wallet failed with message: ' + error.message);
             throw error;
         }
-    } finally {
+    } finally { 
         console.info('wallet already exist, try to open wallet');
     }
 };
 
-exports.open = async function (walletName, password) {
+exports.open = async function (walletName, password) { 
     walletHandle = await sdk.openWallet(
         {id: walletName},
         {key: password}
