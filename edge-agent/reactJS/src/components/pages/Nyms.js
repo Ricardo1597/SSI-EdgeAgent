@@ -11,10 +11,12 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 
+import config from '../../config'
 import axios from 'axios'
+import { connect } from 'react-redux';
 
 
-export class Nyms extends Component {
+class Nyms extends Component {
     state = {
         dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
         did: '',
@@ -33,9 +35,9 @@ export class Nyms extends Component {
 
     onSubmit = e => {
         e.preventDefault()
-        const jwt = localStorage.getItem('my-jwt')
+        const jwt = this.props.accessToken;
 
-        axios.post('/api/sendNym', {
+        axios.post(`${config.endpoint}/api/sendNym`, {
             did: this.state.did, 
             newDid: this.state.newDid,
             newVerKey: this.state.newVerKey,
@@ -60,9 +62,9 @@ export class Nyms extends Component {
 
     onSubmit2 = e => {
         e.preventDefault()
-        const jwt = localStorage.getItem('my-jwt')
+        const jwt = this.props.accessToken;
 
-        axios.get('/api/getNym', {
+        axios.get(`${config.endpoint}/api/getNym`, {
             params: {
               did: this.state.didNym
             },
@@ -263,4 +265,10 @@ const useStyles = theme => ({
 
 
   
-export default withStyles(useStyles)(Nyms)
+const mapStateToProps = (state) => {
+    return {
+        accessToken: state.accessToken
+    }
+}
+  
+export default connect(mapStateToProps)(withStyles(useStyles)(Nyms))

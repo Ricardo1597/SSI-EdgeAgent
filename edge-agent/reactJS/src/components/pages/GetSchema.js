@@ -5,18 +5,20 @@ import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Card from '@material-ui/core/Card';
 
+import config from '../../config'
 import axios from 'axios';
+import { connect } from 'react-redux';
 
 
-export default function GetSchema() {
+function GetSchema() {
     const [schemaId, setSchemaId] = useState("");
     const [schema, setSchema] = useState(null);
   
     const onSubmit = (e) => {
       e.preventDefault();
-      const jwt = localStorage.getItem('my-jwt')
+      const jwt = this.props.accessToken;
 
-      axios.get('/api/getSchema', {
+      axios.get(`${config.endpoint}/api/getSchema`, {
         params: {
           schemaId
         },
@@ -38,7 +40,6 @@ export default function GetSchema() {
     }
 
     const renderSchema = () => {
-        console.log(schema)
         if(schema) {
 
             return (
@@ -63,9 +64,10 @@ export default function GetSchema() {
 
             <div style={styles.form}>
                 <h3>Get a Schema</h3>
-                <form  onSubmit={onSubmit}>
+                <form onSubmit={onSubmit}>
                     <Grid container spacing={1}>
                         <TextField 
+                            required
                             variant="outlined"
                             margin="normal"
                             type="text"
@@ -121,3 +123,12 @@ const styles = {
         margin: 20
     }
 }
+
+
+const mapStateToProps = (state) => {
+    return {
+        accessToken: state.accessToken
+    }
+}
+  
+export default connect(mapStateToProps)(GetSchema)

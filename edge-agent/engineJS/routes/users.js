@@ -4,6 +4,7 @@ var jwt = require('jsonwebtoken')
 const passport = require('passport');
 const sdk = require('indy-sdk');
 const indy = require('../indy/index.js');
+require('dotenv/config')
 
 const UserModel = require('../models/users')
 
@@ -14,18 +15,18 @@ router.get('/checkToken', passport.authenticate('jwt', {session: false}), (req, 
   res.sendStatus(200);
 });
 
-
-/* GET users listing. */
-router.get('/register', checkNotAuthenticated, (req, res) => {
-  res.send('register page')
+/* Check user token */
+router.post('/refreshToken', passport.authenticate('refresh', {session: false}), async (req, res) => {
+  // If it has passed the middleware, the cookie refresh token is valid
+  console.log("cheguei")
+  const newAccessToken = jwt.sign(
+    { user : req.user }, 
+    process.env.ACCESS_TOKEN_SECRET, 
+    {expiresIn: '15m'}
+  );
+  
+  res.status(200).send({ok: true, accessToken: newAccessToken});
 });
-
-
-/* GET users listing. */
-router.get('/login', checkNotAuthenticated, (req, res) => {
-  res.send('login page')
-});
-
 
 
 // REGISTER
@@ -41,7 +42,20 @@ router.post('/register', checkNotAuthenticated, async (req, res) => {
   if(password !== password2) 
     res.status(400).send('Passwords do not match')
 
+  try {
+    await indy.wallet.setup(username+'_wallet', password);
+    console.log('wallet created')
 
+    return res.sendStatus(200)
+
+  } catch(error) {
+    if(error.indyCode === 203) {
+      return res.status(400).send("Account already exists. Please try signing in.")
+    }
+    console.log(error);
+    return res.status(400).send("Error while registering:" + error);
+  }
+  /*
   // Check if the user is already in the database
   const userExist = await UserModel.findOne({username: username});
   if(userExist) 
@@ -58,22 +72,16 @@ router.post('/register', checkNotAuthenticated, async (req, res) => {
   user.save()
     .then(async (user) => {
       console.log('user criado')
-
-      // Create wallet
-      await indy.wallet.setup(username+'_wallet', password);
-      console.log('wallet created')
-
-      return res.status(200).send({user: user})
     })
     .catch(err => {
       console.log(err);
       return res.status(400).send("Error while registering:" + err);
     })
+  */
 });
 
 
 router.post('/login', checkNotAuthenticated, (req,res,next) => {
-  const { username, password } = req.body
   passport.authenticate('login', async (err, user, info) => {  
     try {
       if(err || !user){
@@ -81,20 +89,25 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
               return next(err);
             }
             else{
-              return next(new Error('Invalid credentials'))
+              res.status(401).send({message: 'Invalid credentials'});
+              //return next(new Error('Invalid credentials'))
             }               
         }
 
         req.login(user, { session : false }, async (error) => {
             if( error ) return next(error)
-            var myuser = { id : user._id, username : user.username };
-            console.log(myuser)
-            // Geração do token
-            var token = jwt.sign({ user : myuser },'ssi2020');
 
-            // open wallet
-            await indy.wallet.open(username+'_wallet', password);
-            console.log('wallet open')
+            // Geração dos tokens (access and refresh)
+            var accessToken = jwt.sign(
+              { user : user }, 
+              process.env.ACCESS_TOKEN_SECRET, 
+              {expiresIn: '15s'}
+            );
+            var refreshToken = jwt.sign(
+              { user : user }, 
+              process.env.REFRESH_TOKEN_SECRET, 
+              {expiresIn: '7d'}
+            );
 
             let dids = await sdk.listMyDidsWithMeta(await indy.wallet.get());
             
@@ -102,23 +115,22 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
               let getDidResponse = await indy.ledger.getNym(did.did);
               let didInfo = JSON.parse(getDidResponse.result.data) 
           
-              console.log(didInfo)
-          
               did.role = (didInfo ? didInfo.role : "no role");
           
               return did;
             }))  
           
-
-            res.cookie('token', token, { httpOnly: true }).status(200).send({token: token, dids: dids});
+            res.cookie('refreshToken', refreshToken, { 
+              httpOnly: true,
+              path: "/users/refreshToken"
+            }).status(200).send({accessToken: accessToken, dids: dids});
         });     
     } 
     catch (error) {
         return next(error);
     }
   }) (req, res, next);
-
-  });
+});
 
 // LOGOUT
 router.post('/logout', async (req,res) => {
@@ -126,9 +138,13 @@ router.post('/logout', async (req,res) => {
   console.log('wallet closed')
 
   req.logout();
-  req.session.token = null
 
-  return res.status(200).send()
+  // Clear cookie (refresh token)
+  return res.cookie(
+    'refreshToken', 
+    "",
+    { httpOnly: true }
+  ).status(200).send()
 })
 
 
@@ -140,8 +156,8 @@ function checkNotAuthenticated(req, res, next) {
   if(!token) return next();
   else{
     try {
-      jwt.verify(token, 'ssi2020');
-      res.redirect('/dashboard');
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      res.redirect('/');
     } catch (err) {
       return next();
     }

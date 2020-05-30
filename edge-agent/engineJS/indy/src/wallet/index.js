@@ -6,10 +6,10 @@ let walletHandle;
 let masterSecretId;
 
 exports.get = async function() {
-    if (!walletHandle) {
-        throw Error('Wallet has not been initialized yet');
-    }
-    return walletHandle;
+    // if (!walletHandle) {
+    //     throw Error('Wallet has not been initialized yet');
+    // }
+    return walletHandle || null;
 };
 
 exports.setup = async function (walletName, password) {
@@ -47,11 +47,13 @@ exports.open = async function (walletName, password) {
             throw error;
         }
     }
+    return walletHandle;
 };
 
 
 exports.close = async function () {
     await sdk.closeWallet(walletHandle);
+    walletHandle = null;
 };
 
 exports.delete = async (username, password) => {
@@ -131,7 +133,7 @@ exports.getCredentials = async () => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
     }
-    return await sdk.proverGetCredentials(walletHandle);
+    return await sdk.proverGetCredentials(walletHandle, {});
 }
 
 exports.storeCredential = async (credId, credReqMetadata, cred, credDef, revRegDef) => {

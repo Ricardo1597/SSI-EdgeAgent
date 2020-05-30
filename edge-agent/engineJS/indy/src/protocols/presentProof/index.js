@@ -461,7 +461,7 @@ exports.getPresentationExchangeRecord = async (id) => {
         if(error.indyCode && error.indyCode === 212){
             console.log("Unable to get presentation exchange record. Wallet item not found.");
         }
-        throw error;
+        return null;
     }
 }
 
@@ -472,8 +472,10 @@ exports.searchPresentationExchangeRecord = async (query) => {
         {}
     );
         
-    if(records.length < 1)
-        throw new Error(`Presentation exchange record not found!`);
+    if(records.length < 1) {
+        console.log("Unable to get presentation exchange record. Wallet item not found.");
+        return null;
+    }
 
     return records[0];
 }
@@ -494,7 +496,7 @@ exports.addPresentationExchangeRecord = async (id, value, tags={}) => {
         if(error.indyCode && error.indyCode === 213){
             console.log("Unable to add presentation exchange record. Wallet item already exists.");
         }
-        throw error;
+        //throw error;
     }
 }
 

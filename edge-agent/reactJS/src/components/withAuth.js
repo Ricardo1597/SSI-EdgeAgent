@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
-import Axios from 'axios';
+import config from '../config'
+import axios from 'axios';
 
 
-export default function withAuth(ComponentToProtect, ...rest) {
+function withAuth(ComponentToProtect, accessToken, updateAccessToken, ...rest) {
 
   return class extends Component {
     constructor() {
@@ -17,22 +18,22 @@ export default function withAuth(ComponentToProtect, ...rest) {
 
     componentDidMount() {
 
-      const jwt = localStorage.getItem('my-jwt')
+      const jwt = accessToken;
       if(!jwt) {
         this.setState({ loading: false, redirect: true });
       } else {
-        Axios.get('users/checkToken', { headers: { Authorization: `Bearer ${jwt}`}})
+        axios.get(`${config.endpoint}/users/checkToken`, { 
+          headers: { Authorization: `Bearer ${jwt}`}
+        })
         .then(res => {
           if (res.status === 200) {
             this.setState({ loading: false });
-          } else {
-            const error = new Error(res.error);
-            throw error;
-          }
+          } 
         })
         .catch(err => {
-          console.error(err);
+          console.error("aqui 2: ", err);
           this.setState({ loading: false, redirect: true });
+          updateAccessToken("");
         });
       }
     }
@@ -50,3 +51,6 @@ export default function withAuth(ComponentToProtect, ...rest) {
     }
   }
 }
+
+
+export default withAuth

@@ -11,20 +11,23 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import { connect } from 'react-redux';
 
 
 import axios from 'axios';
+import config from '../../config'
 
 
-export default function Dashboard() {
+function Dashboard() {
     const [seed, setSeed] = useState("");
     const [dids, setDIDs] = useState(JSON.parse(localStorage.getItem('dids')))
   
     const onSubmit = (e) => {
       e.preventDefault();
-      const jwt = localStorage.getItem('my-jwt')
+      const jwt = this.props.accessToken
 
-      axios.post('/api/createDID', {
+      axios.defaults.withCredentials = true;
+      axios.post(`${config.endpoint}/api/createDID`, {
         seed
       }, { 
         headers: { Authorization: `Bearer ${jwt}`} 
@@ -46,12 +49,12 @@ export default function Dashboard() {
 
     const getRole = (role) => {
         switch(role){
-            case "no role": return "Not in use"
             case null: return "Common user";
             case "0": return "Trustee user";
             case "2": return "Steward user";
             case "101": return "Trust anchor user";
             case "201": return "Network monitor user";
+            default: return "peer did";
         }
     }
 
@@ -156,3 +159,11 @@ const styles = {
         margin: 30,
     }
 }
+
+const mapStateToProps = (state) => {
+  return {
+      accessToken: state.accessToken
+  }
+}
+
+export default connect(mapStateToProps)(Dashboard)

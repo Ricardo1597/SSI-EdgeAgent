@@ -3,7 +3,8 @@
 const config = {
 
     // IP Address of the running ledger
-    testPoolIp: process.env.TEST_POOL_IP || '192.168.1.8',
+    // testPoolIp: process.env.TEST_POOL_IP || '192.168.1.8',
+    testPoolIp: process.env.TEST_POOL_IP || '172.17.0.1',
 
     // the port to run the agent server admin API on
     adminPort: process.env.ADMIN_PORT || 5000, 

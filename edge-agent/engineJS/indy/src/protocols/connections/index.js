@@ -309,7 +309,7 @@ exports.getConnection = async (connectionId) => {
         if(error.indyCode && error.indyCode === 212){
             console.log("Unable to get connection record. Wallet item not found.");
         }
-        throw error;
+        return null;
     }
 }
 
@@ -320,8 +320,10 @@ exports.searchConnection = async (query) => {
         {}
     );
 
-    if(connections.length < 1)
-        throw new Error(`Connection not found!`);
+    if(connections.length < 1){
+        console.log("Unable to get connection record. Wallet item not found.");
+        return null;
+    }
 
     return connections[0];
 }
@@ -346,7 +348,7 @@ exports.addConnection = async (id, value, tags={}) => {
         if(error.indyCode && error.indyCode === 213){
             console.log("Unable to add connection record. Wallet item already exists.");
         }
-        throw error;
+        // throw error;
     }
 }
 

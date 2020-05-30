@@ -12,7 +12,7 @@ router.post('/createDid', passport.authenticate('jwt', {session: false}), async 
   const { seed } = req.body;
 
   options = {};
-  options.method_name= 'mybc'; // to create did:sov:<identifier>
+  options.method_name = 'mybc'; // to create did:mybc:<identifier>
   if(seed !== '') options.seed= seed; // to create from seed
 
   let [newDid, newVerKey] = await indy.did.createDid(options);
@@ -134,6 +134,14 @@ router.post('/accept_invitation', passport.authenticate('jwt', {session: false})
 
 // Accept connection request
 router.post('/accept_request', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  const connection = await indy.connections.createAndSendResponse(req.body.id);
+
+  res.status(200).send(connection)
+});
+
+
+// Accept connection response
+router.post('/accept_response', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const connection = await indy.connections.createAndSendResponse(req.body.id);
 
   res.status(200).send(connection)

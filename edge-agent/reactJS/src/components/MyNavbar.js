@@ -4,18 +4,23 @@ import '../App.css'
 import axios from 'axios'
 
 import Navbar from 'react-bootstrap/Navbar'
+import config from '../config'
 import { Nav } from 'react-bootstrap'
+import { connect } from 'react-redux';
 
 class MyNavbar extends React.Component {
 
 
-  logout() {
+  logout = () => {
 
-    const jwt = localStorage.getItem('my-jwt')
+    const jwt = this.props.accessToken;
 
-    axios.post('/users/logout', { headers: { Authorization: `Bearer ${jwt}`} })
+    axios.post(`${config.endpoint}/users/logout`, { 
+      headers: { Authorization: `Bearer ${jwt}`} 
+    })
     .then( e => {
       localStorage.clear();
+      this.props.updateAccessToken("");
       this.props.history.push('/login')
     })
     .catch(err => {
@@ -24,30 +29,33 @@ class MyNavbar extends React.Component {
     
   }
 
-  showSchemaOps() {
-    return (JSON.parse(localStorage.getItem('dids')).filter(did => (did.role !== null) && (did.role !== "no role")).length > 0) ? true : false
+  showSchemaOps = () => {
+    const dids = JSON.parse(localStorage.getItem('dids'));
+    return (dids && dids.filter(did => (did.role !== null) && (did.role !== "no role")).length > 0) ? true : false
   }
 
 
   render() {    
-    return( (localStorage.getItem('my-jwt') === null) ? '' :
+    console.log("access token: ", this.props.accessToken)
+    // Validate token in the server
+    return( (this.props.accessToken === "") ? '' :
       <Navbar style={styles.navStyle} bg="dark" variant="dark">
-        <Navbar.Brand style={styles.navHome} href="/dashboard">SelfSov</Navbar.Brand>
+        <Link style={styles.navHome} to="/">SelfSov</Link>
         <Nav className="mr-auto">
-          <Nav.Link style={styles.navLinkStyle} href="/credentials">Credentials</Nav.Link>
-          <Nav.Link style={styles.navLinkStyle} href="/relationships">Relationships</Nav.Link>
-          <Nav.Link style={styles.navLinkStyle} href="/getSchema">Get Schema</Nav.Link>
-          { (this.showSchemaOps()) ? (
-            <Nav.Link style={styles.navLinkStyle} href="/createSchema">Create Schema</Nav.Link>
+          <Link to="/credentials" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Credentials</Link>
+          <Link to="/connections" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Connections</Link>
+          <Link to="/getSchema" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Get Schema</Link>
+          { (this.showSchemaOps) ? (
+            <Link to="/createSchema" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Create Schema</Link>
           ) : null
           }
-          { (this.showSchemaOps()) ? (
-            <Nav.Link style={styles.navLinkStyle} href="/nyms">Nyms</Nav.Link>
+          { (this.showSchemaOps) ? (
+            <Link to="/nyms" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Nyms</Link>
           ) : null
           }
         </Nav>
         <Nav style={styles.logout}>
-          <Nav.Link onClick={() => {this.logout()}}>Logout</Nav.Link>
+          <Link to="/" style={styles.navLinkStyle} onClick={this.logout}>Logout</Link>
         </Nav>
       </Navbar>
     );
@@ -64,17 +72,39 @@ const styles = {
   navHome: {
     marginTop: -2,
     marginRight: 30,
-    marginLeft: 20
+    marginLeft: 20,
+    fontSize: 22,
+    textDecoration: 'none',
+    color: 'white'
+  },
+  navLinkMargins: {
+    marginRight: 25,
+    marginLeft: 25
   },
   navLinkStyle: {
-    marginRight: 20,
-    marginLeft: 20
+    textDecoration: 'none',
+    color: 'white'
   },
   logout: {
     marginLeft: 'auto',
-    marginRight: 40
+    marginRight: 40,
+    textDecoration: 'none',
+    color: 'white'
   }
 }
 
 
-export default withRouter(MyNavbar) 
+
+const mapStateToProps = (state) => {
+  return {
+      accessToken: state.accessToken
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    updateAccessToken: (token) =>  { dispatch({type: 'UPDATE_ACCESSTOKEN', token: token}) },
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(MyNavbar))

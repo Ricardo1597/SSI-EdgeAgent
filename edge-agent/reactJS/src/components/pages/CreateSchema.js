@@ -10,8 +10,11 @@ import Container from '@material-ui/core/Container';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import { connect } from 'react-redux';
 
 import axios from 'axios'
+import config from '../../config'
+
 
 class CreateSchema extends Component {
     state = {
@@ -40,9 +43,9 @@ class CreateSchema extends Component {
 
     onSubmit = e => {
         e.preventDefault()
-        const jwt = localStorage.getItem('my-jwt')
+        const jwt = this.props.accessToken;
 
-        axios.post('/api/createSchema', {
+        axios.post(`${config.endpoint}/api/createSchema`, {
             name: this.state.name, 
             version: this.state.version,
             attributes: this.state.attributes,
@@ -53,7 +56,6 @@ class CreateSchema extends Component {
         .then(res => {
             if (res.status === 200) {
                 console.log(res)
-                //localStorage.setItem('dids', JSON.stringify(res.data.dids))
             } else {
                 const error = new Error(res.error);
                 throw error;
@@ -68,9 +70,9 @@ class CreateSchema extends Component {
 
     onSubmit2 = e => {
         e.preventDefault()
-        const jwt = localStorage.getItem('my-jwt')
+        const jwt = this.props.accessToken;
 
-        axios.post('/api/createCredDef', {
+        axios.post(`${config.endpoint}/api/createCredDef`, {
             did: this.state.didCredDef,
             schemaId: this.state.schemaId
 
@@ -103,7 +105,7 @@ class CreateSchema extends Component {
         const { classes } = this.props;
 
         let value = JSON.stringify(this.state.attributes).replace(/"/g, '\'').replace(/,/g, ", ");
-
+        
         return (
             <Grid container component="main">
                 <CssBaseline />
@@ -132,7 +134,6 @@ class CreateSchema extends Component {
                                             {this.state.dids.map(did => {
                                                 return (<option key={did} value={did}>{did}</option>)
                                             })}
-                                        >
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -324,5 +325,11 @@ const useStyles = theme => ({
 });
 
 
+
+const mapStateToProps = (state) => {
+    return {
+        accessToken: state.accessToken
+    }
+}
   
-export default withStyles(useStyles)(CreateSchema)
+export default connect(mapStateToProps)(withStyles(useStyles)(CreateSchema))

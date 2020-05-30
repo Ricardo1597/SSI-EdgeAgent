@@ -9,6 +9,7 @@ const flash = require('connect-flash')
 const uuid = require('uuid/v4')
 const session = require('express-session')
 const FileStore = require('session-file-store') (session)
+const cors = require('cors')
 
 require('./authentication/passport')
 
@@ -57,6 +58,14 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Allow fetch from localhost
+app.use(
+    cors({
+      credentials: true,
+      origin: ["http://localhost:3000","http://localhost:3001"],
+      default: "http://localhost:3000"
+    })
+  );
 
 // Global Vars
 app.use((req, res, next) => {

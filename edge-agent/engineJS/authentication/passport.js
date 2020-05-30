@@ -6,15 +6,29 @@
 var passport = require('passport')
 var localStrategy = require('passport-local').Strategy
 var UserModel = require('../models/users')
-
+const indy = require('../indy/index')
+require('dotenv/config')
 
 // LOGIN
 passport.use('login', new localStrategy({
     usernameField: 'username',
     passwordField: 'password'
 }, async (username, password, done) => {
-    console.log(username)
-    console.log(password)
+    try {            
+        // Try to open wallet
+        const walletHandle = await indy.wallet.open(username+'_wallet', password);
+        console.log('wallet open');
+        return done(null, {walletHandle: walletHandle, username: username}, {message: 'you are now logged in.'});
+    } catch(error) {
+        if(error.indyCode === 206){ // WalletAlreadyOpenedError
+            return done(null, {walletHandle: await indy.wallet.get(), username: username}, {message: 'you are now logged in.'});
+        } 
+        if(error.indyCode === 207){
+            return done(null, false, {message: 'Invalid credentials.'});
+        } 
+        return done(error);
+    }
+    /*
     UserModel.findOne({username: username})
         .then(user => {
             if(!user) 
@@ -31,7 +45,9 @@ passport.use('login', new localStrategy({
             .catch(error => done(error));
         })
         .catch(error => done(error));
+    */
 }))
+
 
 
 // JWT Authentication
@@ -39,35 +55,47 @@ var JWTStrategy = require('passport-jwt').Strategy
 var ExtractJWT = require('passport-jwt').ExtractJwt
 
 passport.use('jwt', new JWTStrategy({
-    secretOrKey : "ssi2020",
+    secretOrKey : process.env.ACCESS_TOKEN_SECRET,
     jwtFromRequest : ExtractJWT.fromAuthHeaderAsBearerToken()
-    }, (jwt_payload, done) => {
-        UserModel.findOne({id: jwt_payload.sub}, (err, user) => {
-            if (err) {
-                return done(err, false);
-            }
-            if (user) {
-                return done(null, user);
-            } else {
-                return done(null, false);
-                // or you could create a new account
-            }
-        });
+}, async (jwt_payload, done) => {      
+    if(!jwt_payload.user) {
+        return done(null, false);
+    }
+    const { walletHandle } = jwt_payload.user;
+    if (walletHandle && walletHandle == await indy.wallet.get()) {
+        console.log("tudo ok!")
+        return done(null, jwt_payload.user);
+    } else {
+        console.log("tudo não ok!")
+        return done(null, false);
+    }
 }));
 
 
 
+// Validate refresh jwt token to create a new jwt access token
+const cookieExtractor = (req) => {
+    var token = null;
+    if (req && req.cookies) {
+        token = req.cookies['refreshToken'];
+    } else {
+        console.log('no cookie found');
+    }
+    return token;
+};
 
-
-
-passport.serializeUser((user, done) => {
-    done(null, user.id);
-});
-  
-
-passport.deserializeUser((id, done) => {
-    UserModel.findById(id, (err, user) => {
-        done(err, user);
-    });
-});
-
+passport.use('refresh', new JWTStrategy({
+    secretOrKey : process.env.REFRESH_TOKEN_SECRET,
+    jwtFromRequest : cookieExtractor
+}, async (jwt_payload, done) => { 
+    console.log(jwt_payload)    
+    if(!jwt_payload.user) {
+        return done(null, false);
+    }
+    const { walletHandle } = jwt_payload.user;
+    if (walletHandle && walletHandle == await indy.wallet.get()) {
+        return done(null, jwt_payload.user);
+    } else {
+        return done(null, false);
+    }
+}));

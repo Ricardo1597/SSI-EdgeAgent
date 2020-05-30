@@ -1,5 +1,11 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { 
+  BrowserRouter as Router, 
+  Switch, 
+  Route, 
+  //Redirect 
+} from 'react-router-dom';
+
 
 
 // Components
@@ -9,81 +15,99 @@ import Nyms from './components/pages/Nyms'
 import CreateSchemas from './components/pages/CreateSchema'
 import GetSchemas from './components/pages/GetSchema'
 import Dashboard from './components/pages/Dashboard'
-import Relationships from './components/pages/Relationships';
+import Connections from './components/pages/Connections';
 import Login from './components/pages/SignIn';
 import Register from './components/pages/SignUp';
 
 import withAuth from './components/withAuth'
+import axios from 'axios';
+import config from './config'
+import { connect } from 'react-redux';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 class App extends Component {
   state = {
-    credentials: [
-      {
-        id: 1,
-        name: 'car_license',
-        issuer: 'IMT',
-        validity: new Date(2020, 10, 4)
-      },
-      {
-        id: 2,
-        name: 'id_card',
-        issuer: 'government',
-        validity: new Date(2024, 7, 25)
-      },
-      {
-        id: 3,
-        name: 'job_card',
-        issuer: 'xpto',
-        validity: new Date(2020, 3, 22)
-      },
-      {
-        id: 4,
-        name: 'car_license',
-        issuer: 'IMT',
-        validity: new Date(2020, 10, 4)
-      },
-      {
-        id: 5,
-        name: 'id_card',
-        issuer: 'government',
-        validity: new Date(2024, 7, 25)
-      },
-      {
-        id: 6,
-        name: 'job_card',
-        issuer: 'xpto',
-        validity: new Date(2020, 3, 22)
-      }
-    ],
-    isOpen: false
+    loading: true
   }
 
-  toggleCollapse = () => {
-    this.setState({ isOpen: !this.state.isOpen });
-  }
+  componentDidMount() {
+    axios.post(`${config.endpoint}/users/refreshToken`, {}, {
+      withCredentials: true,
+    })
+    .then(res => {
+        this.props.updateAccessToken(res.data.accessToken);
+        this.setState({ loading: false })
+    })
+    .catch(err => {
+      this.props.updateAccessToken("");
+      console.error(err);
+      this.setState({ loading: false })
+    });
+  };
   
+  // componentWillUnmount() {
+  //   localStorage.clear() 
+  // };
+
+  protectRoute = (component) => {
+    return withAuth(component, this.props.accessToken, this.props.updateAccessToken)
+  }
+
   render() {
-    
+    if(this.state.loading) {
+      return null;
+    }
+
+    // if(this.state.redirect) {       
+    //   return <Redirect to="/login" />;
+    // }
+
     return (
       <div>
         <Router>
           <Nav/>
           <Switch>
-            <Route path="/" exact component={Login}/>
-            <Route path="/login" exact component={Login}/>
-            <Route path="/register" exact component={Register}/>
-            <Route path="/dashboard" exact component={withAuth(Dashboard)}/>
-            <Route path="/credentials" component={withAuth(Credentials, {credentials: this.state.credentials})}/>
-            <Route path="/relationships" exact component={withAuth(Relationships)}/>
-            <Route path="/createSchema" exact component={withAuth(CreateSchemas)}/>
-            <Route path="/getSchema" exact component={withAuth(GetSchemas)}/>
-            <Route path="/nyms" exact component={withAuth(Nyms)}/>
+            <Route exact path="/" component={this.protectRoute(Dashboard)}/>
+            <Route exact path="/login" component={Login}/>
+            <Route exact path="/register" component={Register}/>
+            <Route exact path="/credentials" component={this.protectRoute(Credentials)}/>
+            <Route exact path="/connections" component={this.protectRoute(Connections)}/>
+            <Route exact path="/createSchema" component={this.protectRoute(CreateSchemas)}/>
+            <Route exact path="/getSchema" component={this.protectRoute(GetSchemas)}/>
+            <Route exact path="/nyms" component={this.protectRoute(Nyms)}/>
           </Switch>
         </Router>
       </div>
+      // <div>
+      //   <Router>
+      //     <Nav/>
+      //     <Switch>
+      //       <ProtectedRoute exact path="/" component={Dashboard}/>
+      //       <Route exact path="/login" component={Login}/>
+      //       <Route exact path="/register" component={Register}/>
+      //       <ProtectedRoute exact path="/credentials" component={Credentials}/>
+      //       <ProtectedRoute exact path="/connections" component={Connections}/>
+      //       <ProtectedRoute exact path="/createSchema" component={CreateSchemas}/>
+      //       <ProtectedRoute exact path="/getSchema" component={GetSchemas}/>
+      //       <ProtectedRoute exact path="/nyms" component={Nyms}/>
+      //     </Switch>
+      //   </Router>
+      // </div>
     );
   }
 }
 
-export default App;
+const mapDispatchToProps = (dispatch) => {
+  return {
+    updateAccessToken: (token) =>  { dispatch({type: 'UPDATE_ACCESSTOKEN', token: token}) },
+  }
+}
+
+const mapStateToProps = (state) => {
+  return {
+      accessToken: state.accessToken
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
