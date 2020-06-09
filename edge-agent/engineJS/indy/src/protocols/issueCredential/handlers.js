@@ -18,7 +18,8 @@ exports.proposalHandler = async (decryptedMessage) => {
         message,
         generalTypes.Initiator.External, 
         generalTypes.Roles.Issuer, 
-        credentialsIndex.CredentialExchangeState.ProposalReceived
+        credentialsIndex.CredentialExchangeState.ProposalReceived,
+        message['@id']
     );
 
     await credentialsIndex.addCredentialExchangeRecord(
@@ -56,7 +57,6 @@ exports.offerHandler = async (decryptedMessage) => {
             credOffer["schema_id"],
             message.credential_preview,
             credOffer["cred_def_id"],
-            null,
             message['~thread']['thid']
         );
     } 
@@ -68,6 +68,9 @@ exports.offerHandler = async (decryptedMessage) => {
         credentialExchangeRecord = await credentialsIndex.searchCredentialExchangeRecord(
             {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
         );
+        if(!credentialExchangeRecord) {
+            throw new Error ('Record not found.')
+        }
         if( credentialExchangeRecord.state != credentialsIndex.CredentialExchangeState.ProposalSent) {
             throw new Error(`Invalid state trasition.`);
         }
@@ -80,7 +83,8 @@ exports.offerHandler = async (decryptedMessage) => {
             credentialProposalMessage,
             generalTypes.Initiator.External, 
             generalTypes.Roles.Holder, 
-            credentialsIndex.CredentialExchangeState.OfferReceived
+            credentialsIndex.CredentialExchangeState.OfferReceived,
+            message['~thread']['thid']
         );
     };
     credentialExchangeRecord.credentialOffer = credOffer;
@@ -148,7 +152,6 @@ exports.requestHandler = async (decryptedMessage) => {
 };
 
 exports.credentialHandler = async (decryptedMessage) => {
-    console.log("cheguei 10")
     const {message, recipient_verkey, sender_verkey} = decryptedMessage
 
     const connection = await indy.connections.searchConnection(

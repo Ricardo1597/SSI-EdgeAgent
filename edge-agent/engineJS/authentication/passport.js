@@ -63,10 +63,8 @@ passport.use('jwt', new JWTStrategy({
     }
     const { walletHandle } = jwt_payload.user;
     if (walletHandle && walletHandle == await indy.wallet.get()) {
-        console.log("tudo ok!")
         return done(null, jwt_payload.user);
     } else {
-        console.log("tudo não ok!")
         return done(null, false);
     }
 }));
@@ -79,7 +77,7 @@ const cookieExtractor = (req) => {
     if (req && req.cookies) {
         token = req.cookies['refreshToken'];
     } else {
-        console.log('no cookie found');
+        console.log('Cookie extractor: no cookie found');
     }
     return token;
 };
@@ -87,8 +85,7 @@ const cookieExtractor = (req) => {
 passport.use('refresh', new JWTStrategy({
     secretOrKey : process.env.REFRESH_TOKEN_SECRET,
     jwtFromRequest : cookieExtractor
-}, async (jwt_payload, done) => { 
-    console.log(jwt_payload)    
+}, async (jwt_payload, done) => {    
     if(!jwt_payload.user) {
         return done(null, false);
     }

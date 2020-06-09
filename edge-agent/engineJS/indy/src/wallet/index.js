@@ -13,8 +13,6 @@ exports.get = async function() {
 };
 
 exports.setup = async function (walletName, password) {
-    console.log("name: ", walletName)
-    console.log("password: ", password)
     try {
         await sdk.createWallet(
             {id: walletName},
@@ -167,11 +165,6 @@ exports.createPresentation = async (proofReq, requestedCredentials, schemas, cre
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
     }
-    console.log(proofReq)
-    console.log(requestedCredentials)
-    console.log(schemas)
-    console.log(credentialDefs)
-    console.log(revStates)
     try{
         return await sdk.proverCreateProof(walletHandle, proofReq, requestedCredentials, masterSecretId, schemas, credentialDefs, revStates);
     } catch (e) {

@@ -16,7 +16,6 @@ router.post('/createDid', passport.authenticate('jwt', {session: false}), async 
   if(seed !== '') options.seed= seed; // to create from seed
 
   let [newDid, newVerKey] = await indy.did.createDid(options);
-  console.log('DID created: ', newDid);
 
   // If did is a already a nym (created with seed), create and send his did document to the ledger
   if(JSON.parse((await indy.ledger.getNym(newDid)).result.data)) {
@@ -24,7 +23,6 @@ router.post('/createDid', passport.authenticate('jwt', {session: false}), async 
   }
 
   let dids = await sdk.listMyDidsWithMeta(await indy.wallet.get());
-  console.log('List of DIDs: ', dids);
 
   dids = await Promise.all(dids.map(async (did) => {    
     let didInfo = JSON.parse((await indy.ledger.getNym(did.did)).result.data) 
@@ -57,7 +55,14 @@ router.get('/getNym', passport.authenticate('jwt', {session: false}), async (req
 
 // Create schema, store it and send it to the ledger
 router.post('/createSchema', passport.authenticate('jwt', {session: false}), async (req, res) => {
-  const { did, name, version, attributes } = req.body
+  const { did, name, version, attributes } = req.body;
+  const didParts = did.split(':')
+  if(didParts.length !== 3){
+    return res.status(400).send({message: "Invalid DID: incorrect format."})
+  }
+  if(didParts[1] !== 'mybc'){
+    return res.status(400).send({message: "Invalid DID: wrong blockchain."})
+  }
   let [id, schema] = await indy.issuer.createSchema(did, name, version, attributes);
 
   res.status(200).send({id: id, schema:schema})
@@ -74,7 +79,14 @@ router.get('/getSchema', passport.authenticate('jwt', {session: false}), async (
 
 // Create credential definition, store it and send it to the ledger
 router.post('/createCredDef', passport.authenticate('jwt', {session: false}), async (req, res) => {
-  const { did, schemaId } = req.body
+  const { did, schemaId } = req.body;
+  const didParts = did.split(':')
+  if(didParts.length !== 3){
+    return res.status(400).send({message: "Invalid DID: incorrect format."})
+  }
+  if(didParts[1] !== 'mybc'){
+    return res.status(400).send({message: "Invalid DID: wrong blockchain."})
+  }
   let [credDefId, credDef] = await indy.issuer.createCredDef(did, schemaId, "TAG1");
 
   res.status(200).send({credDefId: credDefId, credDef:credDef})
@@ -102,6 +114,14 @@ router.get('/connections', passport.authenticate('jwt', {session: false}), async
   let connections = await indy.connections.getAllConnections()
 
   res.status(200).send({connections})
+});
+
+
+// Delete connection by id
+router.delete('/connection/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  await indy.connections.removeConnection(req.params.id)
+
+  res.status(200).send({id: req.params.id})
 });
 
 
@@ -165,7 +185,7 @@ router.get('/credential_exchange/:id', passport.authenticate('jwt', {session: fa
 
 
 // Get all credential exchange records
-router.get('/credential_exchange', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/credential_exchanges', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let records = await indy.credentialExchange.getAllCredentialExchangeRecords();
 
   res.status(200).send({records});
@@ -174,9 +194,9 @@ router.get('/credential_exchange', passport.authenticate('jwt', {session: false}
 
 // Remove credential exchange record by id
 router.delete('/credential_exchange/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
-  let record = await indy.credentialExchange.removeCredentialExchangeRecord(req.params.id);
+  await indy.credentialExchange.removeCredentialExchangeRecord(req.params.id);
 
-  res.status(200).send({record});
+  res.status(200).send({id: req.params.id});
 });
 
 
@@ -267,7 +287,7 @@ router.get('/presentation_exchange/:id', passport.authenticate('jwt', {session: 
 
 
 // Get all presentation exchange records
-router.get('/presentation_exchange', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/presentation_exchanges', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let records = await indy.presentationExchange.getAllPresentationExchangeRecords();
 
   res.status(200).send({records});
@@ -276,14 +296,14 @@ router.get('/presentation_exchange', passport.authenticate('jwt', {session: fals
 
 // Remove presentation exchange record by id
 router.delete('/presentation_exchange/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
-  let record = await indy.presentationExchange.removePresentationExchangeRecord(req.params.id);
+  await indy.presentationExchange.removePresentationExchangeRecord(req.params.id);
 
-  res.status(200).send({record});
+  res.status(200).send({id: req.params.id});
 });
 
 // Holder send presentation exchange proposal
 router.post('/send_presentation_proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
-
+  console.log(req.body)
   const [record, messageSent] = await indy.presentationExchange.proverCreateAndSendProposal(
     req.body.connectionId, 
     req.body.comment, 
@@ -353,10 +373,10 @@ router.post('/:id/verify_presentation', passport.authenticate('jwt', {session: f
     {}
   );
 
-  const [record, messageSent] = await indy.presentationExchange.verifierVerifyPresentation(
+  const [verified, record, messageSent] = await indy.presentationExchange.verifierVerifyPresentation(
     presentationExchangeRecord
   );
-  res.status(200).send({record, messageSent});
+  res.status(200).send({verified, record, messageSent});
 });
 
 

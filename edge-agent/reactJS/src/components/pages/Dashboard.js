@@ -18,13 +18,13 @@ import axios from 'axios';
 import config from '../../config'
 
 
-function Dashboard() {
+function Dashboard(props) {
     const [seed, setSeed] = useState("");
     const [dids, setDIDs] = useState(JSON.parse(localStorage.getItem('dids')))
   
     const onSubmit = (e) => {
       e.preventDefault();
-      const jwt = this.props.accessToken
+      const jwt = props.accessToken
 
       axios.defaults.withCredentials = true;
       axios.post(`${config.endpoint}/api/createDID`, {

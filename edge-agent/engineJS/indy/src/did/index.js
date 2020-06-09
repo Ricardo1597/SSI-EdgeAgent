@@ -76,6 +76,13 @@ exports.pushDidAttribute = async (did, attribute, item) => {
     await sdk.setDidMetadata(await indy.wallet.get(), did, JSON.stringify(metadata));
 };
 
+exports.addValueToDidAttribute = async (did, attribute, item) => {
+    let metadata = await sdk.getDidMetadata(await indy.wallet.get(), did);
+    metadata = JSON.parse(metadata);
+    metadata[attribute].push(item);
+    await sdk.setDidMetadata(await indy.wallet.get(), did, JSON.stringify(metadata));
+};
+
 exports.getDidAttribute = async (did, attribute) => {
     let metadata = await sdk.getDidMetadata(await indy.wallet.get(), did);
     metadata = JSON.parse(metadata);
@@ -89,7 +96,6 @@ exports.getDidAttribute = async (did, attribute) => {
 // };
 
 exports.resolveDid = async (did) => {
-    console.log(did);
     const didParts = did.split(':');
     if(didParts.length != 3) {
         throw new Error('Unable to resolve did: invalid did format.')

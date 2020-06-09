@@ -19,11 +19,9 @@ function ProtectedRoute({component: Component, accessToken, updateAccessToken, .
         headers: { Authorization: `Bearer ${jwt}`}
       })
       .then(res => {
-        console.log("aqui1234567")
         loading = false;
       })
       .catch(err => {
-        console.error("aqui 2: ", err);
         updateAccessToken("");
         loading = false;
         redirect = true;

@@ -1,20 +1,17 @@
 import React, { Component } from 'react'
-
 import Button from '@material-ui/core/Button';
-import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import Card from '@material-ui/core/Card';
 import { withStyles } from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { connect } from 'react-redux';
 
 import axios from 'axios'
-import config from '../../config'
-
+import config from '../../../../config'
 
 class CreateSchema extends Component {
     state = {
@@ -24,8 +21,7 @@ class CreateSchema extends Component {
         attributes: [],
         did: '',
         dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
-        didCredDef: '',
-        schemaId: ''
+        schema: ''
     }
 
 
@@ -63,33 +59,7 @@ class CreateSchema extends Component {
         })
         .catch(err => {
               console.error(err);
-              alert('Error creating DID. Please try again.');
-        });
-    }
-
-
-    onSubmit2 = e => {
-        e.preventDefault()
-        const jwt = this.props.accessToken;
-
-        axios.post(`${config.endpoint}/api/createCredDef`, {
-            did: this.state.didCredDef,
-            schemaId: this.state.schemaId
-
-        }, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error creating DID. Please try again.');
+              alert('Error creating schema. Please try again.');
         });
     }
 
@@ -101,21 +71,20 @@ class CreateSchema extends Component {
     }
 
 
+
     render() {
         const { classes } = this.props;
 
         let value = JSON.stringify(this.state.attributes).replace(/"/g, '\'').replace(/,/g, ", ");
         
         return (
-            <Grid container component="main">
-                <CssBaseline />
-                <Grid item xs={12} md={6}>
-                    <Container maxWidth="xs">
-                        <div className={classes.paper} >
-                            <Typography component="h1" variant="h5">
-                            Create schema
-                            </Typography>
-                            <form className={classes.form} noValidate onSubmit={this.onSubmit}>
+            <Grid container>
+                <Grid item xs={12} lg={5}>
+                    <div className={classes.paper}>
+                        <Typography component="span" variant="h5">
+                        Create Schema
+                        </Typography>
+                        <form className={classes.form} onSubmit={this.onSubmit}>
                             <Grid container spacing={2}>
                                 <Grid item xs={12}>
                                     <FormControl variant="outlined" className={classes.formControl}>
@@ -214,117 +183,77 @@ class CreateSchema extends Component {
                                 </Grid>
                             </Grid>
                             <Button
-                                type="submit"
+                                type="button"
                                 fullWidth
                                 variant="contained"
                                 color="primary"
-                                className={classes.submit}
+                                className={[classes.add, classes.button]}
+                                onClick={this.onSubmit}
                             >
                                 Create
                             </Button>
-                            </form>
-                        </div>
-                    </Container>
+                        </form>
+                    </div>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                    <Container maxWidth="xs">
-                        <div className={classes.paper} >
-                            <Typography component="h1" variant="h5">
-                            Create credential definition
-                            </Typography>
-                            <form className={classes.form} noValidate onSubmit={this.onSubmit2}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={12}>
-                                    <FormControl variant="outlined" className={classes.formControl}>
-                                        <InputLabel htmlFor="outlined-did-native-simple">DID</InputLabel>
-                                        <Select
-                                            native
-                                            required
-                                            label="DID"
-                                            value={this.state.didCredDef}
-                                            onChange={this.handleChange}
-                                            inputProps={{
-                                                name: 'didCredDef',
-                                                id: 'outlined-did-cred-def-native-simple',
-                                            }}
-                                        >
-                                            {this.state.dids.map(did => {
-                                                return (<option key={did} value={did}>{did}</option>)
-                                            })}
-                                        >
-                                        </Select>
-                                    </FormControl>
-                                </Grid>           
-                                <Grid item xs={12}>
-                                    <TextField
-                                        variant="outlined"
-                                        required
-                                        fullWidth
-                                        id="schemaId"
-                                        label="Schema ID"
-                                        name="schemaId"
-                                        value={this.state.schemaId}
-                                        onChange={this.handleChange}
-                                    />
-                                </Grid>  
-                            </Grid>
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                color="primary"
-                                className={classes.submit}
-                            >
-                                Create
-                            </Button>
-                            </form>
-                        </div>
-                    </Container>
+                <Grid item xs={12} lg={7}>
+                    {
+                        this.state.schema !== "" ? (
+                            <Card className={classes.card}>
+                                <p>Name: {this.state.schema.name}</p>
+                                <p>Version: {this.state.schema.version}</p>                    
+                                Attributes:
+                                <ul>
+                                    {this.state.schema.attrNames.map(attr => {
+                                        return <li key={attr}>{attr}</li>
+                                    })}
+                                </ul>
+                            </Card>
+                        ) : null
+                            
+                    }
                 </Grid>
             </Grid>
         )
     }
 }
 
-
 // Styles
 const useStyles = theme => ({
-    root: {
-        //height: '80vh',
-    },
     paper: {
-        marginTop: 60,
+        marginTop: 30,
+        marginBottom: 30,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
     },
-    form: {
-        width: '400px', // Fix IE 11 issue.
-        marginTop: theme.spacing(3),
+    result: {
+        margin: 30,
+        display: 'flex',
+        flexDirection: 'line',
+        alignItems: 'center',
     },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
+    button : {
+        "&:focus": {
+            outline:"none",
+        }
     },
     add: {
         height: '40px',
         marginTop: 10
     },
-    jsonBox: {
-        marginTop: -10,
-    },
-    leftMargin: {
-        marginLeft: 10,
-        marginBottom: -10
+    form: {
+        width: '500px', 
+        marginTop: theme.spacing(3),
     },
     formControl: {
         width: '100%',
     },
-    selectEmpty: {
-        marginTop: theme.spacing(2),
-    },
+    card: {
+        width: '200px',
+        padding: 20,
+        margin: 20
+    }
 });
-
-
 
 const mapStateToProps = (state) => {
     return {

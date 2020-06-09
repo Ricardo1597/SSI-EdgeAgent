@@ -101,7 +101,6 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     // Create did and did document for this specific connection
     const options = {method_name: 'peer'};
     const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(options);    
-    console.log("DID Document:", myDidDoc.service[0])
     
     // Save created did document in the wallet
     await indy.didDoc.addLocalDidDocument(myDidDoc);
@@ -174,7 +173,6 @@ exports.createAndSendResponse = async (connectionId) => {
 
 exports.createAndSendAck = async (connectionId) => {
     let connection = await this.getConnection(connectionId);
-    console.log(connection)
     if(connection.state != ConnectionState.Responded){
         throw new Error(`Invalid state trasition.`)
     }
@@ -239,7 +237,6 @@ exports.getDidAndDocument = async (isPublic, myDid=null) => {
         }
         // Get agent service recipient key and did document to create a public invitation
         myDidDoc = await indy.did.resolveDid(myDid);
-        console.log(myDidDoc);
         // Look for one agent service recipient key in the did document
         if(!myDidDoc) {
             throw new Error('No document found for the provided did')

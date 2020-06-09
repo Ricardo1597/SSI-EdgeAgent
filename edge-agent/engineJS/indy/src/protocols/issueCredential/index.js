@@ -43,7 +43,7 @@ exports.CredentialExchangeState = CredentialExchangeState;
 exports.MessageType = messages.MessageType;
 
 // Holder starts exchange at credential proposal
-exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, schemaId, credDefId, issuerDid) => {
+exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, schemaId, credDefId) => {
     // Get connection to send message (credential proposal)
     const connection = await indy.connections.getConnection(connectionId);
 
@@ -54,7 +54,6 @@ exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, 
         schemaId, 
         credentialPreview, 
         credDefId, 
-        issuerDid, 
         null
     );
 
@@ -63,7 +62,8 @@ exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, 
         credentialProposalMessage, 
         generalTypes.Initiator.Self, 
         generalTypes.Roles.Holder, 
-        CredentialExchangeState.Init
+        CredentialExchangeState.Init,
+        credentialProposalMessage['@id']
     );
     
     const [message, endpoint] = await indy.messages.prepareMessage(credentialProposalMessage, connection);
@@ -85,15 +85,13 @@ exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, 
 exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDefId) => {
     const credentialPreview = messages.createCredentialPreview(attributes);
 
-    const [,credDef] = await indy.ledger.getCredDef(null, credDefId)
-    const schemaId = credDef['schemaId']
+    // Is there a way to get the schemaId from the credDefId?
 
     const credentialProposalMessage = messages.createCredentialProposal(
         comment, 
-        schemaId, 
+        null, 
         credentialPreview, 
         credDefId, 
-        null, 
         null
     );
 
@@ -102,7 +100,8 @@ exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDef
         credentialProposalMessage, 
         generalTypes.Initiator.Self, 
         generalTypes.Roles.Issuer, 
-        CredentialExchangeState.Init
+        CredentialExchangeState.Init,
+        credentialProposalMessage['@id']
     );
 
     await this.addCredentialExchangeRecord(
@@ -125,7 +124,6 @@ exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => 
 
     // Get credential preview and credential definition id from record
     const credentialProposalMessage = JSON.parse(credentialExchangeRecord.credentialProposalDict);
-    console.log(credentialProposalMessage);
     const credentialPreview = credentialProposalMessage.credential_proposal;
     const credDefId = credentialProposalMessage.cred_def_id;
 
@@ -162,7 +160,6 @@ exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => 
 
 
 exports.holderCreateAndSendRequest = async (credentialExchangeRecord) => {
-    console.log(credentialExchangeRecord.state);
     if( credentialExchangeRecord.state != CredentialExchangeState.OfferReceived) {
         throw new Error(`Invalid state trasition.`);
     }
@@ -221,6 +218,11 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
     
     // Calculate credential request "data"   
     const [,schema] = await indy.ledger.getSchema(null, credentialExchangeRecord.schemaId);
+    // If no credential values were passed, used the credential_proposal ones
+    if(!credentialValues) {
+        const credentialProposal = JSON.parse(credentialExchangeRecord.credentialProposalDict)
+        credentialValues = credentialProposal['credential_proposal']['attributes'];
+    }
     const encodedValues = createEncodedCredentialValues(credentialValues, schema['attrNames']);
     const credentialOffer = credentialExchangeRecord.credentialOffer;
     const credentialRequest = credentialExchangeRecord.credentialRequest;
@@ -306,12 +308,11 @@ exports.createAndSendAck = async (credentialExchangeRecord) => {
     return [credentialExchangeRecord, credentialAckMessage];
 }
 
-exports.createCredentialExchangeRecord = (connectionId, message, initiator, role, state) => {
-  const treadId = (message) ? message['@id'] : null
+exports.createCredentialExchangeRecord = (connectionId, message, initiator, role, state, threadId) => {
   return {
     credentialExchangeId: uuid(),
     connectionId: connectionId,
-    threadId: treadId, 
+    threadId: threadId, 
     initiator: initiator,
     role: role,
     state: state,
@@ -400,9 +401,8 @@ exports.encode = (orig) => {
 const createEncodedCredentialValues = (credentialValues, schemaAttributes) => {
     let encodedValues = {};
     credentialValues.forEach(attribute => {
-        console.log(attribute['name']);
         if(!schemaAttributes.includes(attribute['name'])){
-            throw new Error(`Provided credential values are missing the value for the schema attribute ${attribute}`);
+            throw new Error(`Provided credential values are missing the value for the schema attribute ${attribute['name']}`);
         }
         encodedValues[attribute['name']] = {
             'raw': attribute['value'] ? attribute['value'].toString() : null,

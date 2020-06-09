@@ -12,8 +12,7 @@ const MessageType = {
 exports.MessageType = MessageType;
 
 
-exports.createCredentialProposal = (comment, schemaId, credentialPreview, credDefId, issuerDid, thid) => {
-  let fields = schemaId.split(':');
+exports.createCredentialProposal = (comment, schemaId, credentialPreview, credDefId, thid) => {
   let messageId = uuid();
   if(!thid) thid = messageId;
   return {
@@ -24,12 +23,8 @@ exports.createCredentialProposal = (comment, schemaId, credentialPreview, credDe
     },
     comment: comment,
     credential_proposal: credentialPreview, // JSON-LD Object
-    schema_issuer_did: fields[0],
     schema_id: schemaId,
-    schema_name: fields[2],
-    schema_version: fields[3],
     cred_def_id: credDefId,
-    issuer_did: issuerDid,
   };
 }
 

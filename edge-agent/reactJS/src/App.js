@@ -11,19 +11,19 @@ import {
 // Components
 import Nav from './components/MyNavbar'
 import Credentials from './components/pages/Credentials'
+import Presentations from './components/pages/Presentations'
 import Nyms from './components/pages/Nyms'
-import CreateSchemas from './components/pages/CreateSchema'
-import GetSchemas from './components/pages/GetSchema'
 import Dashboard from './components/pages/Dashboard'
 import Connections from './components/pages/Connections';
 import Login from './components/pages/SignIn';
 import Register from './components/pages/SignUp';
+import Schemas from './components/pages/Schemas';
 
 import withAuth from './components/withAuth'
 import axios from 'axios';
 import config from './config'
 import { connect } from 'react-redux';
-import ProtectedRoute from './components/ProtectedRoute';
+// import ProtectedRoute from './components/ProtectedRoute';
 
 
 class App extends Component {
@@ -72,10 +72,10 @@ class App extends Component {
             <Route exact path="/login" component={Login}/>
             <Route exact path="/register" component={Register}/>
             <Route exact path="/credentials" component={this.protectRoute(Credentials)}/>
+            <Route exact path="/presentations" component={this.protectRoute(Presentations)}/>
             <Route exact path="/connections" component={this.protectRoute(Connections)}/>
-            <Route exact path="/createSchema" component={this.protectRoute(CreateSchemas)}/>
-            <Route exact path="/getSchema" component={this.protectRoute(GetSchemas)}/>
             <Route exact path="/nyms" component={this.protectRoute(Nyms)}/>
+            <Route exact path="/schemas" component={this.protectRoute(Schemas)}/>
           </Switch>
         </Router>
       </div>
@@ -97,6 +97,7 @@ class App extends Component {
     );
   }
 }
+
 
 const mapDispatchToProps = (dispatch) => {
   return {

@@ -5,7 +5,6 @@ const messages = require('./messages')
 const presentationsIndex = require('./index')
 
 exports.proposalHandler = async (decryptedMessage) => {
-    console.log("Cheguei 6")
     const {message, recipient_verkey, sender_verkey} = decryptedMessage
     const connection = await indy.connections.searchConnection(
         {'myVerkey': recipient_verkey}
@@ -18,7 +17,8 @@ exports.proposalHandler = async (decryptedMessage) => {
         message,
         generalTypes.Initiator.External, 
         generalTypes.Roles.Verifier, 
-        presentationsIndex.PresentationExchangeState.ProposalReceived
+        presentationsIndex.PresentationExchangeState.ProposalReceived,
+        message['@id']
     );
     
     await presentationsIndex.addPresentationExchangeRecord(
@@ -48,6 +48,9 @@ exports.requestHandler = async (decryptedMessage) => {
         presentationExchangeRecord = await presentationsIndex.searchPresentationExchangeRecord(
             {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
         );
+        if(!presentationExchangeRecord) {
+            throw new Error ('Record not found.')
+        }
         if( presentationExchangeRecord.state != presentationsIndex.PresentationExchangeState.ProposalSent) {
             throw new Error(`Invalid state trasition.`);
         }
@@ -55,10 +58,11 @@ exports.requestHandler = async (decryptedMessage) => {
     } catch (error) {
         presentationExchangeRecord = presentationsIndex.createPresentationExchangeRecord(
             connection.connectionId,
-            message,
+            null,
             generalTypes.Initiator.External, 
             generalTypes.Roles.Prover, 
-            presentationsIndex.PresentationExchangeState.RequestReceived
+            presentationsIndex.PresentationExchangeState.RequestReceived,
+            message['~thread']['thid']
         );
     }
 
@@ -87,7 +91,6 @@ exports.requestHandler = async (decryptedMessage) => {
 
 
 exports.presentationHandler = async (decryptedMessage) => {
-    console.log("Cheguei 8")
     const {message, recipient_verkey, sender_verkey} = decryptedMessage
     const connection = await indy.connections.searchConnection(
         {'myVerkey': recipient_verkey}

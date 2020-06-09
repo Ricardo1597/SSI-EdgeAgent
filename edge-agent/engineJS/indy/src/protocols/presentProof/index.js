@@ -41,7 +41,8 @@ exports.proverCreateAndSendProposal = async (connectionId, comment, presentation
         presentationProposalMessage, 
         generalTypes.Initiator.Self, 
         generalTypes.Roles.Prover, 
-        PresentationExchangeState.ProposalSent
+        PresentationExchangeState.ProposalSent,
+        presentationProposalMessage['@id']
     );
     
     // Create and send proposal message to a given endpoint
@@ -69,7 +70,8 @@ exports.verifierCreatePresentationExchangeRecord = (connectionId) => {
         null, 
         generalTypes.Initiator.Self, 
         generalTypes.Roles.Verifier, 
-        PresentationExchangeState.Init
+        PresentationExchangeState.Init,
+        null
     );
            
     return presentationExchangeRecord;
@@ -407,6 +409,13 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
         }
     }));
 
+    console.log(JSON.stringify(indyProofRequest))
+    console.log(JSON.stringify(indyProof))
+    console.log(JSON.stringify(schemas))
+    console.log(JSON.stringify(credDefs))
+    console.log(JSON.stringify(revRegDefs))
+    console.log(JSON.stringify(revRegEntries))
+
     let verified = await indy.verifier.verifyPresentation(
         indyProofRequest,
         indyProof,
@@ -415,8 +424,11 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
         revRegDefs,
         revRegEntries
     );
+    console.log("verified: ", verified)
     if(!verified) {
-        Console.log("Failed at presentation verification!")
+        throw new Error("Failed at presentation verification!")
+    } else {
+        console.log("Passed at presentation verification!")
     }
     
     // Create ack message
@@ -437,12 +449,11 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
         JSON.stringify(presentationExchangeRecord)
     );
 
-    return [presentationExchangeRecord, ackMessage];
+    return [verified, presentationExchangeRecord, ackMessage];
 }
 
 
-exports.createPresentationExchangeRecord = (connectionId, message, initiator, role, state) => {
-    const treadId = (message) ? message['@id'] : null
+exports.createPresentationExchangeRecord = (connectionId, message, initiator, role, state, treadId) => {
     return {
         presentationExchangeId: uuid(),
         connectionId: connectionId,

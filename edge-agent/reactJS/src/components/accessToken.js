@@ -7,14 +7,10 @@ const jwtDecode = require('jwt-decode');
 let accessToken = "";
 
 export const setAccessToken = (token) => {
-    console.log("Set token: ", token)
     accessToken = token;
-    console.log("Set to: ", accessToken)
 }
 
 export const getAccessToken = () => {
-    console.log("Access token is: ", accessToken)
-    console.log("Get token")
     return accessToken;
 }
 

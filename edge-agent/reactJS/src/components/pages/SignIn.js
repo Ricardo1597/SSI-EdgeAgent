@@ -30,10 +30,15 @@ class SignIn extends Component {
       })
   }
 
+  componentDidMount() {
+    const jwt = this.props.accessToken;
+    if(jwt !== '') {
+      this.props.history.push('/');
+    }
+  }
 
   onSubmit = (e) => {
     e.preventDefault();
-    console.log(config.endpoint)
     axios.post(`${config.endpoint}/users/login`, {
         username: this.state.username,
         password: this.state.password
@@ -62,7 +67,6 @@ class SignIn extends Component {
 
   render() {
     const { classes } = this.props;
-    console.log(this.props)
 
     return (
       <Grid container component="main" className={classes.root}>
@@ -72,7 +76,7 @@ class SignIn extends Component {
           <div style={{marginTop: 200}} className={classes.paper}>
             <Avatar className={classes.avatar}>
             </Avatar>
-            <Typography component="h1" variant="h5">
+            <Typography component="span" variant="h5">
               Sign in
             </Typography>
             <form className={classes.form} noValidate onSubmit={this.onSubmit}>
@@ -170,10 +174,16 @@ const useStyles = theme => ({
 });
 
 
+const mapStateToProps = (state) => {
+  return {
+      accessToken: state.accessToken
+  }
+}
+
 const mapDispatchToProps = (dispatch) => {
   return {
     updateAccessToken: (token) =>  { dispatch({type: 'UPDATE_ACCESSTOKEN', token: token}) },
   }
 }
 
-export default connect(null, mapDispatchToProps)(withStyles(useStyles)(SignIn))
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles)(SignIn))

@@ -24,7 +24,7 @@ class MyNavbar extends React.Component {
       this.props.history.push('/login')
     })
     .catch(err => {
-      console.log('erro no logout')
+      console.log('Error logging out')
     })
     
   }
@@ -36,23 +36,19 @@ class MyNavbar extends React.Component {
 
 
   render() {    
-    console.log("access token: ", this.props.accessToken)
     // Validate token in the server
     return( (this.props.accessToken === "") ? '' :
       <Navbar style={styles.navStyle} bg="dark" variant="dark">
         <Link style={styles.navHome} to="/">SelfSov</Link>
         <Nav className="mr-auto">
-          <Link to="/credentials" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Credentials</Link>
           <Link to="/connections" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Connections</Link>
-          <Link to="/getSchema" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Get Schema</Link>
-          { (this.showSchemaOps) ? (
-            <Link to="/createSchema" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Create Schema</Link>
-          ) : null
-          }
+          <Link to="/credentials" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Credentials</Link>
+          <Link to="/presentations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Presentations</Link>
           { (this.showSchemaOps) ? (
             <Link to="/nyms" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Nyms</Link>
           ) : null
           }
+          <Link to="/schemas" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Schemas</Link>
         </Nav>
         <Nav style={styles.logout}>
           <Link to="/" style={styles.navLinkStyle} onClick={this.logout}>Logout</Link>

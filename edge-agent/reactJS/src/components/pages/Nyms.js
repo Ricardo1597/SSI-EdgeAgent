@@ -98,7 +98,7 @@ class Nyms extends Component {
                 <Grid item xs={12} md={6}>
                     <Container maxWidth="xs">
                         <div className={classes.paper} >
-                            <Typography component="h1" variant="h5">
+                            <Typography component="span" variant="h5">
                             Create Nym
                             </Typography>
                             <form className={classes.form} noValidate onSubmit={this.onSubmit}>
@@ -187,7 +187,7 @@ class Nyms extends Component {
                     </Container>
                 </Grid>
                 <div className={classes.paper} >
-                    <Typography component="h1" variant="h5">
+                    <Typography component="span" variant="h5">
                     Get Nym
                     </Typography>
                     <form className={classes.form} noValidate onSubmit={this.onSubmit2}>

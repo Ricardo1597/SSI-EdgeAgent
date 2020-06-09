@@ -1,0 +1,134 @@
+import React, { Component } from 'react';
+import axios from 'axios';
+import config from '../../../config'
+
+import { withStyles } from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import TabPanel, { a11yProps } from '../../TabPanel'
+
+import { connect } from 'react-redux';
+
+import SeeCredentials from './components/SeeCredentials'
+import ProposeCredential from './components/ProposeCredential'
+import OfferCredential from './components/OfferCredential'
+import RequestCredential from './components/RequestCredential'
+import IssueCredential from './components/IssueCredential'
+import AllRecords from './components/AllRecords'
+
+class Credentials extends Component{
+  state = {
+    tab: 0,
+  }
+
+  handleChangeTabs = (e, newValue) => {
+      this.setState({tab: newValue})
+  }
+
+  render() {
+    const { classes } = this.props
+
+    return (
+      <div className={classes.root}>
+          <AppBar position="static" color="default">
+              <Tabs
+                  value={this.state.tab}
+                  onChange={this.handleChangeTabs}
+                  indicatorColor="primary"
+                  textColor="primary"
+              >
+                  <Tab className={classes.button} label="Credentials" {...a11yProps(0)} />
+                  <Tab className={classes.button} label="Credential Exchanges" {...a11yProps(1)} />
+                  <Tab className={classes.button} label="Propose Credential" {...a11yProps(2)} />
+                  <Tab className={classes.button} label="Offer Credential" {...a11yProps(3)} />
+                  {/* don't show this for now (probably won't be needed)
+                  <Tab className={classes.button} label="Request Credential" {...a11yProps(4)} />
+                  <Tab className={classes.button} label="Issue Credential" {...a11yProps(5)} />*/}
+              </Tabs>
+          </AppBar>
+          <TabPanel value={this.state.tab} index={0}>
+              <SeeCredentials/>
+          </TabPanel>
+          <TabPanel value={this.state.tab} index={1}>
+              <AllRecords/>
+          </TabPanel>
+          <TabPanel value={this.state.tab} index={2}>
+              <ProposeCredential/>
+          </TabPanel>
+          <TabPanel value={this.state.tab} index={3}>
+              <OfferCredential/>
+          </TabPanel> 
+          { /* don't show this for now (probably wont be needed)
+          <TabPanel value={this.state.tab} index={4}>
+              <RequestCredential/>
+          </TabPanel>    
+          <TabPanel value={this.state.tab} index={5}>
+              <IssueCredential/>
+          </TabPanel>  */}       
+      </div>
+    )
+  }
+}
+
+
+// Styles
+const useStyles = theme => ({
+  root: {
+    flexGrow: 1,
+    width: '100%',
+    backgroundColor: theme.palette.background.paper,
+  },
+  paper: {
+      marginTop: 30,
+      marginBottom: 30,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+  },
+  result: {
+      margin: 30,
+      display: 'flex',
+      flexDirection: 'line',
+      alignItems: 'center',
+  },
+  button : {
+      "&:focus": {
+          outline:"none",
+      }
+  },
+  form: {
+      width: '500px', 
+      marginTop: theme.spacing(3),
+  },
+  submit: {
+      margin: theme.spacing(3, 0, 2),
+  },
+  add: {
+      height: '40px',
+      marginTop: 10
+  },
+  jsonBox: {
+      marginTop: -10,
+  },
+  leftMargin: {
+      marginLeft: 10,
+      marginBottom: -10
+  },
+  formControl: {
+      width: '100%',
+  },
+  selectEmpty: {
+      marginTop: theme.spacing(2),
+  },
+});
+
+
+
+const mapStateToProps = (state) => {
+  return {
+      accessToken: state.accessToken
+  }
+}
+
+export default connect(mapStateToProps)(withStyles(useStyles)(Credentials));

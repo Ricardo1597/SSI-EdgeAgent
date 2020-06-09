@@ -75,7 +75,6 @@ exports.responseHandler = async (decryptedMessage) => {
         {'myVerkey': recipient_verkey}
     );
 
-    console.log(connection)
     const originalMessage = await indy.crypto.verify(message, 'connection', connection.invitation.recipientKeys);
 
     // verify if did and did document are present and are valid

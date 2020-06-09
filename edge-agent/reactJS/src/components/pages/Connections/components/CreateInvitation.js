@@ -1,10 +1,9 @@
 import React, { Component } from 'react'
 
 import axios from 'axios'
-import config from '../../config'
+import config from '../../../../config'
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
@@ -13,18 +12,16 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import ConnectionItem from '../ConnectionItem';
+import JSONPretty from 'react-json-pretty';
+
 import { connect } from 'react-redux';
 
 
-class Relationships extends Component {
+class CreateInvitation extends Component {
     state = {
-        connections: [],
-        connectionid: '',
-        aliasCreate: '',
+        alias: '',
         public: false,
         did: '',
-        aliasReceive: '',
         invitation: '',
         dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
     }
@@ -43,35 +40,12 @@ class Relationships extends Component {
         })
     }
 
-    componentWillMount() {
-        const jwt = this.props.accessToken;
-
-        axios.get(`${config.endpoint}/api/connections`, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-                this.setState({
-                    connections: res.data.connections
-                })
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error getting connections. Please try again.');
-        });
-    }
-
     onSubmit = e => {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
         axios.post(`${config.endpoint}/api/create_invitation`, {
-            alias: this.state.aliasCreate, 
+            alias: this.state.alias, 
             public: this.state.public,
             did: this.state.did
         }, { 
@@ -80,32 +54,7 @@ class Relationships extends Component {
         .then(res => {
             if (res.status === 200) {
                 console.log(res.data.invitation)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error creating DID. Please try again.');
-        });
-    }
-
-    onSubmit2 = e => {
-        e.preventDefault()
-        const jwt = this.props.accessToken;
-        console.log(this.state.aliasReceive)
-        console.log(this.state.invitation)
-
-        axios.post(`${config.endpoint}/api/receive_invitation`, {
-            alias: this.state.aliasReceive, 
-            invitation: JSON.parse(this.state.invitation)
-        }, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res)
+                this.setState({invitation: JSON.stringify(res.data.invitation)})
             } else {
                 const error = new Error(res.error);
                 throw error;
@@ -118,14 +67,14 @@ class Relationships extends Component {
     }
 
     render() {
-        const { classes } = this.props
+        const { classes } = this.props;
+
         return (
-            <Grid container component="main">
-                <CssBaseline />
-                <Grid item xs={12} md={6}>
+            <Grid container>
+                <Grid item xs={12} lg={5}>
                     <Container maxWidth="xs">
                         <div className={classes.paper}>
-                            <Typography component="h1" variant="h5">
+                            <Typography component="span" variant="h5">
                             Create Invitation
                             </Typography>
                             <form className={classes.form} onSubmit={this.onSubmit}>
@@ -135,14 +84,14 @@ class Relationships extends Component {
                                             variant="outlined"
                                             required
                                             fullWidth
-                                            id="aliasCreate"
+                                            id="alias"
                                             label="Alias"
-                                            name="aliasCreate"
-                                            value={this.state.aliasCreate}
+                                            name="alias"
+                                            value={this.state.alias}
                                             onChange={this.handleChange}
                                         />
                                     </Grid>  
-                                    <Grid item md={12} lg={3}>
+                                    <Grid item xs={12} sm={3}>
                                         <FormControl variant="outlined" className={classes.formControl}>
                                             <InputLabel htmlFor="outlined-public-native-simple">Public</InputLabel>
                                             <Select
@@ -161,7 +110,7 @@ class Relationships extends Component {
                                             </Select>
                                         </FormControl>
                                     </Grid>  
-                                    <Grid item hidden={!this.state.public} md={12} lg={9}>
+                                    <Grid item hidden={!this.state.public} xs={12} sm={9}>
                                         <FormControl variant="outlined" className={classes.formControl}>
                                             <InputLabel htmlFor="outlined-did-native-simple">DID</InputLabel>
                                             <Select
@@ -184,7 +133,7 @@ class Relationships extends Component {
                                     fullWidth
                                     variant="contained"
                                     color="primary"
-                                    className={classes.add}
+                                    className={[classes.add, classes.button]}
                                     onClick={this.onSubmit}
                                 >
                                     Create Invitation
@@ -193,63 +142,40 @@ class Relationships extends Component {
                         </div>
                     </Container>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                    <Container maxWidth="xs" spacing={2}>
-                        <div className={classes.paper} >
-                            <Typography component="h1" variant="h5">
-                            Accept invitation
-                            </Typography>
-                            <form className={classes.form} noValidate onSubmit={this.onSubmit2}>
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            variant="outlined"
-                                            required
-                                            fullWidth
-                                            id="aliasReceive"
-                                            label="Alias"
-                                            name="aliasReceive"
-                                            value={this.state.aliasReceive}
-                                            onChange={this.handleChange}
-                                        />
-                                    </Grid>  
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            variant="outlined"
-                                            fullWidth
-                                            multiline
-                                            required
-                                            rows={6}
-                                            label="Invitation Details"
-                                            name="invitation"
-                                            id="invitation"
-                                            value={this.state.invitation}
-                                            onChange={this.handleChange}
-                                            className={classes.jsonBox}
-
-                                        />
-                                    </Grid>  
+                <Grid item xs={12} lg={7}>
+                    <Grid container className={classes.result}>
+                        {
+                            this.state.invitation !== "" ? 
+                            (
+                                <Grid item xs={12}>
+                                    <Typography variant="h6">
+                                    Invitation Details
+                                    </Typography>
+                                    <JSONPretty id="json-pretty" data={this.state.invitation}></JSONPretty>
                                 </Grid>
-                                <Button
-                                    type="button"
-                                    fullWidth
-                                    variant="contained"
-                                    color="primary"
-                                    className={classes.add}
-                                    onClick={this.onSubmit2}
-                                >
-                                    Accept Invitation
-                                </Button>
-                            </form>
-                        </div>
-                    </Container>
-                </Grid>
-                <Grid container>
-                    {this.state.connections.map(connection => ( 
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={connection.connectionId}> 
-                            <ConnectionItem connection={connection}/>
-                        </Grid>
-                    ))}
+                            ) : null   
+                        }
+                        {
+                            this.state.invitation !== ""? 
+                            (
+                                <Grid item xs={12}>
+                                    <Typography variant="h6">
+                                    Invitation URL
+                                    </Typography>
+                                </Grid>
+                            ) : null   
+                        }
+                        {
+                            this.state.invitation !== ""? 
+                            (
+                                <Grid item xs={12}>
+                                    <Typography variant="h6">
+                                    Invitation QRCode
+                                    </Typography>
+                                </Grid>
+                            ) : null   
+                        }
+                    </Grid>
                 </Grid>
             </Grid>
         )
@@ -257,11 +183,12 @@ class Relationships extends Component {
 }
 
 
-
 // Styles
 const useStyles = theme => ({
     root: {
-        //height: '80vh',
+      flexGrow: 1,
+      width: '100%',
+      backgroundColor: theme.palette.background.paper,
     },
     paper: {
         marginTop: 30,
@@ -270,8 +197,19 @@ const useStyles = theme => ({
         flexDirection: 'column',
         alignItems: 'center',
     },
+    result: {
+        margin: 30,
+        display: 'flex',
+        flexDirection: 'line',
+        alignItems: 'center',
+    },
+    button : {
+        "&:focus": {
+            outline:"none",
+        }
+    },
     form: {
-        width: '400px', // Fix IE 11 issue.
+        width: '500px', 
         marginTop: theme.spacing(3),
     },
     submit: {
@@ -295,13 +233,12 @@ const useStyles = theme => ({
         marginTop: theme.spacing(2),
     },
 });
-  
-  
-  
+
+
 const mapStateToProps = (state) => {
     return {
         accessToken: state.accessToken
     }
 }
   
-export default connect(mapStateToProps)(withStyles(useStyles)(Relationships))
+export default connect(mapStateToProps)(withStyles(useStyles)(CreateInvitation))

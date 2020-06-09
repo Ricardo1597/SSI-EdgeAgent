@@ -18,7 +18,6 @@ router.get('/checkToken', passport.authenticate('jwt', {session: false}), (req, 
 /* Check user token */
 router.post('/refreshToken', passport.authenticate('refresh', {session: false}), async (req, res) => {
   // If it has passed the middleware, the cookie refresh token is valid
-  console.log("cheguei")
   const newAccessToken = jwt.sign(
     { user : req.user }, 
     process.env.ACCESS_TOKEN_SECRET, 
@@ -32,7 +31,6 @@ router.post('/refreshToken', passport.authenticate('refresh', {session: false}),
 // REGISTER
 router.post('/register', checkNotAuthenticated, async (req, res) => {
   const { name, username, password, password2 } = req.body;
-  console.log(req.body)
 
   // Check required fields
   if(!name || !username || !password || !password2)
@@ -133,7 +131,7 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
 });
 
 // LOGOUT
-router.post('/logout', async (req,res) => {
+router.post('/logout', passport.authenticate('jwt', {session: false}), async (req,res) => {
   await indy.wallet.close();
   console.log('wallet closed')
 

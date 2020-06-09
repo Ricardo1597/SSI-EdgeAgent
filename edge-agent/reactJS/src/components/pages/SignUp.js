@@ -51,7 +51,7 @@ export default function SignUp(props) {
         <div className={classes.paper} >
             <Avatar className={classes.avatar}>
             </Avatar>
-            <Typography component="h1" variant="h5">
+            <Typography component="span" variant="h5">
             Sign up
             </Typography>
             <form className={classes.form} noValidate onSubmit={onSubmit}>

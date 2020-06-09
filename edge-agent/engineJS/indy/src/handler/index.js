@@ -23,7 +23,6 @@ module.exports = function(config) { //factory function creates object and return
     };
 
     factory.middleware = async function(req, res) {
-        console.log(req.body)
         try{
             let decryptedMessage = await indy.wallet.unpack(req.body);
             console.log("Message received: " + JSON.stringify(decryptedMessage));
