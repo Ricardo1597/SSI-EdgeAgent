@@ -35,7 +35,7 @@ class ActiveConnections extends Component {
     deleteConnection = id => {
         const jwt = this.props.accessToken;
 
-        axios.delete(`${config.endpoint}/api/connection/${id}`, { 
+        axios.delete(`${config.endpoint}/api/connections/${id}`, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
@@ -154,7 +154,6 @@ const useStyles = theme => ({
         flexGrow: 1,
         backgroundColor: '#F6F6F6',
         minWidth: 500,
-        height: 600,
     }
 });
 

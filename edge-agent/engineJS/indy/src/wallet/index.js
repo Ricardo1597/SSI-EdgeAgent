@@ -239,7 +239,7 @@ exports.getWalletRecord = async (type, id, options) => {
     let result = await sdk.getWalletRecord(walletHandle, type, id, options);
 
     return JSON.parse(result.value)
-  }
+}
 
 exports.keyForLocalDid = async (did) => {
     if (!walletHandle) {

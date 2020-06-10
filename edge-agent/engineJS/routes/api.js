@@ -8,7 +8,7 @@ const indy = require('../indy/index.js');
 
 
 // Create and store the DID in the given wallet
-router.post('/createDid', passport.authenticate('jwt', {session: false}), async (req, res) => {  
+router.post('/wallet/createDid', passport.authenticate('jwt', {session: false}), async (req, res) => {  
   const { seed } = req.body;
 
   options = {};
@@ -35,7 +35,7 @@ router.post('/createDid', passport.authenticate('jwt', {session: false}), async 
 
 
 // Send did to the ledger with a specific role
-router.post('/sendNym', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/ledger/sendNym', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let { did, newDid, newVerKey, role } = req.body
   if(role === 'COMMON_USER') role = null
   const nym = await indy.ledger.sendNym(did, newDid, newVerKey, role);
@@ -46,7 +46,7 @@ router.post('/sendNym', passport.authenticate('jwt', {session: false}), async (r
 
 
 // Get did from the ledger
-router.get('/getNym', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/ledger/getNym', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let getDidResponse = await indy.ledger.getNym(req.query.did);
 
   res.status(200).send({did: getDidResponse.result.data})
@@ -54,7 +54,7 @@ router.get('/getNym', passport.authenticate('jwt', {session: false}), async (req
 
 
 // Create schema, store it and send it to the ledger
-router.post('/createSchema', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/ledger/createSchema', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const { did, name, version, attributes } = req.body;
   const didParts = did.split(':')
   if(didParts.length !== 3){
@@ -70,7 +70,7 @@ router.post('/createSchema', passport.authenticate('jwt', {session: false}), asy
 
 
 // Get schema from the ledger
-router.get('/getSchema', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/ledger/getSchema', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let [id, schema] = await indy.ledger.getSchema(null, req.query.schemaId)
 
   res.status(200).send({id: id, schema: schema})
@@ -78,7 +78,7 @@ router.get('/getSchema', passport.authenticate('jwt', {session: false}), async (
 
 
 // Create credential definition, store it and send it to the ledger
-router.post('/createCredDef', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/ledger/createCredDef', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const { did, schemaId } = req.body;
   const didParts = did.split(':')
   if(didParts.length !== 3){
@@ -94,15 +94,29 @@ router.post('/createCredDef', passport.authenticate('jwt', {session: false}), as
 
 
 // Get credential definition from the ledger
-router.get('/getCredDef', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/ledger/getCredDef', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let [id, credDef] = await indy.ledger.getCredDef(null, req.query.credDefId)
 
   res.status(200).send({id: id, credDef: credDef})
 });
 
 
+// Get all connections
+router.get('/connections/invitations', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  let invitations = await indy.connections.getAllInvitations()
+
+  res.status(200).send({invitations})
+});
+
+// Delete invitation by id
+router.delete('/connections/invitations/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  await indy.connections.removeInvitation(req.params.id)
+
+  res.status(200).send({id: req.params.id})
+});
+
 // Get connection by id
-router.get('/connection/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/connections/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let connection = await indy.connections.getConnection(req.params.id)
 
   res.status(200).send({connection})
@@ -118,15 +132,16 @@ router.get('/connections', passport.authenticate('jwt', {session: false}), async
 
 
 // Delete connection by id
-router.delete('/connection/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.delete('/connections/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
   await indy.connections.removeConnection(req.params.id)
 
   res.status(200).send({id: req.params.id})
 });
 
 
+
 // Create connection invitation
-router.post('/create_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/connections/create_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const [myDid, myVerkey, myDidDoc] = await indy.connections.getDidAndDocument(req.body.public, req.body.did)
   const invitation = await indy.connections.createInvitation(myDid, myVerkey, myDidDoc, req.body.alias, req.body.public);
   if (!invitation) {
@@ -135,9 +150,38 @@ router.post('/create_invitation', passport.authenticate('jwt', {session: false})
   res.status(200).send({invitation})
 });
 
+// Activate connection invitation
+router.post('/connections/activate_invitation/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  let invitation = await indy.connections.getInvitation(req.params.id);
+
+  invitation.isActive = true;
+
+  await indy.wallet.updateWalletRecordValue(
+    indy.recordTypes.RecordType.Invitation,
+    invitation.invitationId,
+    JSON.stringify(invitation)
+  )
+
+  res.status(200).send({invitation})
+});
+
+// Deactivate connection invitation
+router.post('/connections/deactivate_invitation/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  let invitation = await indy.connections.getInvitation(req.params.id);
+
+  invitation.isActive = false;
+
+  await indy.wallet.updateWalletRecordValue(
+    indy.recordTypes.RecordType.Invitation,
+    invitation.invitationId,
+    JSON.stringify(invitation)
+  )
+
+  res.status(200).send({invitation})
+});
 
 // Receive connection invitation
-router.post('/receive_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/connections/receive_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const connection = await indy.connections.receiveInvitation(req.body.alias, req.body.invitation, req.body.accept || false);
 
   res.status(200).send({connection})
@@ -145,7 +189,7 @@ router.post('/receive_invitation', passport.authenticate('jwt', {session: false}
 
 
 // Accept connection invitation
-router.post('/accept_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/connections/accept_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const connection = await indy.connections.acceptInvitationAndSendRequest(req.body.id);
 
   res.status(200).send({connection})
@@ -153,16 +197,30 @@ router.post('/accept_invitation', passport.authenticate('jwt', {session: false})
 
 
 // Accept connection request
-router.post('/accept_request', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/connections/accept_request', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const connection = await indy.connections.createAndSendResponse(req.body.id);
+
+  res.status(200).send(connection)
+});
+
+// Reject connection request
+router.post('/connections/reject_request', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  const connection = await indy.connections.rejectRequest(req.body.id);
 
   res.status(200).send(connection)
 });
 
 
 // Accept connection response
-router.post('/accept_response', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/connections/accept_response', passport.authenticate('jwt', {session: false}), async (req, res) => {
   const connection = await indy.connections.createAndSendResponse(req.body.id);
+
+  res.status(200).send(connection)
+});
+
+// Reject connection response
+router.post('/connections/reject_response', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  const connection = await indy.connections.rejectResponse(req.body.id);
 
   res.status(200).send(connection)
 });
@@ -177,7 +235,7 @@ router.get('/credentials', passport.authenticate('jwt', {session: false}), async
 
 
 // Get credential exchange record by id
-router.get('/credential_exchange/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/credential_exchanges/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let record = await indy.credentialExchange.getCredentialExchangeRecord(req.params.id);
 
   res.status(200).send({record});
@@ -193,7 +251,7 @@ router.get('/credential_exchanges', passport.authenticate('jwt', {session: false
 
 
 // Remove credential exchange record by id
-router.delete('/credential_exchange/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.delete('/credential_exchanges/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
   await indy.credentialExchange.removeCredentialExchangeRecord(req.params.id);
 
   res.status(200).send({id: req.params.id});
@@ -201,7 +259,7 @@ router.delete('/credential_exchange/:id', passport.authenticate('jwt', {session:
 
 
 // Holder send credential exchange proposal
-router.post('/send_credential_proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/credential_exchanges/send_proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
 
   const [record, messageSent] = await indy.credentialExchange.holderCreateAndSendProposal(
     req.body.connectionId, 
@@ -215,7 +273,7 @@ router.post('/send_credential_proposal', passport.authenticate('jwt', {session: 
 
 
 // Issuer send credential exchange offer
-router.post('/send_credential_offer', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/credential_exchanges/send__offer', passport.authenticate('jwt', {session: false}), async function (req, res) {
   const [record, messageSent] = await indy.credentialExchange.exchangeStartAtOffer(
     req.body.connectionId,
     req.body.comment,
@@ -227,7 +285,7 @@ router.post('/send_credential_offer', passport.authenticate('jwt', {session: fal
 
 
 // Issuer send credential exchange offer
-router.post('/:id/send_credential_offer', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/credential_exchanges/:id/send_offer', passport.authenticate('jwt', {session: false}), async function (req, res) {
   // Get credential exchange record
   let credentialExchangeRecord = await indy.wallet.getWalletRecord(
     indy.recordTypes.RecordType.CredentialExchange, 
@@ -244,7 +302,7 @@ router.post('/:id/send_credential_offer', passport.authenticate('jwt', {session:
 
 
 // Holder send credential exchange request
-router.post('/:id/send_credential_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/credential_exchanges/:id/send_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
   // Get credential exchange record
   let credentialExchangeRecord = await indy.wallet.getWalletRecord(
     indy.recordTypes.RecordType.CredentialExchange, 
@@ -260,7 +318,7 @@ router.post('/:id/send_credential_request', passport.authenticate('jwt', {sessio
 
 
 // Issuer send credential exchange credential
-router.post('/:id/send_credential', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/credential_exchanges/:id/send_credential', passport.authenticate('jwt', {session: false}), async function (req, res) {
   // Get credential exchange record
   let credentialExchangeRecord = await indy.wallet.getWalletRecord(
     indy.recordTypes.RecordType.CredentialExchange, 
@@ -279,7 +337,7 @@ router.post('/:id/send_credential', passport.authenticate('jwt', {session: false
 
 
 // Get presentation exchange record by id
-router.get('/presentation_exchange/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/presentation_exchanges/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
   let record = await indy.presentationExchange.getPresentationExchangeRecord(req.params.id);
 
   res.status(200).send({record});
@@ -295,14 +353,14 @@ router.get('/presentation_exchanges', passport.authenticate('jwt', {session: fal
 
 
 // Remove presentation exchange record by id
-router.delete('/presentation_exchange/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.delete('/presentation_exchanges/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
   await indy.presentationExchange.removePresentationExchangeRecord(req.params.id);
 
   res.status(200).send({id: req.params.id});
 });
 
 // Holder send presentation exchange proposal
-router.post('/send_presentation_proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/presentation_exchanges/send_proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
   console.log(req.body)
   const [record, messageSent] = await indy.presentationExchange.proverCreateAndSendProposal(
     req.body.connectionId, 
@@ -314,7 +372,7 @@ router.post('/send_presentation_proposal', passport.authenticate('jwt', {session
 
 
 // Issuer send independent presentation exchange request
-router.post('/send_presentation_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/presentation_exchanges/send_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
   // Create presentation exchange record
   let presentationExchangeRecord = indy.presentationExchange.verifierCreatePresentationExchangeRecord(req.body.connectionId)
 
@@ -329,7 +387,7 @@ router.post('/send_presentation_request', passport.authenticate('jwt', {session:
 
 
 // Issuer send presentation exchange request in response to a previous proposal
-router.post('/:id/send_presentation_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/presentation_exchanges/:id/send_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
   // Get presentation exchange record
   let presentationExchangeRecord = await indy.wallet.getWalletRecord(
     indy.recordTypes.RecordType.PresentationExchange, 
@@ -348,7 +406,7 @@ router.post('/:id/send_presentation_request', passport.authenticate('jwt', {sess
 
 
 // Holder send presentation exchange proposal
-router.post('/:id/send_presentation', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/presentation_exchanges/:id/send_presentation', passport.authenticate('jwt', {session: false}), async function (req, res) {
   // Get presentation exchange record
   let presentationExchangeRecord = await indy.wallet.getWalletRecord(
     indy.recordTypes.RecordType.PresentationExchange, 

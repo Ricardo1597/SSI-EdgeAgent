@@ -226,3 +226,58 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
 
     return null;
 };
+
+
+exports.problemReportHandler = async (decryptedMessage) => {
+    const {message, recipient_verkey, sender_verkey} = decryptedMessage;
+    
+    if(!message.description || !message.description.code) {
+        console.log("Received connection problem report without error code.")
+        return;
+    }
+
+    const connection = await indy.connections.searchConnection(
+        {'myVerkey': recipient_verkey}
+    );
+
+    await indy.connections.validateSenderKey(connection.theirDid, sender_verkey);
+    
+    let credentialExchangeRecord = await credentialsIndex.searchCredentialExchangeRecord(
+        {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
+    );
+    switch(message.description.code) {
+        case "proposal_not_accepted":
+            if(credentialExchangeRecord.state != credentialsIndex.CredentialExchangeState.ProposalSent) {
+                console.log(`Invalid state transition `);
+                return;
+            }
+            console.log("Credential exchange proposal not accepted.");
+            break;
+        case "offer_not_accepted":
+            if(credentialExchangeRecord.state != credentialsIndex.CredentialExchangeState.OfferSent) {
+                console.log(`Invalid state transition `);
+                return;
+            }
+            console.log("Credential exchange offer not accepted.");
+            break;
+        case "request_not_accepted":
+            if(credentialExchangeRecord.state != credentialsIndex.CredentialExchangeState.RequestSent) {
+                console.log(`Invalid state transition `);
+                return;
+            }
+            console.log("Credential exchange request not accepted.");
+            break;
+        default:
+            console.log(message.description);
+    }
+
+    credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.Error;
+    credentialExchangeRecord.error = message.description;
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.CredentialExchange, 
+        credentialExchangeRecord.credentialExchangeId, 
+        JSON.stringify(credentialExchangeRecord)
+    );
+
+    return null;
+};

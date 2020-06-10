@@ -15,7 +15,7 @@ function PendingConnectionActions(props) {
 
     const acceptInvitation = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/accept_invitation`, {
+        axios.post(`${config.endpoint}/api/connections/accept_invitation`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
@@ -37,7 +37,7 @@ function PendingConnectionActions(props) {
 
     const acceptRequest = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/accept_request`, {
+        axios.post(`${config.endpoint}/api/connections/accept_request`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
@@ -53,6 +53,28 @@ function PendingConnectionActions(props) {
         .catch(err => {
               console.error(err);
               alert('Error accepting connection. Please try again.');
+        });
+    }
+
+
+    const rejectRequest = connectionId => {
+        const jwt = props.accessToken;
+        axios.post(`${config.endpoint}/api/connections/reject_request`, {
+            id: connectionId
+        }, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            if (res.status === 200) {
+                console.log(res)
+            } else {
+                const error = new Error(res.error);
+                throw error;
+            }
+        })
+        .catch(err => {
+              console.error(err);
+              alert('Error rejection connection request. Please try again.');
         });
     }
 
@@ -60,7 +82,7 @@ function PendingConnectionActions(props) {
 
     const acceptResponse = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/accept_response`, {
+        axios.post(`${config.endpoint}/api/connections/accept_response`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
@@ -79,21 +101,48 @@ function PendingConnectionActions(props) {
         });
     }
 
+    const rejectResponse = connectionId => {
+        const jwt = props.accessToken;
+        axios.post(`${config.endpoint}/api/connections/reject_response`, {
+            id: connectionId
+        }, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            if (res.status === 200) {
+                console.log(res)
+            } else {
+                const error = new Error(res.error);
+                throw error;
+            }
+        })
+        .catch(err => {
+              console.error(err);
+              alert('Error rejecting connection . Please try again.');
+        });
+    }
+
+
     const { state, initiator, connectionId } = props.connection;
 
     if(initiator === "external") {
         switch(state) {
             case 'invited':
-                return <Button size="small" color="primary" onClick={() => acceptInvitation(connectionId)}>Accept Invitation</Button>;
-            case 'responded':
-                return <Button size="small" color="primary" onClick={() => acceptResponse(connectionId)}>Accept Response</Button>;
+                return <Button size="small" color="primary" onClick={() => acceptInvitation(connectionId)}>Accept Invitation</Button>
+            {/*case 'responded':
+                return <Button size="small" color="primary" onClick={() => acceptResponse(connectionId)}>Accept Response</Button>;*/}
             default:
                 return null;
         }
     } else {
         switch(state) {
             case 'requested':
-                return <Button size="small" color="primary" onClick={() => acceptRequest(connectionId)}>Accept Request</Button>;
+                return (
+                    <div>
+                        <Button size="small" color="primary" onClick={() => acceptRequest(connectionId)}>Accept Request</Button>
+                        <Button size="small" color="primary" onClick={() => rejectRequest(connectionId)}>Reject Request</Button>
+                    </div>
+                );
             default:
                 return null;
         }

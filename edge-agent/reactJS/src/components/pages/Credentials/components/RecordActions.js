@@ -15,7 +15,7 @@ function RecordActions(props) {
 
     const acceptProposal = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/${recordId}/send_credential_offer`, {}, { 
+        axios.post(`${config.endpoint}/api/credential_exchanges/${recordId}/send_offer`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
@@ -35,7 +35,7 @@ function RecordActions(props) {
 
     const acceptOffer = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/${recordId}/send_credential_request`, {}, { 
+        axios.post(`${config.endpoint}/api/credential_exchanges/${recordId}/send_request`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
@@ -56,7 +56,7 @@ function RecordActions(props) {
 
     const acceptRequest = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/${recordId}/send_credential`, {}, { 
+        axios.post(`${config.endpoint}/api/credential_exchanges/${recordId}/send_credential`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {

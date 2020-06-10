@@ -18,6 +18,7 @@ const PresentationExchangeState = {
     PresentationReceived: "presentation_received",
     PresentationVerified: "presentation_verified",
     Done: "done",
+    Error: "error"
 }
 
 exports.PresentationExchangeState = PresentationExchangeState;

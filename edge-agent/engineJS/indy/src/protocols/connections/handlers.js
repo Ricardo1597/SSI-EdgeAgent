@@ -18,15 +18,19 @@ exports.requestHandler = async (decryptedMessage) => {
         throw new Error(`Invitation for verkey ${recipient_verkey} not found!`);
     const invitation = invitations[0]
 
-    if(!invitation.multiUse && invitation.timesUsed > 0) {
-        throw new Error('Invitation can only be used once!');
+    if(!invitation.isActive) {
+        throw new Error('This invitation is currently inactive.')
+    }
+
+    if(!invitation.isMultiuse && invitation.timesUsed > 0) {
+        throw new Error('This invitation can only be used once!');
     }
 
     let connection = {};
     // This is intended to let the issuer use the same public did/verkey for 
     // all the connection. The main problem with this is the need of saving
     // the verkey of the other party as well.
-    // if(invitation.public) {
+    // if(invitation.isPublic) {
     //     connection = await connectionsIndex.createPublicDidConnection(
     //         invitation.myDid,
     //         generalTypes.Initiator.Self,
@@ -59,6 +63,14 @@ exports.requestHandler = async (decryptedMessage) => {
         {'myVerkey': connection.myVerkey}
     );
 
+    // Update invitation times used
+    invitation.timesUsed++;
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.Invitation, 
+        invitation.invitationId, 
+        JSON.stringify(invitation)
+    );
+
     let autoAccept = false // REMOVE LATER AND USE USER OPTION
     if(autoAccept)
         await indy.connections.createAndSendResponse(connection.connectionId);
@@ -86,7 +98,7 @@ exports.responseHandler = async (decryptedMessage) => {
         await indy.didDoc.addLocalDidDocument(originalMessage.connection.did_doc);
     }
     if(connection.state != connectionsIndex.ConnectionState.Requested){
-        throw new Error(`Invalid state trasition.`)
+        throw new Error(`Invalid state transition.`)
     }
 
     if (!message['connection~sig'])
@@ -117,7 +129,7 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
     await indy.connections.validateSenderKey(connection.theirDid, sender_verkey);
 
     if(connection.state != connectionsIndex.ConnectionState.Responded){
-        throw new Error(`Invalid state trasition.`)
+        throw new Error(`Invalid state transition.`)
     }
     
     if (!message['status'])
@@ -135,6 +147,48 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
     } else {
         throw new Error('Problem in acknowledge message');
     }
+
+    return null;
+};
+
+
+exports.problemReportHandler = async (decryptedMessage) => {
+    const {message, recipient_verkey, sender_verkey} = decryptedMessage;
+
+    let connection = await indy.connections.searchConnection(
+        {'myVerkey': recipient_verkey}
+    );   
+
+    if(!message.description || !message.description.code) {
+        console.log("Received connection problem report without error code.")
+        return;
+    }
+    switch(message.description.code) {
+        case "request_not_accepted":
+            if(connection.state != connectionsIndex.ConnectionState.Requested) {
+                console.log(`Invalid state transition `);
+                return;
+            }
+            console.log("Connection request not accepted.");
+            break;
+        case "response_not_accepted":
+            if(connection.state != connectionsIndex.ConnectionState.Responded) {
+                console.log(`Invalid state transition `);
+                return;
+            }
+            console.log("Connection response not accepted.");
+            break;
+        default:
+            console.log(message.description);
+    }
+
+    connection.state = connectionsIndex.ConnectionState.Error;
+    connection.error = message.description;
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.Connection, 
+        connection.connectionId, 
+        JSON.stringify(connection)
+    );
 
     return null;
 };

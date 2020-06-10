@@ -8,6 +8,7 @@ const MessageType = {
   CredentialIssuance: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/issue-credential',
   CredentialAck: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/ack',
   CredentialPreview: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview',
+  ProblemReport: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/problem-report',
 };
 exports.MessageType = MessageType;
 

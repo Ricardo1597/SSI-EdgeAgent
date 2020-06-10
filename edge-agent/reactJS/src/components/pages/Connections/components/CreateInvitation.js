@@ -20,7 +20,7 @@ import { connect } from 'react-redux';
 class CreateInvitation extends Component {
     state = {
         alias: '',
-        public: false,
+        isPublic: false,
         did: '',
         invitation: '',
         dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
@@ -44,7 +44,7 @@ class CreateInvitation extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/create_invitation`, {
+        axios.post(`${config.endpoint}/api/connections/create_invitation`, {
             alias: this.state.alias, 
             public: this.state.public,
             did: this.state.did

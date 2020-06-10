@@ -12,6 +12,7 @@ import ActiveConnections from './components/ActiveConnections'
 import PendingConnections from './components/PendingConnections';
 import CreateInvitation from './components/CreateInvitation'
 import ReceiveInvitation from './components/ReceiveInvitation'
+import Invitations from './components/Invitations';
 
 
 
@@ -39,8 +40,9 @@ class Connections extends Component {
                     >
                         <Tab className={classes.button} label="Active Connections" {...a11yProps(0)} />
                         <Tab className={classes.button} label="Pending Connections" {...a11yProps(1)} />
-                        <Tab className={classes.button} label="Create invitation" {...a11yProps(2)} />
-                        <Tab className={classes.button} label="Receive invitation" {...a11yProps(3)} />
+                        <Tab className={classes.button} label="Invitations" {...a11yProps(2)} />
+                        <Tab className={classes.button} label="Create invitation" {...a11yProps(3)} />
+                        <Tab className={classes.button} label="Receive invitation" {...a11yProps(4)} />
                     </Tabs>
                 </AppBar>
                 <TabPanel value={this.state.tab} index={0}>
@@ -50,9 +52,12 @@ class Connections extends Component {
                     <PendingConnections/>
                 </TabPanel>
                 <TabPanel value={this.state.tab} index={2}>
-                    <CreateInvitation/>
+                    <Invitations/>
                 </TabPanel>
                 <TabPanel value={this.state.tab} index={3}>
+                    <CreateInvitation/>
+                </TabPanel>
+                <TabPanel value={this.state.tab} index={4}>
                     <ReceiveInvitation/>
                 </TabPanel>            
             </div>

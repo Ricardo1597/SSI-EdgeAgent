@@ -3,6 +3,7 @@ const sdk = require('indy-sdk');
 const indy = require('../../../index.js');
 const uuid = require('uuid');
 const messages = require('./messages')
+const problemReportMessage = require('../problemReport/messages')
 const generalTypes = require('../generalTypes');
 
 exports.handlers = require('./handlers');
@@ -34,7 +35,15 @@ exports.encodeInvitationToUrl = function (invitation) {
 }
   
 
-exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, isPublic=false, multiUse=true) => {
+exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, isPublic=false, multiuse=true) => {
+    // Check if provided verkey was never used
+    const invitations = await indy.wallet.searchWalletRecord(
+        indy.recordTypes.RecordType.Invitation,
+        {'myVerkey': myVerkey},
+        {}
+    );
+    if(invitations.length !== 0)
+        throw new Error(`Invitation already created with verkey ${myVerkey}. Please use another verkey.`);
 
     const invitationDetails = createInvitationDetails(myDidDoc);
     const invitationMessage = await messages.createInvitationMessage(invitationDetails);
@@ -43,11 +52,12 @@ exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, is
         invitationId: uuid(),
         invitation: invitationMessage,
         alias: invitationAlias,
-        multiUse: multiUse,
+        isMultiuse: multiuse,
         timesUsed: 0,
         myDid: myDid,
         myVerkey: myVerkey,
-        public: isPublic
+        isPublic: isPublic,
+        isActive: true
     }
 
     // Add invitation record to the wallet
@@ -135,6 +145,44 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     return connection;
 }
 
+
+exports.rejectRequest = async (connectionId) => {
+    let connection = await this.getConnection(connectionId);
+
+    if(connection.state != ConnectionState.Requested){
+        throw new Error(`Invalid state trasition.`)
+    }
+
+    const rejectRequestMessage = problemReportMessage.createProblemeReportMessage(
+        indy.connections.MessageType.ProblemReport,
+        "request_not_accepted",
+        "Connection request rejected.",
+        "connection",
+        connection.threadId
+    );
+
+    const [message, endpoint] = await indy.messages.prepareMessage(
+        rejectRequestMessage, 
+        connection
+    );
+    indy.messages.sendMessage(message, endpoint);
+    
+    // Update connection record
+    connection.state = ConnectionState.Error;
+    connection.error = {
+        self: true,
+        description: rejectRequestMessage.description 
+    };
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.Connection, 
+        connection.connectionId, 
+        JSON.stringify(connection)
+    );
+  
+    return connection;
+}
+
+
 exports.createAndSendResponse = async (connectionId) => {
     let connection = await this.getConnection(connectionId);
 
@@ -161,6 +209,43 @@ exports.createAndSendResponse = async (connectionId) => {
     
     // Update connection record
     connection.state = ConnectionState.Responded;
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.Connection, 
+        connection.connectionId, 
+        JSON.stringify(connection)
+    );
+  
+    return connection;
+}
+
+
+exports.rejectResponse = async (connectionId) => {
+    let connection = await this.getConnection(connectionId);
+
+    if(connection.state != ConnectionState.Responded){
+        throw new Error(`Invalid state trasition.`)
+    }
+
+    const rejectResponseMessage = problemReportMessage.createProblemeReportMessage(
+        indy.connections.MessageType.ProblemReport,
+        "response_not_accepted",
+        "Connection response rejected.",
+        "connection",
+        connection.threadId
+    );
+
+    const [message, endpoint] = await indy.messages.prepareMessage(
+        signedConnectionResponse, 
+        connection
+    );
+    indy.messages.sendMessage(message, endpoint);
+    
+    // Update connection record
+    connection.state = ConnectionState.Error;
+    connection.error = {
+        self: true,
+        description: rejectResponseMessage.description 
+    };
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 
@@ -353,6 +438,39 @@ exports.removeConnection = async (connectionId) => {
     return await indy.wallet.deleteWalletRecord(
         indy.recordTypes.RecordType.Connection, 
         connectionId, 
+    );
+}
+
+exports.getInvitation = async (invitationId) => {
+    console.log("Aqui: ",invitationId)
+    try {
+        return await indy.wallet.getWalletRecord(
+            indy.recordTypes.RecordType.Invitation, 
+            invitationId, 
+            {}
+        );
+    } catch(error) {
+        if(error.indyCode && error.indyCode === 212){
+            console.log("Unable to get invitation record. Wallet item not found.");
+        } else {
+            console.log(error)
+        }
+        return null;
+    }
+}
+
+exports.getAllInvitations = async () => {
+    return await indy.wallet.searchWalletRecord(
+        indy.recordTypes.RecordType.Invitation, 
+        {}, 
+        {}
+    );
+}
+
+exports.removeInvitation = async (invitationId) => {
+    return await indy.wallet.deleteWalletRecord(
+        indy.recordTypes.RecordType.Invitation, 
+        invitationId, 
     );
 }
 

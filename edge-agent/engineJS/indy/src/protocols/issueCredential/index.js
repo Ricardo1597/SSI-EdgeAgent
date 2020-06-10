@@ -23,6 +23,7 @@ const CredentialExchangeState = {
     CredentialIssued: "credential_issued",
     CredentialReceived: "credential_received",
     Done: "done",
+    Error: "error"
 }
 
 // Use in CredentialExchangeRecord has tags to help in search

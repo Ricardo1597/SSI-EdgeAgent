@@ -6,6 +6,8 @@ const MessageType = {
   ConnectionResponse: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/response',
   ConnectionAck: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/ack',
   ForwardMessage: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/routing/1.0/forward',
+  ProblemReport: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/problem-report',
+
 };
 exports.MessageType = MessageType;
 

@@ -30,7 +30,7 @@ class ReceiveInvitation extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/receive_invitation`, {
+        axios.post(`${config.endpoint}/api/connections/receive_invitation`, {
             alias: this.state.alias, 
             invitation: JSON.parse(this.state.invitation)
         }, { 

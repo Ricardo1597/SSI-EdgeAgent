@@ -27,7 +27,7 @@ function Dashboard(props) {
       const jwt = props.accessToken
 
       axios.defaults.withCredentials = true;
-      axios.post(`${config.endpoint}/api/createDID`, {
+      axios.post(`${config.endpoint}/api/wallet/createDID`, {
         seed
       }, { 
         headers: { Authorization: `Bearer ${jwt}`} 

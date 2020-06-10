@@ -15,7 +15,7 @@ function RecordActions(props) {
 
     const verifyPresentation = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/${recordId}/verify_presentation`, {}, { 
+        axios.post(`${config.endpoint}/api/presentation_exchanges/${recordId}/verify_presentation`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {

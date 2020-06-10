@@ -51,7 +51,7 @@ class SendPresentation extends Component {
             
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/${this.props.recordId}/send_presentation`, {
+        axios.post(`${config.endpoint}/api/presentation_exchanges/${this.props.recordId}/send_presentation`, {
             comment: this.state.comment,
             requestedCredentials: JSON.parse(this.state.requestedCredentials),
         }, { 

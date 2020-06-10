@@ -1,7 +1,6 @@
 'use strict';
 const indy = require('../../../index.js');
 const generalTypes = require('../generalTypes');
-const messages = require('./messages')
 const presentationsIndex = require('./index')
 
 exports.proposalHandler = async (decryptedMessage) => {
@@ -68,7 +67,7 @@ exports.requestHandler = async (decryptedMessage) => {
 
     presentationExchangeRecord.presentationRequest = presentationRequest;
 
-    // Save credential exchange record in the wallet
+    // Save presentation exchange record in the wallet
     if(presentationExchangeRecord.initiator === "external") {
         // Verifier sent request first
         await presentationsIndex.addPresentationExchangeRecord(
@@ -155,6 +154,54 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
     } else {
         throw new Error('Problem in acknowledge message');
     }
+
+    return null;
+};
+
+
+exports.problemReportHandler = async (decryptedMessage) => {
+    const {message, recipient_verkey, sender_verkey} = decryptedMessage;
+    
+    if(!message.description || !message.description.code) {
+        console.log("Received connection problem report without error code.")
+        return;
+    }
+
+    const connection = await indy.connections.searchConnection(
+        {'myVerkey': recipient_verkey}
+    );
+
+    await indy.connections.validateSenderKey(connection.theirDid, sender_verkey);
+    
+    let presentationExchangeRecord = await presentationsIndex.searchPresentationExchangeRecord(
+        {'connectionId': connection.connectionId, 'threadId': message['~thread']['thid']}
+    );
+    switch(message.description.code) {
+        case "proposal_not_accepted":
+            if(presentationExchangeRecord.state != presentationsIndex.PresentationExchangeState.ProposalSent) {
+                console.log(`Invalid state transition `);
+                return;
+            }
+            console.log("Presentation exchange proposal not accepted.");
+            break;
+        case "request_not_accepted":
+            if(presentationExchangeRecord.state != presentationsIndex.PresentationExchangeState.RequestSent) {
+                console.log(`Invalid state transition `);
+                return;
+            }
+            console.log("Presentation exchange request not accepted.");
+            break;
+        default:
+            console.log(message.description);
+    }
+
+    presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.Error;
+    presentationExchangeRecord.error = message.description;
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.PresentationExchange, 
+        presentationExchangeRecord.presentationExchangeId, 
+        JSON.stringify(presentationExchangeRecord)
+    );
 
     return null;
 };

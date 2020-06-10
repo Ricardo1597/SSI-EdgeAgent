@@ -41,7 +41,7 @@ class CreateSchema extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/createSchema`, {
+        axios.post(`${config.endpoint}/api/ledger/createSchema`, {
             name: this.state.name, 
             version: this.state.version,
             attributes: this.state.attributes,

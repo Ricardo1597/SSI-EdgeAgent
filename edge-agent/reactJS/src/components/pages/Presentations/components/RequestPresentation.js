@@ -64,7 +64,7 @@ class RequestPresentation extends Component {
         const jwt = this.props.accessToken;
 
         !this.props.recordId ? (
-            axios.post(`${config.endpoint}/api/send_presentation_request`, {
+            axios.post(`${config.endpoint}/api/presentation_exchanges/send_request`, {
                 connectionId: this.state.connectionId, 
                 comment: this.state.comment,
                 presentationRequest: JSON.parse(this.state.presentationRequest),
@@ -85,7 +85,7 @@ class RequestPresentation extends Component {
                   alert('Error sending presentation request. Please try again.');
             })
         ) : (
-            axios.post(`${config.endpoint}/api/${this.props.recordId}/send_presentation_request`, {
+            axios.post(`${config.endpoint}/api/presentation_exchanges/${this.props.recordId}/send_request`, {
                 comment: this.state.comment,
                 presentationRequest: JSON.parse(this.state.presentationRequest),
             }, { 

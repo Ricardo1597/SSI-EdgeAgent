@@ -36,7 +36,7 @@ class AllRecords extends Component {
     deleteRecord = id => {
         const jwt = this.props.accessToken;
 
-        axios.delete(`${config.endpoint}/api/credential_exchange/${id}`, { 
+        axios.delete(`${config.endpoint}/api/credential_exchanges/${id}`, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {

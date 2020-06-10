@@ -7,6 +7,7 @@ const MessageType = {
   Presentation: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation',
   PresentationAck: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/ack',
   PresentationPreview: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview',
+  ProblemReport: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/problem-report',
 };
 exports.MessageType = MessageType;
 

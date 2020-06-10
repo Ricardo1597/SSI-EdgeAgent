@@ -15,77 +15,10 @@ import { connect } from 'react-redux';
 
 export class ConnectionDetails extends Component {
 
-
-    acceptInvitation = e => {
-        const jwt = this.props.accessToken;
-        axios.post(`${config.endpoint}/api/accept_invitation`, {
-            id: e.target.id
-        }, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error creating DID. Please try again.');
-        });
-    }
-
-
-    acceptRequest = e => {
-        const jwt = this.props.accessToken;
-        axios.post(`${config.endpoint}/api/accept_request`, {
-            id: e.target.id
-        }, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error creating DID. Please try again.');
-        });
-    }
-
-
-
-    acceptResponse = e => {
-        const jwt = this.props.accessToken;
-        axios.post(`${config.endpoint}/api/accept_response`, {
-            id: e.target.id
-        }, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error creating DID. Please try again.');
-        });
-    }
-
     render() {
         const classes = this.props
 
-        const { state, alias, connectionId, myDid, myVerkey } = this.props.connection;
+        const { state, alias, connectionId, myDid, myVerkey, error } = this.props.connection;
         return (
             <div>
                 <CardMedia
@@ -105,10 +38,6 @@ export class ConnectionDetails extends Component {
                             {connectionId}
                         </div>
                         <div style={{marginBottom: 8}}>
-                            <div style={{fontWeight: "bold"}}>Current State:</div> 
-                            {state}
-                        </div>
-                        <div style={{marginBottom: 8}}>
                             <div style={{fontWeight: "bold"}}>My DID:</div>
                             {myDid}
                         </div>
@@ -116,6 +45,18 @@ export class ConnectionDetails extends Component {
                             <div style={{fontWeight: "bold"}}>My Verkey:</div>
                             {myVerkey}
                         </div>
+                        <div style={{marginBottom: 8}}>
+                            <div style={{fontWeight: "bold"}}>Current State:</div> 
+                            {state}
+                        </div>
+                        {
+                            state === "error" ? (
+                                <div style={{marginBottom: 8}}>
+                                    <div style={{fontWeight: "bold"}}>Error:</div> 
+                                    {error.en}
+                                </div>
+                            ) : null
+                        }
                     </Typography>
                 </CardContent>
             </div>

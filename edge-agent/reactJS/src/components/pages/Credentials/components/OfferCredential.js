@@ -107,7 +107,7 @@ class OfferCredential extends Component {
             
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/send_credential_offer`, {
+        axios.post(`${config.endpoint}/api/credential_exchanges/send_offer`, {
             connectionId: this.state.connectionId, 
             comment: this.state.comment,
             credDefId: this.state.credDefId,

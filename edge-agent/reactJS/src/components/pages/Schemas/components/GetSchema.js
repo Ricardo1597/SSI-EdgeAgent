@@ -27,7 +27,7 @@ class GetSchema extends Component {
       e.preventDefault();
       const jwt = this.props.accessToken;
 
-      axios.get(`${config.endpoint}/api/getSchema`, {
+      axios.get(`${config.endpoint}/api/ledger/getSchema`, {
         params: {
           schemaId: this.state.schemaId
         },
