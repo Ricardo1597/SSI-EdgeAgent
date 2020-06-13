@@ -81,5 +81,23 @@ module.exports = function(config) { //factory function creates object and return
         factory.defineHandler(indy.presentationExchange.MessageType.PresentationAck, indy.presentationExchange.handlers.acknowledgeHandler);
     }
 
+    // Add new message types
+    factory.defineHandler(indy.connections.NewMessageType.ConnectionRequest, indy.connections.handlers.requestHandler);
+    factory.defineHandler(indy.connections.NewMessageType.ConnectionResponse, indy.connections.handlers.responseHandler);
+    factory.defineHandler(indy.connections.NewMessageType.ConnectionAck, indy.connections.handlers.acknowledgeHandler);
+    factory.defineHandler(indy.connections.NewMessageType.ProblemReport, indy.connections.handlers.problemReportHandler);
+    // factory.defineHandler(indy.messages.NewMessageType.BasicMessage, indy.messages.handlers.basicMessageHandler);
+    // factory.defineHandler(indy.messages.NewMessageType.ForwardMessage, indy.messages.handlers.forwardMessageHandler);
+    // factory.defineHandler(indy.messages.NewMessageType.TrustPingMessage, indy.messages.handlers.trustPingMessageHandler);
+    factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialProposal, indy.credentialExchange.handlers.proposalHandler);
+    factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialOffer, indy.credentialExchange.handlers.offerHandler);
+    factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialRequest, indy.credentialExchange.handlers.requestHandler);
+    factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialIssuance, indy.credentialExchange.handlers.credentialHandler);
+    factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialAck, indy.credentialExchange.handlers.acknowledgeHandler);
+    factory.defineHandler(indy.presentationExchange.NewMessageType.PresentationProposal, indy.presentationExchange.handlers.proposalHandler);
+    factory.defineHandler(indy.presentationExchange.NewMessageType.PresentationRequest, indy.presentationExchange.handlers.requestHandler);
+    factory.defineHandler(indy.presentationExchange.NewMessageType.Presentation, indy.presentationExchange.handlers.presentationHandler);
+    factory.defineHandler(indy.presentationExchange.NewMessageType.PresentationAck, indy.presentationExchange.handlers.acknowledgeHandler);
+    
     return factory;
 };

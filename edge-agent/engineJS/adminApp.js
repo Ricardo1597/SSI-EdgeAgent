@@ -13,11 +13,13 @@ const cors = require('cors')
 
 require('./authentication/passport')
 
-const routes = require('./routes/index');
-const users = require('./routes/users');
-const api = require('./routes/api');
-// () executes the function so that we can potentially have multiple indy handlers;
-//const indyHandler = require('./indy/src/handler')({ defaultHandlers: true, eventHandlers: [] }); 
+const indexRoute = require('./routes/index');
+const usersRoute = require('./routes/users');
+const walletRoute = require('./routes/api/wallet');
+const ledgerRoute = require('./routes/api/ledger');
+const connectionsRoute = require('./routes/api/connections');
+const credExchangesRoute = require('./routes/api/credential_exchanges');
+const presExchangesRoute = require('./routes/api/presentation_exchanges');
 
 const app = express();
 
@@ -76,10 +78,13 @@ app.use((req, res, next) => {
 })
 
 
-app.use('/', routes);
-app.use('/users', users);
-app.use('/api', api);
-//app.post('/indy', indyHandler.middleware);
+app.use('/', indexRoute);
+app.use('/users', usersRoute);
+app.use('/api/wallet', walletRoute);
+app.use('/api/ledger', ledgerRoute);
+app.use('/api/connections', connectionsRoute);
+app.use('/api/credential_exchanges', credExchangesRoute);
+app.use('/api/presentation_exchanges', presExchangesRoute);
 
 
 /// catch 404 and forwarding to error handler

@@ -24,6 +24,7 @@ const PresentationExchangeState = {
 exports.PresentationExchangeState = PresentationExchangeState;
 
 exports.MessageType = messages.MessageType;
+exports.NewMessageType = messages.NewMessageType;
 
 // Prover starts exchange at presentation proposal
 exports.proverCreateAndSendProposal = async (connectionId, comment, presentationPreview) => {
@@ -130,6 +131,7 @@ exports.verifierCreateAndSendRequest = async (presentationExchangeRecord, commen
         );
     } else {
         // Verifier sent request first
+        presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
         await indy.wallet.updateWalletRecordValue(
             indy.recordTypes.RecordType.PresentationExchange, 
             presentationExchangeRecord.presentationExchangeId, 
@@ -351,6 +353,7 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
     // Update presentation exchange record
     presentationExchangeRecord.presentation = presentation;
     presentationExchangeRecord.state = PresentationExchangeState.PresentationSent;
+    presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.PresentationExchange, 
         presentationExchangeRecord.presentationExchangeId, 
@@ -444,6 +447,7 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
     // Update presentation exchange record
     presentationExchangeRecord.verified = JSON.stringify(verified);
     presentationExchangeRecord.state = PresentationExchangeState.Done;
+    presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.PresentationExchange, 
         presentationExchangeRecord.presentationExchangeId, 
@@ -455,6 +459,8 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
 
 
 exports.createPresentationExchangeRecord = (connectionId, message, initiator, role, state, treadId) => {
+    const currentDate = indy.utils.getCurrentDate();
+    
     return {
         presentationExchangeId: uuid(),
         connectionId: connectionId,
@@ -462,7 +468,9 @@ exports.createPresentationExchangeRecord = (connectionId, message, initiator, ro
         initiator: initiator,
         role: role,
         state: state,
-        presentationProposalDict: JSON.stringify(message)
+        presentationProposalDict: JSON.stringify(message),
+        createdAt: currentDate,
+        updatedAt: currentDate,
     }
 }
 

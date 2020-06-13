@@ -11,6 +11,16 @@ const MessageType = {
 };
 exports.MessageType = MessageType;
 
+const NewMessageType = {
+  PresentationProposal: 'https://didcomm.org/present-proof/1.0/propose-presentation',
+  PresentationRequest: 'https://didcomm.org/present-proof/1.0/request-presentation',
+  Presentation: 'https://didcomm.org/present-proof/1.0/presentation',
+  PresentationAck: 'https://didcomm.org/present-proof/1.0/ack',
+  PresentationPreview: 'https://didcomm.org/present-proof/1.0/presentation-preview',
+  ProblemReport: 'https://didcomm.org/present-proof/1.0/problem-report',
+};
+exports.NewMessageType = NewMessageType;
+
 
 exports.createPresentationProposal = (comment, presentationPreview) => {
   const messageId = uuid()

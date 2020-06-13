@@ -65,6 +65,7 @@ exports.requestHandler = async (decryptedMessage) => {
 
     // Update invitation times used
     invitation.timesUsed++;
+    invitation.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Invitation, 
         invitation.invitationId, 
@@ -106,6 +107,7 @@ exports.responseHandler = async (decryptedMessage) => {
 
     // Update connection record
     connection.state = connectionsIndex.ConnectionState.Responded;
+    connection.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 
@@ -138,6 +140,7 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
     if (message['status'] === "OK"){
         if(connection.state !== connectionsIndex.ConnectionState.Complete) {
             connection.state = connectionsIndex.ConnectionState.Complete;
+            connection.updatedAt = indy.utils.getCurrentDate();
             await indy.wallet.updateWalletRecordValue(
                 indy.recordTypes.RecordType.Connection, 
                 connection.connectionId, 
@@ -184,6 +187,7 @@ exports.problemReportHandler = async (decryptedMessage) => {
 
     connection.state = connectionsIndex.ConnectionState.Error;
     connection.error = message.description;
+    connection.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 

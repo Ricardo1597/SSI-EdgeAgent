@@ -42,6 +42,7 @@ exports.CredentialExchangeState = CredentialExchangeState;
   
 
 exports.MessageType = messages.MessageType;
+exports.NewMessageType = messages.NewMessageType;
 
 // Holder starts exchange at credential proposal
 exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, schemaId, credDefId) => {
@@ -150,6 +151,7 @@ exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => 
     credentialExchangeRecord.credentialDefinitionId = credentialOffer["cred_def_id"];
     credentialExchangeRecord.state = CredentialExchangeState.OfferSent;
     credentialExchangeRecord.credentialOffer = credentialOffer;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.CredentialExchange, 
         credentialExchangeRecord.credentialExchangeId, 
@@ -197,6 +199,7 @@ exports.holderCreateAndSendRequest = async (credentialExchangeRecord) => {
     credentialExchangeRecord.credentialRequest = credentialRequest;
     credentialExchangeRecord.credentialRequestMetadata = credentialRequestMetadata;
     credentialExchangeRecord.state = CredentialExchangeState.RequestSent;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.CredentialExchange, 
         credentialExchangeRecord.credentialExchangeId, 
@@ -248,6 +251,7 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
     // Update credential exchange record
     credentialExchangeRecord.credential = credential;
     credentialExchangeRecord.state = CredentialExchangeState.CredentialIssued;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.CredentialExchange, 
         credentialExchangeRecord.credentialExchangeId, 
@@ -300,6 +304,7 @@ exports.createAndSendAck = async (credentialExchangeRecord) => {
 
     // Update credential exchange record
     credentialExchangeRecord.state = CredentialExchangeState.Done;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.CredentialExchange, 
         credentialExchangeRecord.credentialExchangeId, 
@@ -310,14 +315,18 @@ exports.createAndSendAck = async (credentialExchangeRecord) => {
 }
 
 exports.createCredentialExchangeRecord = (connectionId, message, initiator, role, state, threadId) => {
-  return {
-    credentialExchangeId: uuid(),
-    connectionId: connectionId,
-    threadId: threadId, 
-    initiator: initiator,
-    role: role,
-    state: state,
-    credentialProposalDict: JSON.stringify(message)
+    const currentDate = indy.utils.getCurrentDate();
+
+    return {
+        credentialExchangeId: uuid(),
+        connectionId: connectionId,
+        threadId: threadId, 
+        initiator: initiator,
+        role: role,
+        state: state,
+        credentialProposalDict: JSON.stringify(message),
+        createdAt: currentDate,
+        updatedAt: currentDate,
   }
 }
 

@@ -18,6 +18,7 @@ exports.pairwise = require('./src/pairwise');
 exports.ledger = require('./src/ledger');
 //exports.proofs = require('./src/proofs');
 exports.recordTypes = require('./src/recordTypes');
+exports.utils = require('./src/utils')
 
 exports.setupPool = async function () {
     await exports.ledger.setup();

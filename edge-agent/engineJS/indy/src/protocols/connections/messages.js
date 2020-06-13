@@ -7,9 +7,18 @@ const MessageType = {
   ConnectionAck: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/ack',
   ForwardMessage: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/routing/1.0/forward',
   ProblemReport: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/problem-report',
-
 };
 exports.MessageType = MessageType;
+
+const NewMessageType = {
+  ConnectionInvitation: 'https://didcomm.org/connections/1.0/invitation',
+  ConnectionRequest: 'https://didcomm.org/connections/1.0/request',
+  ConnectionResponse: 'https://didcomm.org/connections/1.0/response',
+  ConnectionAck: 'https://didcomm.org/connections/1.0/ack',
+  ForwardMessage: 'https://didcomm.org/routing/1.0/forward',
+  ProblemReport: 'https://didcomm.org/connections/1.0/problem-report',
+};
+exports.NewMessageType = NewMessageType;
 
 
 exports.createInvitationMessage = (invitationDetails) => {

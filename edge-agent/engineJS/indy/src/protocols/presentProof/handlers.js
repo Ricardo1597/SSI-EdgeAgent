@@ -78,6 +78,7 @@ exports.requestHandler = async (decryptedMessage) => {
         console.log("Presentation Exchange Id created in proposal handler: ", presentationExchangeRecord.presentationExchangeId)
     } else {
         // Holder sent proposal first
+        presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
         await indy.wallet.updateWalletRecordValue(
             indy.recordTypes.RecordType.PresentationExchange, 
             presentationExchangeRecord.presentationExchangeId, 
@@ -110,7 +111,7 @@ exports.presentationHandler = async (decryptedMessage) => {
     // Update presentation exchange record
     presentationExchangeRecord.presentation = presentation;
     presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.PresentationReceived;
-
+    presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.PresentationExchange, 
         presentationExchangeRecord.presentationExchangeId, 
@@ -145,6 +146,7 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
         if(presentationExchangeRecord.state !== presentationsIndex.PresentationExchangeState.Done) {
             // Update presentation exchange record
             presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.Done;
+            presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
             await indy.wallet.updateWalletRecordValue(
                 indy.recordTypes.RecordType.PresentationExchange, 
                 presentationExchangeRecord.presentationExchangeId, 
@@ -197,6 +199,7 @@ exports.problemReportHandler = async (decryptedMessage) => {
 
     presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.Error;
     presentationExchangeRecord.error = message.description;
+    presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.PresentationExchange, 
         presentationExchangeRecord.presentationExchangeId, 

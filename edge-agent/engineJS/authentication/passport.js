@@ -8,6 +8,7 @@ var localStrategy = require('passport-local').Strategy
 var UserModel = require('../models/users')
 const indy = require('../indy/index')
 require('dotenv/config')
+const { getRefreshTokenVersion } = require('./refreshToken')
 
 // LOGIN
 passport.use('login', new localStrategy({
@@ -58,6 +59,7 @@ passport.use('jwt', new JWTStrategy({
     secretOrKey : process.env.ACCESS_TOKEN_SECRET,
     jwtFromRequest : ExtractJWT.fromAuthHeaderAsBearerToken()
 }, async (jwt_payload, done) => {      
+    console.log("Access token: ", jwt_payload)
     if(!jwt_payload.user) {
         return done(null, false);
     }
@@ -86,11 +88,14 @@ passport.use('refresh', new JWTStrategy({
     secretOrKey : process.env.REFRESH_TOKEN_SECRET,
     jwtFromRequest : cookieExtractor
 }, async (jwt_payload, done) => {    
+    console.log("Refresh token: ", jwt_payload)
     if(!jwt_payload.user) {
         return done(null, false);
     }
-    const { walletHandle } = jwt_payload.user;
-    if (walletHandle && walletHandle == await indy.wallet.get()) {
+    const { username, walletHandle } = jwt_payload.user;
+    const tokenVersion = getRefreshTokenVersion(username);
+    if (walletHandle && walletHandle == await indy.wallet.get() &&
+        jwt_payload.version == tokenVersion) {
         return done(null, jwt_payload.user);
     } else {
         return done(null, false);

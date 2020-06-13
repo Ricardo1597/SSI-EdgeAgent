@@ -19,23 +19,17 @@ function withAuth(ComponentToProtect, accessToken, updateAccessToken, ...rest) {
     componentDidMount() {
 
       const jwt = accessToken;
-      if(!jwt) {
+      axios.get(`${config.endpoint}/users/checkToken`, { 
+        headers: { Authorization: `Bearer ${jwt}`}
+      })
+      .then(res => {
+        this.setState({ loading: false });
+      })
+      .catch(err => {
+        console.error("erron in withAuth: ", err);
         this.setState({ loading: false, redirect: true });
-      } else {
-        axios.get(`${config.endpoint}/users/checkToken`, { 
-          headers: { Authorization: `Bearer ${jwt}`}
-        })
-        .then(res => {
-          if (res.status === 200) {
-            this.setState({ loading: false });
-          } 
-        })
-        .catch(err => {
-          console.error("aqui 2: ", err);
-          this.setState({ loading: false, redirect: true });
-          updateAccessToken("");
-        });
-      }
+        updateAccessToken("");
+      });
     }
     
     render() {

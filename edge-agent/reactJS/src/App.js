@@ -27,41 +27,12 @@ import { connect } from 'react-redux';
 
 
 class App extends Component {
-  state = {
-    loading: true
-  }
-
-  componentDidMount() {
-    axios.post(`${config.endpoint}/users/refreshToken`, {}, {
-      withCredentials: true,
-    })
-    .then(res => {
-        this.props.updateAccessToken(res.data.accessToken);
-        this.setState({ loading: false })
-    })
-    .catch(err => {
-      this.props.updateAccessToken("");
-      console.error(err);
-      this.setState({ loading: false })
-    });
-  };
-  
-  // componentWillUnmount() {
-  //   localStorage.clear() 
-  // };
 
   protectRoute = (component) => {
     return withAuth(component, this.props.accessToken, this.props.updateAccessToken)
   }
 
   render() {
-    if(this.state.loading) {
-      return null;
-    }
-
-    // if(this.state.redirect) {       
-    //   return <Redirect to="/login" />;
-    // }
 
     return (
       <div>

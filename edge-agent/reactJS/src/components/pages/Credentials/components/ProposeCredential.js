@@ -108,7 +108,7 @@ class ProposeCredential extends Component {
             
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/send_credential_proposal`, {
+        axios.post(`${config.endpoint}/api/credential_exchanges/send_proposal`, {
             connectionId: this.state.connectionId, 
             comment: this.state.comment,
             schemaId: this.state.schemaId,

@@ -12,6 +12,17 @@ const MessageType = {
 };
 exports.MessageType = MessageType;
 
+const NewMessageType = {
+  CredentialProposal: 'https://didcomm.org/issue-credential/1.0/propose-credential',
+  CredentialOffer: 'https://didcomm.org/issue-credential/1.0/offer-credential',
+  CredentialRequest: 'https://didcomm.org/issue-credential/1.0/request-credential',
+  CredentialIssuance: 'https://didcomm.org/issue-credential/1.0/issue-credential',
+  CredentialAck: 'https://didcomm.org/issue-credential/1.0/ack',
+  CredentialPreview: 'https://didcomm.org/issue-credential/1.0/credential-preview',
+  ProblemReport: 'https://didcomm.org/issue-credential/1.0/problem-report',
+};
+exports.NewMessageType = NewMessageType;
+
 
 exports.createCredentialProposal = (comment, schemaId, credentialPreview, credDefId, thid) => {
   let messageId = uuid();

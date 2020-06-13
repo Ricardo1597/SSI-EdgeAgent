@@ -9,6 +9,7 @@ const generalTypes = require('../generalTypes');
 exports.handlers = require('./handlers');
 
 exports.MessageType = messages.MessageType;
+exports.NewMessageType = messages.NewMessageType;
 
 const ConnectionState = {
     Init: "init",
@@ -48,6 +49,8 @@ exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, is
     const invitationDetails = createInvitationDetails(myDidDoc);
     const invitationMessage = await messages.createInvitationMessage(invitationDetails);
 
+    const currentDate = indy.utils.getCurrentDate();
+
     let invitation = {
         invitationId: uuid(),
         invitation: invitationMessage,
@@ -57,7 +60,9 @@ exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, is
         myDid: myDid,
         myVerkey: myVerkey,
         isPublic: isPublic,
-        isActive: true
+        isActive: true,
+        createdAt: currentDate,
+        updatedAt: currentDate,
     }
 
     // Add invitation record to the wallet
@@ -79,12 +84,16 @@ exports.receiveInvitation = async (connectionAlias, invitation, autoAccept=false
         validateInvitationKeys(invitation.did, invitation.recipientKeys);
     }
 
+    const currentDate = indy.utils.getCurrentDate()
+
     let connection = {
         connectionId: uuid(),     
         state: ConnectionState.Invited,
         initiator: generalTypes.Initiator.External,
         alias: connectionAlias,
-        invitation: invitation
+        invitation: invitation,
+        createdAt: currentDate,
+        updatedAt: currentDate,
     };
     
     // Add connection record to the wallet
@@ -131,6 +140,7 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     // Update connection record
     connection.threadId = connectionRequest['@id'];
     connection.state = ConnectionState.Requested;
+    connection.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 
@@ -173,6 +183,7 @@ exports.rejectRequest = async (connectionId) => {
         self: true,
         description: rejectRequestMessage.description 
     };
+    connection.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 
@@ -209,6 +220,7 @@ exports.createAndSendResponse = async (connectionId) => {
     
     // Update connection record
     connection.state = ConnectionState.Responded;
+    connection.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 
@@ -246,6 +258,7 @@ exports.rejectResponse = async (connectionId) => {
         self: true,
         description: rejectResponseMessage.description 
     };
+    connection.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 
@@ -268,6 +281,7 @@ exports.createAndSendAck = async (connectionId) => {
 
     // Update connection record
     connection.state = ConnectionState.Complete;
+    connection.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.Connection, 
         connection.connectionId, 
@@ -282,6 +296,8 @@ exports.createPeerDidConnection = async (initiator, threadId, state=null) => {
         state = ConnectionState.Init;
     }
     const [did, verkey, didDoc] = await this.getDidAndDocument(false);
+
+    const currentDate = indy.utils.getCurrentDate();
     
     return {
         connectionId: uuid(),
@@ -289,7 +305,9 @@ exports.createPeerDidConnection = async (initiator, threadId, state=null) => {
         myVerkey: verkey,
         state: state,
         initiator: initiator,
-        threadId: threadId
+        threadId: threadId,
+        createdAt: currentDate,
+        updatedAt: currentDate,
     }
 }
 
@@ -300,13 +318,17 @@ exports.createPublicDidConnection = async (did, initiator, threadId, state=null)
     }
     const [myDid, myVerkey, myDidDoc] = await this.getDidAndDocument(true, did);
 
+    const currentDate = indy.utils.getCurrentDate();
+
     return {
         connectionId: uuid(),
         myDid: myDid,
         myVerkey: myVerkey,
         state: state,
         initiator: initiator,
-        threadId: threadId
+        threadId: threadId,
+        createdAt: currentDate,
+        updatedAt: currentDate,
     }
 }
 

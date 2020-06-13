@@ -11,6 +11,7 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 
 
 import axios from 'axios'
@@ -20,7 +21,9 @@ import config from '../../config'
 class SignIn extends Component {
   state = {
     username: '',
-    password: ''
+    password: '',
+    loading: true,
+    redirect: false,
   }
 
 
@@ -32,9 +35,16 @@ class SignIn extends Component {
 
   componentDidMount() {
     const jwt = this.props.accessToken;
-    if(jwt !== '') {
-      this.props.history.push('/');
-    }
+    axios.get(`${config.endpoint}/users/checkToken`, { 
+      headers: { Authorization: `Bearer ${jwt}`}
+    })
+    .then(res => {
+      this.setState({ loading: false, redirect: true });
+    })
+    .catch(err => {
+      this.setState({ loading: false });
+      this.props.updateAccessToken("");
+    });
   }
 
   onSubmit = (e) => {
@@ -67,6 +77,14 @@ class SignIn extends Component {
 
   render() {
     const { classes } = this.props;
+
+    const { loading, redirect } = this.state;
+    if (loading) {
+      return null;
+    }
+    if (redirect) {
+      return <Redirect to="/" />;
+    }
 
     return (
       <Grid container component="main" className={classes.root}>
@@ -138,8 +156,6 @@ class SignIn extends Component {
     );
   }
 }
-
-
 
 
 const useStyles = theme => ({

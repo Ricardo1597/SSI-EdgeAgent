@@ -121,7 +121,6 @@ class Nyms extends Component {
                                             {this.state.dids.map(did => {
                                                 return (<option key={did} value={did}>{did}</option>)
                                             })}
-                                        >
                                         </Select>
                                     </FormControl>
                                 </Grid>

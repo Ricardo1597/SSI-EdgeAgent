@@ -34,7 +34,7 @@ class CreateCredDef extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/createCredDef`, {
+        axios.post(`${config.endpoint}/api/ledger/createCredDef`, {
             did: this.state.did,
             schemaId: this.state.schemaId
 
@@ -83,7 +83,6 @@ class CreateCredDef extends Component {
                                                 {this.state.dids.map(did => {
                                                     return (<option key={did} value={did}>{did}</option>)
                                                 })}
-                                            >
                                             </Select>
                                         </FormControl>
                                     </Grid>           

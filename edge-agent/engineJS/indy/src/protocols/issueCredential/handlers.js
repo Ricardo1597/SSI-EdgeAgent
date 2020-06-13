@@ -101,6 +101,7 @@ exports.offerHandler = async (decryptedMessage) => {
         );
     } else {
         // Holder sent proposal first
+        credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
         await indy.wallet.updateWalletRecordValue(
             indy.recordTypes.RecordType.CredentialExchange, 
             credentialExchangeRecord.credentialExchangeId, 
@@ -137,7 +138,7 @@ exports.requestHandler = async (decryptedMessage) => {
     // Update credential exchange record
     credentialExchangeRecord.credentialRequest = credRequest;
     credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.RequestReceived;
-
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.CredentialExchange, 
         credentialExchangeRecord.credentialExchangeId, 
@@ -179,6 +180,7 @@ exports.credentialHandler = async (decryptedMessage) => {
     credentialExchangeRecord.credentialId = credentialId;
     credentialExchangeRecord.credential = credential;
     credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.CredentialReceived;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.CredentialExchange, 
         credentialExchangeRecord.credentialExchangeId, 
@@ -214,6 +216,7 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
         if(credentialExchangeRecord.state !== credentialsIndex.CredentialExchangeState.Done) {
             // Update credential exchange record
             credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.Done;
+            credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
             await indy.wallet.updateWalletRecordValue(
                 indy.recordTypes.RecordType.CredentialExchange, 
                 credentialExchangeRecord.credentialExchangeId, 
@@ -273,6 +276,7 @@ exports.problemReportHandler = async (decryptedMessage) => {
 
     credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.Error;
     credentialExchangeRecord.error = message.description;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
         indy.recordTypes.RecordType.CredentialExchange, 
         credentialExchangeRecord.credentialExchangeId, 

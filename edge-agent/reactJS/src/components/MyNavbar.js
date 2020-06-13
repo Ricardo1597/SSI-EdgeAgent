@@ -15,10 +15,10 @@ class MyNavbar extends React.Component {
 
     const jwt = this.props.accessToken;
 
-    axios.post(`${config.endpoint}/users/logout`, { 
+    axios.post(`${config.endpoint}/users/logout`, {}, {
       headers: { Authorization: `Bearer ${jwt}`} 
     })
-    .then( e => {
+    .then( res => {
       localStorage.clear();
       this.props.updateAccessToken("");
       this.props.history.push('/login')

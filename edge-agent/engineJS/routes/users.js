@@ -1,14 +1,18 @@
+'use strict';
 var express = require('express');
 var router = express.Router();
 var jwt = require('jsonwebtoken') 
 const passport = require('passport');
 const sdk = require('indy-sdk');
 const indy = require('../indy/index.js');
-require('dotenv/config')
+require('dotenv/config');
 
 const UserModel = require('../models/users')
 
-
+const { 
+  getRefreshTokenVersion,
+  incrementRefreshTokenVersion
+} = require('../authentication/refreshToken')
 
 /* Check user token */
 router.get('/checkToken', passport.authenticate('jwt', {session: false}), (req, res) => {
@@ -19,12 +23,12 @@ router.get('/checkToken', passport.authenticate('jwt', {session: false}), (req, 
 router.post('/refreshToken', passport.authenticate('refresh', {session: false}), async (req, res) => {
   // If it has passed the middleware, the cookie refresh token is valid
   const newAccessToken = jwt.sign(
-    { user : req.user }, 
+    { user: req.user }, 
     process.env.ACCESS_TOKEN_SECRET, 
     {expiresIn: '15m'}
   );
   
-  res.status(200).send({ok: true, accessToken: newAccessToken});
+  return res.status(200).send({ok: true, accessToken: newAccessToken});
 });
 
 
@@ -43,7 +47,7 @@ router.post('/register', checkNotAuthenticated, async (req, res) => {
   try {
     await indy.wallet.setup(username+'_wallet', password);
     console.log('wallet created')
-
+    
     return res.sendStatus(200)
 
   } catch(error) {
@@ -95,14 +99,17 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
         req.login(user, { session : false }, async (error) => {
             if( error ) return next(error)
 
-            // Geração dos tokens (access and refresh)
+            // Load refresh token version
+            const version = getRefreshTokenVersion(user.username);
+
+            // Token generation (access and refresh)
             var accessToken = jwt.sign(
-              { user : user }, 
+              { user: user }, 
               process.env.ACCESS_TOKEN_SECRET, 
-              {expiresIn: '15s'}
+              {expiresIn: '5s'}
             );
             var refreshToken = jwt.sign(
-              { user : user }, 
+              { user: user, version: version }, 
               process.env.REFRESH_TOKEN_SECRET, 
               {expiresIn: '7d'}
             );
@@ -133,7 +140,10 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
 // LOGOUT
 router.post('/logout', passport.authenticate('jwt', {session: false}), async (req,res) => {
   await indy.wallet.close();
-  console.log('wallet closed')
+  console.log('wallet closed');
+
+  // Revoke refresh token by incrementing the stored version
+  incrementRefreshTokenVersion(req.user.username);
 
   req.logout();
 
@@ -150,15 +160,13 @@ router.post('/logout', passport.authenticate('jwt', {session: false}), async (re
 // Prevent an authenticated user from accessing login or 
 // register while authenticated
 function checkNotAuthenticated(req, res, next) {
-  const token = req.session.token
-  if(!token) return next();
-  else{
-    try {
-      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-      res.redirect('/');
-    } catch (err) {
-      return next();
-    }
+  try {
+    const token = req.headers.Authorization.split(" ")[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    return res.redirect('/');
+  } catch (error) {
+    console.log(error);
+    return next();
   }
 }
 

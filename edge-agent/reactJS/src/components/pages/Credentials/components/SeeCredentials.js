@@ -16,7 +16,7 @@ class SeeCredential extends Component {
     componentWillMount() {
     const jwt = this.props.accessToken;
     
-    axios.get(`${config.endpoint}/api/credentials`, { 
+    axios.get(`${config.endpoint}/api/wallet/credentials`, { 
         headers: { Authorization: `Bearer ${jwt}`} 
     })
     .then(res => {
