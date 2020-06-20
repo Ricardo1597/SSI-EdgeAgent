@@ -18,6 +18,7 @@ import Connections from './components/pages/Connections';
 import Login from './components/pages/SignIn';
 import Register from './components/pages/SignUp';
 import Schemas from './components/pages/Schemas';
+import Revocations from './components/pages/Revocations';
 
 import withAuth from './components/withAuth'
 import axios from 'axios';
@@ -47,6 +48,7 @@ class App extends Component {
             <Route exact path="/connections" component={this.protectRoute(Connections)}/>
             <Route exact path="/nyms" component={this.protectRoute(Nyms)}/>
             <Route exact path="/schemas" component={this.protectRoute(Schemas)}/>
+            <Route exact path="/revocations" component={this.protectRoute(Revocations)}/>
           </Switch>
         </Router>
       </div>

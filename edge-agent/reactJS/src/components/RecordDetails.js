@@ -12,7 +12,7 @@ export class RecordDetails extends Component {
     render() {
         const classes = this.props
         
-        const { initiator, role, state, threadId, connectionId, recordId, proposal } = this.props.record;
+        const { initiator, role, state, threadId, error, connectionId, recordId, proposal } = this.props.record;
         return (
             <div>
                 <CardContent>
@@ -37,13 +37,21 @@ export class RecordDetails extends Component {
                             {role}
                         </div>
                         <div style={{marginBottom: 8}}>
-                            <div style={{fontWeight: "bold"}}>Current State:</div> 
-                            {state}
-                        </div>
-                        <div style={{marginBottom: 8}}>
                             <div style={{fontWeight: "bold"}}>Thread ID:</div> 
                             {threadId}
                         </div>
+                        <div style={{marginBottom: 8}}>
+                            <div style={{fontWeight: "bold"}}>Current State:</div> 
+                            {state}
+                        </div>
+                        {
+                            state === "error" && error && error.description && error.description.en ? (
+                                <div style={{marginBottom: 8}}>
+                                    <div style={{fontWeight: "bold"}}>Error:</div> 
+                                    {error.description.en}
+                                </div>
+                            ) : null
+                        }
                         <div style={{marginBottom: 8}}>
                             <div style={{fontWeight: "bold"}}>Credential Proposal:</div>
                             <JSONPretty id="json-pretty" data={proposal}></JSONPretty>

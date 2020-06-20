@@ -181,18 +181,26 @@ exports.problemReportHandler = async (decryptedMessage) => {
             }
             console.log("Connection response not accepted.");
             break;
+        case "connection_abandoned":
+            console.log("Connection abandoned.");
+            break;
         default:
             console.log(message.description);
     }
 
-    connection.state = connectionsIndex.ConnectionState.Error;
-    connection.error = message.description;
-    connection.updatedAt = indy.utils.getCurrentDate();
-    await indy.wallet.updateWalletRecordValue(
-        indy.recordTypes.RecordType.Connection, 
-        connection.connectionId, 
-        JSON.stringify(connection)
-    );
+    if(message.impact === "connection") {
+        connection.state = connectionsIndex.ConnectionState.Error;
+        connection.error = {
+            self: false,
+            description: message.description
+        };
+        connection.updatedAt = indy.utils.getCurrentDate();
+        await indy.wallet.updateWalletRecordValue(
+            indy.recordTypes.RecordType.Connection, 
+            connection.connectionId, 
+            JSON.stringify(connection)
+        );
+    }
 
     return null;
 };

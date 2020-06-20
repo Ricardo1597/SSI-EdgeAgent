@@ -108,6 +108,8 @@ exports.presentationHandler = async (decryptedMessage) => {
 
     let presentation = JSON.parse(Buffer.from(message['presentations~attach'][0]['data']["base64"], 'base64').toString('ascii'));
 
+    // Check if presentation is different from presentation proposal?
+
     // Update presentation exchange record
     presentationExchangeRecord.presentation = presentation;
     presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.PresentationReceived;
@@ -193,18 +195,26 @@ exports.problemReportHandler = async (decryptedMessage) => {
             }
             console.log("Presentation exchange request not accepted.");
             break;
+        case "presentation-abandoned":
+            console.log("Credential presentation abandoned.");
+            break;
         default:
             console.log(message.description);
     }
 
-    presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.Error;
-    presentationExchangeRecord.error = message.description;
-    presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
-    await indy.wallet.updateWalletRecordValue(
-        indy.recordTypes.RecordType.PresentationExchange, 
-        presentationExchangeRecord.presentationExchangeId, 
-        JSON.stringify(presentationExchangeRecord)
-    );
+    if(message.impact === "thread"){
+        presentationExchangeRecord.state = presentationsIndex.PresentationExchangeState.Error;
+        presentationExchangeRecord.error = {
+            self: false,
+            description: message.description
+        };
+        presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
+        await indy.wallet.updateWalletRecordValue(
+            indy.recordTypes.RecordType.PresentationExchange, 
+            presentationExchangeRecord.presentationExchangeId, 
+            JSON.stringify(presentationExchangeRecord)
+        );
+    }
 
     return null;
 };

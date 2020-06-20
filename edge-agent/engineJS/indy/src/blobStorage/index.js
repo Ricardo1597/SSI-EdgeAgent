@@ -1,26 +1,25 @@
-const fs = require('fs')
 const sdk = require('indy-sdk')
+const path = require('path');
 
 // Get handle for the blob storage file reader
-exports.createTailsReader = async (path) => {
+exports.createTailsReader = async (tailsLocalPath) => {
     try {
-        if (fs.existsSync(path)) {
-            tails_reader_config = {
-                "base_dir": str(tails_file_path.parent.absolute()),
-                "file": str(tails_file_path.name),
-            }
-            return await sdk.openBlobStorageReader("default", tails_reader_config)        
+        tailsReaderConfig = {
+            "base_dir": path.dirname(tailsLocalPath),
+            "file": path.basename(tailsLocalPath),
         }
+        console.log(tailsReaderConfig)
+        return await sdk.openBlobStorageReader("default", tailsReaderConfig)    
     } catch(err) {
         throw new Error('Tails file does not exist: ', err);
     }
 }
 
 // Get handle for the blob storage file writer
-exports.createTailsWriter = async (tails_base_dir) => {
-    tails_writer_config = {
-        "base_dir": tails_base_dir, 
+exports.createTailsWriter = async (tailsBaseDir) => {
+    tailsWriterConfig = {
+        "base_dir": tailsBaseDir, 
         "uri_pattern": ""
     }
-    return await sdk.openBlobStorageWriter("default", tails_writer_config)
+    return await sdk.openBlobStorageWriter("default", tailsWriterConfig)
 }

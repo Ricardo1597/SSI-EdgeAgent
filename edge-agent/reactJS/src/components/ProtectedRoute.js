@@ -15,7 +15,7 @@ function ProtectedRoute({component: Component, accessToken, updateAccessToken, .
       loading = false;
       redirect = true;
     } else {
-      axios.get(`${config.endpoint}/users/checkToken`, { 
+      axios.get(`${config.endpoint}/users/check-token`, { 
         headers: { Authorization: `Bearer ${jwt}`}
       })
       .then(res => {

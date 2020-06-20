@@ -15,18 +15,13 @@ function PendingConnectionActions(props) {
 
     const acceptInvitation = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/connections/accept_invitation`, {
+        axios.post(`${config.endpoint}/api/connections/accept-invitation`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -34,21 +29,32 @@ function PendingConnectionActions(props) {
         });
     }
 
-
-    const acceptRequest = connectionId => {
+    const rejectInvitation = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/connections/accept_request`, {
+        axios.post(`${config.endpoint}/api/connections/reject-invitation`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
+        })
+        .catch(err => {
+              console.error(err);
+              alert('Error rejecting connection. Please try again.');
+        });
+    }
+
+
+    const acceptRequest = connectionId => {
+        const jwt = props.accessToken;
+        axios.post(`${config.endpoint}/api/connections/accept-request`, {
+            id: connectionId
+        }, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -59,18 +65,13 @@ function PendingConnectionActions(props) {
 
     const rejectRequest = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/connections/reject_request`, {
+        axios.post(`${config.endpoint}/api/connections/reject-request`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -82,18 +83,13 @@ function PendingConnectionActions(props) {
 
     const acceptResponse = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/connections/accept_response`, {
+        axios.post(`${config.endpoint}/api/connections/accept-response`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -103,18 +99,13 @@ function PendingConnectionActions(props) {
 
     const rejectResponse = connectionId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/connections/reject_response`, {
+        axios.post(`${config.endpoint}/api/connections/reject-response`, {
             id: connectionId
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -123,12 +114,37 @@ function PendingConnectionActions(props) {
     }
 
 
+    const deleteConnection = id => {
+        const jwt = props.accessToken;
+
+        axios.delete(`${config.endpoint}/api/connections/${id}`, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data.id)
+        })
+        .catch(err => {
+              console.error(err);
+              alert('Error deleting connection. Please try again.');
+        });
+    }
+
+
     const { state, initiator, connectionId } = props.connection;
 
-    if(initiator === "external") {
+    if(state === "error") {
+        return (
+            <Button size="small" color="primary" onClick={() => deleteConnection(connectionId)}>Remove Connection</Button>
+        )
+    } else if(initiator === "external") {
         switch(state) {
             case 'invited':
-                return <Button size="small" color="primary" onClick={() => acceptInvitation(connectionId)}>Accept Invitation</Button>
+                return (
+                    <div>
+                        <Button size="small" color="primary" onClick={() => acceptInvitation(connectionId)}>Accept Invitation</Button>
+                        <Button size="small" color="primary" onClick={() => rejectInvitation(connectionId)}>Reject Invitation</Button>
+                    </div>
+                )
             {/*case 'responded':
                 return <Button size="small" color="primary" onClick={() => acceptResponse(connectionId)}>Accept Response</Button>;*/}
             default:

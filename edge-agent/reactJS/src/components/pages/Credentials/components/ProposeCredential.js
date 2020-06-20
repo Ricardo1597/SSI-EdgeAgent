@@ -73,7 +73,7 @@ class ProposeCredential extends Component {
         if(this.state.schemaId.length < 1 ){
             formIsValid = false;
             errors["schemaId"] = "Cannot be empty";
-        } else if(!this.state.schemaId.match(/^[a-zA-Z0-9:._]+$/)){
+        } else if(!this.state.schemaId.match(/^[a-zA-Z0-9:\-._]+$/)){
             formIsValid = false;
             errors["schemaId"] = "Invalid characters";
         }
@@ -82,7 +82,7 @@ class ProposeCredential extends Component {
         if(this.state.credDefId.length < 1 ){
             formIsValid = false;
             errors["credDefId"] = "Cannot be empty";
-        } else if(!this.state.credDefId.match(/^[a-zA-Z0-9:]+$/)){
+        } else if(!this.state.credDefId.match(/^[a-zA-Z0-9:\-]+$/)){
             formIsValid = false;
             errors["credDefId"] = "Invalid characters";
         }
@@ -108,7 +108,7 @@ class ProposeCredential extends Component {
             
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/credential_exchanges/send_proposal`, {
+        axios.post(`${config.endpoint}/api/credential-exchanges/send-proposal`, {
             connectionId: this.state.connectionId, 
             comment: this.state.comment,
             schemaId: this.state.schemaId,

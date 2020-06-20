@@ -41,7 +41,7 @@ class CreateSchema extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/ledger/createSchema`, {
+        axios.post(`${config.endpoint}/api/ledger/create-schema`, {
             name: this.state.name, 
             version: this.state.version,
             attributes: this.state.attributes,
@@ -50,12 +50,7 @@ class CreateSchema extends Component {
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data);
         })
         .catch(err => {
               console.error(err);

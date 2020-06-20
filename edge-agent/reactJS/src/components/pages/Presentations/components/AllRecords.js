@@ -36,7 +36,7 @@ class AllRecords extends Component {
     deleteRecord = id => {
         const jwt = this.props.accessToken;
 
-        axios.delete(`${config.endpoint}/api/presentation_exchanges/${id}`, { 
+        axios.delete(`${config.endpoint}/api/presentation-exchanges/${id}`, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
@@ -52,7 +52,7 @@ class AllRecords extends Component {
     componentWillMount() {
         const jwt = this.props.accessToken;
 
-        axios.get(`${config.endpoint}/api/presentation_exchanges`, { 
+        axios.get(`${config.endpoint}/api/presentation-exchanges`, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
@@ -91,7 +91,9 @@ class AllRecords extends Component {
                                         > 
                                             <RecordSummary 
                                                 record={{
-                                                    id: exchange.presentationExchangeId
+                                                    id: exchange.presentationExchangeId,
+                                                    createdAt: exchange.createdAt,
+                                                    updatedAt: exchange.updatedAt,
                                                     // other attributes
                                                 }}
                                             />
@@ -113,7 +115,8 @@ class AllRecords extends Component {
                                             state: this.state.exchange.state,
                                             threadId: this.state.exchange.threadId,
                                             connectionId: this.state.exchange.connectionId,
-                                            proposal: this.state.exchange.presentationProposalDict
+                                            proposal: this.state.exchange.presentationProposalDict,
+                                            error: this.state.exchange.error
                                         }}
                                     />
                                     <CardActions>

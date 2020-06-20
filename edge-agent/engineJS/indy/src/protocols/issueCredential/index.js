@@ -1,16 +1,12 @@
 'use strict';
 const indy = require('../../../index.js');
 const uuid = require('uuid');
+const sdk = require('indy-sdk');
 const messages = require('./messages')
 const generalTypes = require('../generalTypes')
 const sha256 = require('js-sha256').sha256;
 
 exports.handlers = require('./handlers');
-
-
-// RECORD_TYPE = "credential_exchange_v10"
-// RECORD_ID_NAME = "credential_exchange_id"
-// TAG_NAMES = {"thread_id"}
 
 const CredentialExchangeState = {
     Init: "init",
@@ -25,6 +21,29 @@ const CredentialExchangeState = {
     Done: "done",
     Error: "error"
 }
+exports.CredentialExchangeState = CredentialExchangeState;
+
+exports.RejectionErrors = {
+    Proposal: {
+        state: CredentialExchangeState.ProposalReceived,
+        code: "proposal_not_accepted",
+        description: "Credential proposal rejected."
+    },
+    Offer: {
+        state: CredentialExchangeState.OfferReceived,
+        code: "offer_not_accepted",
+        description: "Credential offer rejected."
+    },
+    Request: {
+        state: CredentialExchangeState.RequestReceived,
+        code: "request_not_accepted",
+        description: "Credential request rejected."
+    },
+}
+
+exports.MessageType = messages.MessageType;
+exports.NewMessageType = messages.NewMessageType;
+
 
 // Use in CredentialExchangeRecord has tags to help in search
 // They are stored in "JSON.parse(credentialExchangeRecord.credentialProposalDict)"
@@ -37,12 +56,6 @@ const CredDefTags = [
     "cred_def_id",
 ]
 
-
-exports.CredentialExchangeState = CredentialExchangeState;
-  
-
-exports.MessageType = messages.MessageType;
-exports.NewMessageType = messages.NewMessageType;
 
 // Holder starts exchange at credential proposal
 exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, schemaId, credDefId) => {
@@ -114,6 +127,7 @@ exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDef
                                       
     return await exports.issuerCreateAndSendOffer(credentialExchangeRecord, comment)
 }
+
 
 exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => {
     const state = credentialExchangeRecord.state
@@ -217,9 +231,6 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
     // Get connection to send message (credential)
     const connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
     
-    // if(credentialExchangeRecord.credential)
-    //     throw new Error(`Create credential called multiple times for credential exchange ${credentialExchangeRecord.credentialExchangeId}`);
-    
     // Calculate credential request "data"   
     const [,schema] = await indy.ledger.getSchema(null, credentialExchangeRecord.schemaId);
     // If no credential values were passed, used the credential_proposal ones
@@ -230,13 +241,34 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
     const encodedValues = createEncodedCredentialValues(credentialValues, schema['attrNames']);
     const credentialOffer = credentialExchangeRecord.credentialOffer;
     const credentialRequest = credentialExchangeRecord.credentialRequest;
-    const [credential,,] = await indy.issuer.createCredential(
+
+    // Get credential definition id from record and check for revocation registry
+    const credDefId = JSON.parse(credentialExchangeRecord.credentialProposalDict).cred_def_id;
+    const [,credDef] = await indy.ledger.getCredDef(null, credDefId)
+    let tailsReaderHandler = -1;
+    if(credDef["value"]["revocation"]){
+        console.log("This credential support revocation.")
+        // Find a active revocation registry record by credDefId
+        const revocRegRecord = await indy.revocation.searchRevocRegRecord({'credDefId': credDefId});
+
+        if(!revocRegRecord) {
+            throw new Error(` Credential definition id ${credDefId} has no active revocation registry.`);
+        }
+
+        credentialExchangeRecord.revocRegId = revocRegRecord.revocRegId;
+        if(revocRegRecord.tailsLocalPath) {
+            tailsReaderHandler = await indy.blobStorage.createTailsReader(revocRegRecord.tailsLocalPath)
+        }
+    }
+    
+    const [credential,revocationId,] = await indy.issuer.createCredential(
         credentialOffer, 
         credentialRequest, 
         encodedValues, 
-        null, 
-        -1
+        credentialExchangeRecord.revocRegId, // null if not set
+        tailsReaderHandler
     );
+
     const data = Buffer.from(JSON.stringify(credential)).toString("base64");
 
     let credentialIssuedMessage = messages.createCredentialResponse(
@@ -250,6 +282,7 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
     
     // Update credential exchange record
     credentialExchangeRecord.credential = credential;
+    credentialExchangeRecord.revocationId = revocationId;
     credentialExchangeRecord.state = CredentialExchangeState.CredentialIssued;
     credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
@@ -263,12 +296,12 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
 
 // Store credential in the wallet
 exports.storeCredential = async (credentialExchangeRecord, credentialId, rawCredential) => {
-    let revocRegDef = null
-
-    const [credDefId, credDef] = await indy.ledger.getCredDef(null, rawCredential["cred_def_id"]);
-    if ("rev_reg_id" in rawCredential && rawCredential["rev_reg_id"] !== null) 
-        revocRegDef = await indy.ledger.getRevocRegDef(null, rawCredential["rev_reg_id"]);
-
+    let revocRegDef = null;
+    const [,credDef] = await indy.ledger.getCredDef(null, rawCredential["cred_def_id"]);
+    if (rawCredential["rev_reg_id"]) {
+        [,revocRegDef] = await indy.ledger.getRevocRegDef(null, rawCredential["rev_reg_id"]);
+    }
+    // check if revocReg has local tails file? For now assume it does
     try {
         credentialId = await indy.holder.storeCredential(
             credentialId,
@@ -283,6 +316,18 @@ exports.storeCredential = async (credentialExchangeRecord, credentialId, rawCred
     }
 
     const credential = await indy.holder.getCredential(credentialId);
+
+    // Update credential exchange record
+    credentialExchangeRecord.credential = credential;
+    credentialExchangeRecord.revocRegId = credential['rev_reg_id'];
+    credentialExchangeRecord.revocationId = credential['cred_rev_id'];
+    credentialExchangeRecord.state = CredentialExchangeState.CredentialIssued;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.CredentialExchange, 
+        credentialExchangeRecord.credentialExchangeId, 
+        JSON.stringify(credentialExchangeRecord)
+    );
 
     return [credentialId, credential];
 }
@@ -314,6 +359,89 @@ exports.createAndSendAck = async (credentialExchangeRecord) => {
     return [credentialExchangeRecord, credentialAckMessage];
 }
 
+// Issuer revokes a credential
+exports.revokeCredential = async (revocRegId, credRevId, publish) => {
+    // Get revocation registry record
+    let revocRegRecord = await indy.revocation.searchRevocRegRecord({'revocRegId': revocRegId});
+    if(!revocRegRecord){
+        throw new Error(`No revocation registry record found for id ${revocRegId}`)
+    }
+    if(publish) {
+        // Create entry and send it to the ledger
+        const [delta, invalidCredRevIds] = await indy.wallet.issuerRevokeCredentials(
+            revocRegRecord.tailsLocalPath, 
+            revocRegId, 
+            [credRevId]
+        );
+
+        if(delta) {
+            // Update revocation registry entry with new delta
+            revocRegRecord.revocRegEntry = delta;
+            await indy.wallet.updateWalletRecordValue(
+                indy.recordTypes.RecordType.RevocationRegistry, 
+                revocRegRecord.recordId, 
+                JSON.stringify(revocRegRecord)
+            );
+            await indy.revocation.publishRevocRegEntry(revocRegRecord.revocRegId)
+        }
+
+        return invalidCredRevIds
+    } else {
+        await indy.revocation.markRevocationAsPending(revocRegRecord.recordId, credRevId);
+        return null;
+    }
+}
+
+// Issuer publishs pending revocations
+exports.publishPendingRevocations = async (revocRegId=null) => {
+    let tags = {
+        'hasPendingRevocations': 'true'
+    }
+    if(revocRegId) tags['revocRegId'] = revocRegId;
+
+    // Get registry record if it has pending revocations
+    let revocRegRecords = await indy.revocation.searchRevocRegRecord(
+        tags,
+        true
+    );
+    if(revocRegRecords.length === 0){
+        console.log('No records with pending revocations found.')
+    }
+
+    let result = {};
+    let invalidCredRevIds = {}
+
+    for(let record of revocRegRecords) {
+        let indexesToRevoke = record.pendingPub;
+        if(indexesToRevoke.length > 0) {
+            const [delta, invalidIds] = await indy.wallet.issuerRevokeCredentials(
+                record.tailsLocalPath,
+                record.revocRegId,
+                indexesToRevoke
+            );
+            // Update revocation registry entry with new delta
+            record.revocRegEntry = delta;
+            await indy.wallet.updateWalletRecordValue(
+                indy.recordTypes.RecordType.RevocationRegistry,
+                record.recordId,
+                JSON.stringify(record)
+            );
+            // Publish to the ledger
+            await indy.revocation.publishRevocRegEntry(record.revocRegId);
+
+            result[record.revocRegId] = indexesToRevoke;
+            if(invalidIds.length > 0){
+                invalidCredRevIds[record.revocRegId] = invalidIds;
+            }
+
+            // Clear pending revocations from the record
+            await indy.revocation.clearPendingRevocations(record.recordId);
+        }
+    }
+
+    return [result, invalidCredRevIds];
+}
+
 exports.createCredentialExchangeRecord = (connectionId, message, initiator, role, state, threadId) => {
     const currentDate = indy.utils.getCurrentDate();
 
@@ -329,6 +457,20 @@ exports.createCredentialExchangeRecord = (connectionId, message, initiator, role
         updatedAt: currentDate,
   }
 }
+
+
+// Using problem report protocol for hadling rejections
+exports.rejectExchange = async (credentialExchangeRecord, rejectError) => {
+    return await indy.problemReport.rejectExchange(
+        credentialExchangeRecord,
+        credentialExchangeRecord.credentialExchangeId,
+        rejectError,
+        this.MessageType.ProblemReport,
+        indy.recordTypes.RecordType.CredentialExchange,
+        CredentialExchangeState.Error
+    );
+}
+
 
 exports.getCredentialExchangeRecord = async (id) => {
     try {
@@ -384,8 +526,32 @@ exports.addCredentialExchangeRecord = async (id, value, tags={}) => {
     }
 }
 
-exports.removeCredentialExchangeRecord = async (id) => {
-    return indy.wallet.deleteWalletRecord(
+exports.removeCredentialExchangeRecord = async (id) => {    
+    // Get credential exchange record
+    const record = await indy.wallet.getWalletRecord(
+      indy.recordTypes.RecordType.CredentialExchange, 
+      id, 
+      {}
+    );
+
+    // Get connection to send message (exchange termination)
+    const connection = await indy.connections.getConnection(record.connectionId);
+
+    const rejectMessage = indy.problemReport.messages.createProblemeReportMessage(
+        indy.credentialExchange.MessageType.ProblemReport,
+        "issuance-abandoned",
+        "Credential issuance abandoned.",
+        "thread",
+        record.threadId
+    );
+
+    const [message, endpoint] = await indy.messages.prepareMessage(
+        rejectMessage, 
+        connection
+    );
+    indy.messages.sendMessage(message, endpoint);
+
+    await indy.wallet.deleteWalletRecord(
         indy.recordTypes.RecordType.CredentialExchange, 
         id
     );

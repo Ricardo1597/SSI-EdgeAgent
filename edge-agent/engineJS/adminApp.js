@@ -17,6 +17,7 @@ const indexRoute = require('./routes/index');
 const usersRoute = require('./routes/users');
 const walletRoute = require('./routes/api/wallet');
 const ledgerRoute = require('./routes/api/ledger');
+const revocationRoute = require('./routes/api/revocation');
 const connectionsRoute = require('./routes/api/connections');
 const credExchangesRoute = require('./routes/api/credential_exchanges');
 const presExchangesRoute = require('./routes/api/presentation_exchanges');
@@ -82,9 +83,10 @@ app.use('/', indexRoute);
 app.use('/users', usersRoute);
 app.use('/api/wallet', walletRoute);
 app.use('/api/ledger', ledgerRoute);
+app.use('/api/revocation', revocationRoute);
 app.use('/api/connections', connectionsRoute);
-app.use('/api/credential_exchanges', credExchangesRoute);
-app.use('/api/presentation_exchanges', presExchangesRoute);
+app.use('/api/credential-exchanges', credExchangesRoute);
+app.use('/api/presentation-exchanges', presExchangesRoute);
 
 
 /// catch 404 and forwarding to error handler

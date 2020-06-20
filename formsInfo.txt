@@ -13,42 +13,42 @@ Credential for using amazon website
 3a0bf92e-afd9-4649-8188-4dfac44db932
 
 
-	"presentationRequest": {
-	    "name": "Proof request",
-		"version": "1.0",    
-		"requested_attributes": {
-	      "additionalProp1": {
-	        "name": "name",
-	        "restrictions": [
-	          {
-	            "issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
-	            "schema_issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
-	            "schema_id": "V4SGRU86Z58d6TV7PBUe6f:2:cc:1.0",
-	            "schema_name": "cc",
-	            "cred_def_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:21:TAG1",
-	            "schema_version": "1.0"
-	          }
-	        ]
-	      }
-	    },
-	    "requested_predicates": {
-	      "additionalProp1": {
-	        "p_value": 170,
-	        "name": "height",
-	        "p_type": ">=",
-	        "restrictions": [
-	          {
-	            "issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
-	            "schema_issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
-	            "schema_id": "V4SGRU86Z58d6TV7PBUe6f:2:cc:1.0",
-	            "schema_name": "cc",
-	            "cred_def_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:21:TAG1",
-	            "schema_version": "1.0"
-	          }
-	        ]
-	      }
-	    }
-	}
+{
+    "name": "Proof request",
+	"version": "1.0",    
+	"requested_attributes": {
+      "additionalProp1": {
+        "name": "name",
+        "restrictions": [
+          {
+            "issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
+            "schema_issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
+            "schema_id": "V4SGRU86Z58d6TV7PBUe6f:2:cc:1.0",
+            "schema_name": "cc",
+            "cred_def_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:21:TAG1",
+            "schema_version": "1.0"
+          }
+        ]
+      }
+    },
+    "requested_predicates": {
+      "additionalProp1": {
+        "p_value": 170,
+        "name": "height",
+        "p_type": ">=",
+        "restrictions": [
+          {
+            "issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
+            "schema_issuer_did": "V4SGRU86Z58d6TV7PBUe6f",
+            "schema_id": "V4SGRU86Z58d6TV7PBUe6f:2:cc:1.0",
+            "schema_name": "cc",
+            "cred_def_id": "V4SGRU86Z58d6TV7PBUe6f:3:CL:21:TAG1",
+            "schema_version": "1.0"
+          }
+        ]
+      }
+    }
+}
 
 
 

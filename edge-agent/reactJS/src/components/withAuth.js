@@ -19,14 +19,14 @@ function withAuth(ComponentToProtect, accessToken, updateAccessToken, ...rest) {
     componentDidMount() {
 
       const jwt = accessToken;
-      axios.get(`${config.endpoint}/users/checkToken`, { 
+      axios.get(`${config.endpoint}/users/check-token`, { 
         headers: { Authorization: `Bearer ${jwt}`}
       })
       .then(res => {
         this.setState({ loading: false });
       })
       .catch(err => {
-        console.error("erron in withAuth: ", err);
+        console.error("error in withAuth: ", err);
         this.setState({ loading: false, redirect: true });
         updateAccessToken("");
       });
@@ -36,7 +36,7 @@ function withAuth(ComponentToProtect, accessToken, updateAccessToken, ...rest) {
 
       const { loading, redirect } = this.state;
       if (loading) {
-        return null;
+        return "loading";
       }
       if (redirect) {
         return <Redirect to="/login" />;

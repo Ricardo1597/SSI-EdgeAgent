@@ -141,7 +141,7 @@ exports.storeCredential = async (credId, credReqMetadata, cred, credDef, revRegD
     try{
         return await sdk.proverStoreCredential(walletHandle, credId, credReqMetadata, cred, credDef, revRegDef);
     } catch (e) {
-        console.log(e);
+        console.log('Error while storing credential in the wallet.');
         throw new Error(e);
     }
 }
@@ -160,6 +160,35 @@ exports.getCredential = async (credentialId) => {
     return await sdk.proverGetCredential(walletHandle, credentialId);
 }
 
+exports.issuerRevokeCredentials = async (tailsLocalPath, revRegId, credRevIds) => {
+    if (!walletHandle) {
+        throw new Error(`Wallet has not been initialized yet`);
+    }
+    let tailsReaderHandler = -1;
+    if(tailsLocalPath) {
+        tailsReaderHandler = await indy.blobStorage.createTailsReader(tailsLocalPath)
+    } else {
+        throw new Error('Unable to get tails reader for revocation registry.')
+    }
+    
+    let result = null;
+    let invalidCredRevIds = [];
+
+    for(const credRevId of credRevIds){        
+        try {
+            const delta = await sdk.issuerRevokeCredential(walletHandle, tailsReaderHandler, revRegId, credRevId);        
+            if(result) {
+                result = await sdk.issuerMergeRevocationRegistryDeltas(result, delta);
+            } else {
+                result = delta;
+            }
+        } catch(error) {
+            console.log("Unable to find entry for credRevId: ", credRevId)
+            invalidCredRevIds.push(credRevId);
+        }
+    }
+    return [result, invalidCredRevIds]; 
+}
 
 exports.createPresentation = async (proofReq, requestedCredentials, schemas, credentialDefs, revStates) => {
     if (!walletHandle) {

@@ -15,16 +15,11 @@ function RecordActions(props) {
 
     const acceptProposal = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/credential_exchanges/${recordId}/send_offer`, {}, { 
+        axios.post(`${config.endpoint}/api/credential-exchanges/${recordId}/send-offer`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -35,16 +30,11 @@ function RecordActions(props) {
 
     const acceptOffer = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/credential_exchanges/${recordId}/send_request`, {}, { 
+        axios.post(`${config.endpoint}/api/credential-exchanges/${recordId}/send-request`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -52,24 +42,31 @@ function RecordActions(props) {
         });
     }
 
-
-
     const acceptRequest = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/credential_exchanges/${recordId}/send_credential`, {}, { 
+        axios.post(`${config.endpoint}/api/credential-exchanges/${recordId}/send-credential`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
               alert('Error accepting connection. Please try again.');
+        });
+    }
+
+    const rejectExchange = (recordId, messageType) => {
+        const jwt = props.accessToken;
+        axios.post(`${config.endpoint}/api/credential-exchanges/${recordId}/reject?messageType=${messageType}`, {}, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
+        })
+        .catch(err => {
+              console.error(err);
+              alert(`Error rejecting ${messageType}. Please try again.`);
         });
     }
 
@@ -77,11 +74,26 @@ function RecordActions(props) {
 
     switch(state) {
         case 'proposal_received':
-            return <Button size="small" color="primary" onClick={() => acceptProposal(id)}>Accept Proposal</Button>;
+            return (
+                <div>
+                    <Button size="small" color="primary" onClick={() => acceptProposal(id)}>Accept Proposal</Button>
+                    <Button size="small" color="primary" onClick={() => rejectExchange(id, "proposal")}>Reject Proposal</Button>
+                </div>
+            )
         case 'offer_received':
-            return <Button size="small" color="primary" onClick={() => acceptOffer(id)}>Accept Offer</Button>;
+            return (
+                <div>
+                    <Button size="small" color="primary" onClick={() => acceptOffer(id)}>Accept Offer</Button>
+                    <Button size="small" color="primary" onClick={() => rejectExchange(id, "offer")}>Reject Offer</Button>
+                </div>
+            )
         case 'request_received':
-            return <Button size="small" color="primary" onClick={() => acceptRequest(id)}>Accept Request</Button>;
+            return (
+                <div>
+                    <Button size="small" color="primary" onClick={() => acceptRequest(id)}>Accept Request</Button>
+                    <Button size="small" color="primary" onClick={() => rejectExchange(id, "request")}>Reject Request</Button>
+                </div>
+            )
         default:
             return null;
     }

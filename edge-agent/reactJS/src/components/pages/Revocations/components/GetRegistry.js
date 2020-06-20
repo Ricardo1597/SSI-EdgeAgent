@@ -6,14 +6,15 @@ import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
+import JSONPretty from 'react-json-pretty';
 
 import axios from 'axios'
 import config from '../../../../config'
 
-class GetSchema extends Component {
+class GetRegistry extends Component {
     state = {
-        schemaId: '',
-        schema: ''
+        revocRegId: '',
+        registry: ''
     }
 
     
@@ -23,29 +24,44 @@ class GetSchema extends Component {
         })
     }
 
-    onSubmit = (e) => {
-      e.preventDefault();
-      const jwt = this.props.accessToken;
+    handleValidation = () => {
+        let errors = [];
+        let formIsValid = true;
 
-      axios.get(`${config.endpoint}/api/ledger/get-schema`, {
-        params: {
-          schemaId: this.state.schemaId
-        },
-        headers: { Authorization: `Bearer ${jwt}`} 
-      })
-      .then(res => {
-        if (res.status === 200) {
-          console.log(res.data)
-          this.setState({schema: res.data.schema})
-        } else {
-          const error = new Error(res.error);
-          throw error;
+        // credDefId: creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1
+        if(this.state.revocRegId.length < 1 ){
+            formIsValid = false;
+            errors["revocRegId"] = "Cannot be empty";
+        } else if(!this.state.revocRegId.match(/^[a-zA-Z0-9]+$/)){
+            formIsValid = false;
+            errors["revocRegId"] = "Invalid characters";
         }
-      })
-      .catch(err => {
-          console.error(err);
-          alert('Error getting schema. Please try again.');
-      });
+
+        console.log(errors)
+        this.setState({errors: errors});
+        return formIsValid;
+    }
+
+    onSubmit = (e) => {
+        e.preventDefault();
+
+        if(!this.handleValidation()){
+            console.log(this.state.errors)
+            return;
+        }
+        const jwt = this.props.accessToken;
+
+        axios.get(`${config.endpoint}/api/revocation/registry/${this.state.revocRegId}`, {
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
+            this.setState({registry: res.data.record})
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error getting registry. Please try again.');
+        });
     }
 
     render() {
@@ -56,7 +72,7 @@ class GetSchema extends Component {
                 <Grid item xs={12} lg={5}>
                     <div className={classes.paper}>
                         <Typography component="span" variant="h5">
-                        Get Schema
+                        Get Registry
                         </Typography>
                         <form className={classes.form} onSubmit={this.onSubmit}>
                             <Grid container spacing={2}>
@@ -64,11 +80,11 @@ class GetSchema extends Component {
                                     variant="outlined"
                                     required
                                     fullWidth
-                                    id="schemaId"
-                                    label="Schema ID"
-                                    name="schemaId"
+                                    id="revocRegId"
+                                    label="Registry ID"
+                                    name="revocRegId"
                                     placeholder='Leave this blank for a new random DID' 
-                                    value={this.state.schemaId}
+                                    value={this.state.revocRegId}
                                     onChange={this.handleChange}
                                 />
                                 <Button 
@@ -79,7 +95,7 @@ class GetSchema extends Component {
                                     className={[classes.add, classes.button]}
                                     onClick={this.onSubmit}
                                 >
-                                    Get Schema
+                                    Get Registry
                                 </Button>
                             </Grid>
                         </form>
@@ -87,16 +103,9 @@ class GetSchema extends Component {
                 </Grid>
                 <Grid item xs={12} lg={7}>
                     {
-                        this.state.schema !== "" ? (
+                        this.state.registry !== "" ? (
                             <Card className={classes.card}>
-                                <p>Name: {this.state.schema.name}</p>
-                                <p>Version: {this.state.schema.version}</p>                    
-                                Attributes:
-                                <ul>
-                                    {this.state.schema.attrNames.map(attr => {
-                                        return <li key={attr}>{attr}</li>
-                                    })}
-                                </ul>
+                                <JSONPretty id="json-pretty" data={this.state.registry}></JSONPretty>
                             </Card>
                         ) : null
                             
@@ -151,4 +160,4 @@ const mapStateToProps = (state) => {
     }
 }
   
-export default connect(mapStateToProps)(withStyles(useStyles)(GetSchema))
+export default connect(mapStateToProps)(withStyles(useStyles)(GetRegistry))

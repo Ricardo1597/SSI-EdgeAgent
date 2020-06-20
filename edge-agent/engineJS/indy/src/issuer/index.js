@@ -4,7 +4,7 @@ const indy = require('../../index.js');
 
 exports.createSchema = async (did, name, version, attributes) => {
     let [id, schema] = await sdk.issuerCreateSchema(did, name, version, attributes);
-    await this.sendSchema(await indy.ledger.get(), await indy.wallet.get(), did, schema)
+    await indy.ledger.sendSchema(did, schema)
     await indy.did.addValueToDidAttribute(did, 'schemas', id);
     return [id, schema]
 };
@@ -19,23 +19,18 @@ exports.createSchema = async (did, name, version, attributes) => {
 //     return schemas;
 // };
 
-exports.createCredDef = async (did, schemaId, tag) => {
+exports.createCredDef = async (did, schemaId, tag, supportRevocation=false) => {
+    const options = {
+        "support_revocation": supportRevocation
+    }
+    console.log(supportRevocation)
     let [, schema] = await indy.ledger.getSchema(null, schemaId);
-    let [credDefId, credDefJson] = await sdk.issuerCreateAndStoreCredentialDef(await indy.wallet.get(), did, schema, tag, 'CL', '{"support_revocation": false}');
-    await this.sendCredDef(await indy.ledger.get(), await indy.wallet.get(), did, credDefJson)
+    let [credDefId, credDefJson] = await sdk.issuerCreateAndStoreCredentialDef(await indy.wallet.get(), did, schema, tag, 'CL', JSON.stringify(options));
+    console.log(credDefJson)
+    await indy.ledger.sendCredDef(did, credDefJson)
     credDefJson.schemaId_long = schemaId;
     await indy.did.addValueToDidAttribute(did, 'credential_definitions', credDefJson);
     return [credDefId, credDefJson]
-};
-
-exports.sendSchema = async function(poolHandle, walletHandle, did, schema) {
-    let schemaRequest = await sdk.buildSchemaRequest(did, schema);
-    await sdk.signAndSubmitRequest(poolHandle, walletHandle, did, schemaRequest)
-};
-
-exports.sendCredDef = async function (poolHandle, walletHandle, did, credDef) {
-    let credDefRequest = await sdk.buildCredDefRequest(did, credDef);
-    await sdk.signAndSubmitRequest(poolHandle, walletHandle, did, credDefRequest);
 };
 
 exports.createCredentialOffer = async (credDefId) => {

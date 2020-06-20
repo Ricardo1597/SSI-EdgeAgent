@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 export class RecordSummary extends Component {
 
     render() {
-        const { id } = this.props.record;
+        const { id, createdAt, updatedAt } = this.props.record;
         return (                  
             <Card style={styles.root}>
                 <CardContent>
@@ -17,8 +17,14 @@ export class RecordSummary extends Component {
                         {id}
                     </Typography>
                     <Typography variant='subtitle2' color="textSecondary">
-                        Hardcoded for created_at<br/>
-                        Hardcoded for updated_at
+                        <div style={{display: "flex"}}>
+                            <div style={{fontWeight: "bold"}}>Created at: &nbsp;</div>
+                            {createdAt}
+                        </div>
+                        <div style={{display: "flex"}}>
+                            <div style={{fontWeight: "bold"}}>Updated at: &nbsp;</div>
+                            {updatedAt}
+                        </div>
                     </Typography>
                 </CardContent>
             </Card>

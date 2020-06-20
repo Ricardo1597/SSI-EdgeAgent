@@ -37,7 +37,7 @@ class Nyms extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/ledger/sendNym`, {
+        axios.post(`${config.endpoint}/api/ledger/send-nym`, {
             did: this.state.did, 
             newDid: this.state.newDid,
             newVerKey: this.state.newVerKey,
@@ -64,7 +64,7 @@ class Nyms extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.get(`${config.endpoint}/api/ledger/getNym`, {
+        axios.get(`${config.endpoint}/api/ledger/get-nym`, {
             params: {
               did: this.state.didNym
             },

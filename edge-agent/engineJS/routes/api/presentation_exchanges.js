@@ -26,7 +26,7 @@ router.delete('/:id', passport.authenticate('jwt', {session: false}), async (req
 });
   
 // Holder send presentation exchange proposal
-router.post('/send_proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/send-proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
     console.log(req.body)
     const [record, messageSent] = await indy.presentationExchange.proverCreateAndSendProposal(
       req.body.connectionId, 
@@ -38,7 +38,7 @@ router.post('/send_proposal', passport.authenticate('jwt', {session: false}), as
   
   
 // Issuer send independent presentation exchange request
-router.post('/send_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/send-request', passport.authenticate('jwt', {session: false}), async function (req, res) {
     // Create presentation exchange record
     let presentationExchangeRecord = indy.presentationExchange.verifierCreatePresentationExchangeRecord(req.body.connectionId)
   
@@ -53,7 +53,7 @@ router.post('/send_request', passport.authenticate('jwt', {session: false}), asy
   
   
 // Issuer send presentation exchange request in response to a previous proposal
-router.post('/:id/send_request', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/:id/send-request', passport.authenticate('jwt', {session: false}), async function (req, res) {
     // Get presentation exchange record
     let presentationExchangeRecord = await indy.wallet.getWalletRecord(
       indy.recordTypes.RecordType.PresentationExchange, 
@@ -72,7 +72,7 @@ router.post('/:id/send_request', passport.authenticate('jwt', {session: false}),
   
   
 // Holder send presentation exchange proposal
-router.post('/:id/send_presentation', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/:id/send-presentation', passport.authenticate('jwt', {session: false}), async function (req, res) {
     // Get presentation exchange record
     let presentationExchangeRecord = await indy.wallet.getWalletRecord(
       indy.recordTypes.RecordType.PresentationExchange, 
@@ -89,7 +89,7 @@ router.post('/:id/send_presentation', passport.authenticate('jwt', {session: fal
   
   
 // Holder send presentation exchange proposal
-router.post('/:id/verify_presentation', passport.authenticate('jwt', {session: false}), async function (req, res) {
+router.post('/:id/verify-presentation', passport.authenticate('jwt', {session: false}), async function (req, res) {
     // Get presentation exchange record
     let presentationExchangeRecord = await indy.wallet.getWalletRecord(
       indy.recordTypes.RecordType.PresentationExchange, 
@@ -102,5 +102,35 @@ router.post('/:id/verify_presentation', passport.authenticate('jwt', {session: f
     );
     res.status(200).send({verified, record, messageSent});
 });
+
+
+// Handle presentation exchange rejections
+router.post('/:id/reject', passport.authenticate('jwt', {session: false}), async function (req, res) {
+  // Get presentation exchange record
+  let presentationExchangeRecord = await indy.wallet.getWalletRecord(
+    indy.recordTypes.RecordType.PresentationExchange, 
+    req.params.id, 
+    {}
+  );
+
+  let rejectError = "";
+  switch(req.query.messageType) {
+    case "proposal":
+      rejectError = indy.presentationExchange.RejectionErrors.Proposal;
+      break;
+    case "request":
+      rejectError = indy.presentationExchange.RejectionErrors.Request;
+      break;
+    default:
+      return res.status(404).send({message: "Message type not found"})
+  }
+
+  const [record, messageSent] = await indy.presentationExchange.rejectExchange(
+    presentationExchangeRecord,
+    rejectError
+  );
+  res.status(200).send({record, messageSent});
+});
+
 
 module.exports = router;

@@ -31,23 +31,6 @@ class PendingConnections extends Component {
             this.setState({connection: connection})
     }
 
-
-    deleteConnection = id => {
-        const jwt = this.props.accessToken;
-
-        axios.delete(`${config.endpoint}/api/connections/${id}`, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            console.log(res.data.id)
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error deleting connection. Please try again.');
-        });
-    }
-
-
     componentWillMount() {
         const jwt = this.props.accessToken;
 
@@ -105,9 +88,6 @@ class PendingConnections extends Component {
                                     <ConnectionDetails connection={this.state.connection}/>
                                     <CardActions>
                                         <PendingConnectionActions connection={this.state.connection}/>
-                                        <Button size="small" color="primary" onClick={this.deleteConnection.bind(this, this.state.connection.connectionId)}>
-                                            Remove
-                                        </Button>
                                     </CardActions>
                                     </div>
                                 ) : null

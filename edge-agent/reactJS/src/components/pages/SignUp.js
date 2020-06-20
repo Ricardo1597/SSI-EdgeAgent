@@ -10,6 +10,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
+import Cookies from 'js-cookie';
 
 import axios from 'axios';
 import config from '../../config'
@@ -33,16 +34,19 @@ class SignUp extends Component {
 
   componentDidMount() {
     const jwt = this.props.accessToken;
-    axios.get(`${config.endpoint}/users/checkToken`, { 
-      headers: { Authorization: `Bearer ${jwt}`}
-    })
-    .then(res => {
-      this.setState({ loading: false, redirect: true });
-    })
-    .catch(err => {
-      this.setState({ loading: false });
-      this.props.updateAccessToken("");
-    });
+    if(jwt !== "" && Cookies.get('refreshToken') !== "") {
+      axios.get(`${config.endpoint}/users/check-token`, { 
+        headers: { Authorization: `Bearer ${jwt}`}
+      })
+      .then(res => {
+        this.setState({ redirect: true });
+      })
+      .catch(err => {
+        this.props.updateAccessToken("");
+      });
+    }
+
+    this.setState({ loading: false });
   }
 
   
@@ -77,7 +81,7 @@ class SignUp extends Component {
     }
 
     return (
-      <Grid container component="main" minWidth='100vw' className={classes.root}>
+      <Grid container component="main" className={classes.root}>
         <CssBaseline />
         <Container maxWidth="xs">
           <div className={classes.paper} >
@@ -133,11 +137,11 @@ class SignUp extends Component {
                       variant="outlined"
                       required
                       fullWidth
-                      name="password"
+                      name="password2"
                       label="Confirm password"
                       type="password"
                       id="password2"
-                      autoComplete="current-password"
+                      autoComplete="current-password2"
                       value={this.state.password2}
                       onChange={this.handleChange}
                   />

@@ -43,7 +43,7 @@ router.delete('/:id', passport.authenticate('jwt', {session: false}), async (req
   
   
 // Create connection invitation
-router.post('/create_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/create-invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const [myDid, myVerkey, myDidDoc] = await indy.connections.getDidAndDocument(req.body.public, req.body.did)
     const invitation = await indy.connections.createInvitation(myDid, myVerkey, myDidDoc, req.body.alias, req.body.public);
     if (!invitation) {
@@ -53,7 +53,7 @@ router.post('/create_invitation', passport.authenticate('jwt', {session: false})
 });
   
 // Activate connection invitation
-router.post('/activate_invitation/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/activate-invitation/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
     let invitation = await indy.connections.getInvitation(req.params.id);
   
     invitation.isActive = true;
@@ -68,7 +68,7 @@ router.post('/activate_invitation/:id', passport.authenticate('jwt', {session: f
 });
   
 // Deactivate connection invitation
-router.post('/deactivate_invitation/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/deactivate-invitation/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
     let invitation = await indy.connections.getInvitation(req.params.id);
   
     invitation.isActive = false;
@@ -83,7 +83,7 @@ router.post('/deactivate_invitation/:id', passport.authenticate('jwt', {session:
 });
   
 // Receive connection invitation
-router.post('/receive_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/receive-invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const connection = await indy.connections.receiveInvitation(req.body.alias, req.body.invitation, req.body.accept || false);
   
     res.status(200).send({connection})
@@ -91,22 +91,29 @@ router.post('/receive_invitation', passport.authenticate('jwt', {session: false}
   
   
 // Accept connection invitation
-router.post('/accept_invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/accept-invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const connection = await indy.connections.acceptInvitationAndSendRequest(req.body.id);
   
     res.status(200).send({connection})
 });
+
+// Reject connection invitation
+router.post('/reject-invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+    const connection = await indy.connections.rejectInvitation(req.body.id);
   
+    res.status(200).send(connection)
+});
+
   
 // Accept connection request
-router.post('/accept_request', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/accept-request', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const connection = await indy.connections.createAndSendResponse(req.body.id);
   
     res.status(200).send(connection)
 });
   
 // Reject connection request
-router.post('/reject_request', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/reject-request', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const connection = await indy.connections.rejectRequest(req.body.id);
   
     res.status(200).send(connection)
@@ -114,14 +121,14 @@ router.post('/reject_request', passport.authenticate('jwt', {session: false}), a
   
   
 // Accept connection response
-router.post('/accept_response', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/accept-response', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const connection = await indy.connections.createAndSendResponse(req.body.id);
   
     res.status(200).send(connection)
 });
   
 // Reject connection response
-router.post('/reject_response', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.post('/reject-response', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const connection = await indy.connections.rejectResponse(req.body.id);
   
     res.status(200).send(connection)

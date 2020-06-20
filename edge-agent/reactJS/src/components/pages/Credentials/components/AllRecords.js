@@ -36,7 +36,7 @@ class AllRecords extends Component {
     deleteRecord = id => {
         const jwt = this.props.accessToken;
 
-        axios.delete(`${config.endpoint}/api/credential_exchanges/${id}`, { 
+        axios.delete(`${config.endpoint}/api/credential-exchanges/${id}`, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
@@ -52,19 +52,14 @@ class AllRecords extends Component {
     componentWillMount() {
         const jwt = this.props.accessToken;
 
-        axios.get(`${config.endpoint}/api/credential_exchanges`, { 
+        axios.get(`${config.endpoint}/api/credential-exchanges`, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-                this.setState({
-                    exchanges: res.data.records
-                })
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
+            this.setState({
+                exchanges: res.data.records
+            })
         })
         .catch(err => {
               console.error(err);
@@ -93,7 +88,9 @@ class AllRecords extends Component {
                                         > 
                                             <RecordSummary 
                                                 record={{
-                                                    id: exchange.credentialExchangeId
+                                                    id: exchange.credentialExchangeId,
+                                                    createdAt: exchange.createdAt,
+                                                    updatedAt: exchange.updatedAt,
                                                     // other attributes
                                                 }}
                                             />
@@ -115,7 +112,8 @@ class AllRecords extends Component {
                                             state: this.state.exchange.state,
                                             threadId: this.state.exchange.threadId,
                                             connectionId: this.state.exchange.connectionId,
-                                            proposal: this.state.exchange.credentialProposalDict
+                                            proposal: this.state.exchange.credentialProposalDict,
+                                            error: this.state.exchange.error
                                         }}
                                     />
                                     <CardActions>

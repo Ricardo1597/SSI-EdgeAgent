@@ -3,7 +3,6 @@ const sdk = require('indy-sdk');
 const indy = require('../../../index.js');
 const uuid = require('uuid');
 const messages = require('./messages')
-const problemReportMessage = require('../problemReport/messages')
 const generalTypes = require('../generalTypes');
 
 exports.handlers = require('./handlers');
@@ -152,6 +151,35 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
         {'myVerkey': myVerkey}
     );
     
+    return connection;
+}
+
+
+// See what to do with the record after rejecting the invitation. Keep it or 
+// remove it? For know it will be kept with the reject error message. 
+exports.rejectInvitation = async (connectionId) => {
+    let connection = await this.getConnection(connectionId);
+
+    if(connection.state != ConnectionState.Invited){
+        throw new Error(`Invalid state trasition.`)
+    }
+
+    // Update connection record
+    connection.state = ConnectionState.Error;
+    connection.error = {
+        self: true,
+        description: {
+            en: "Connection invitation rejected.",
+            code: "incitation_not_accepted"
+        }
+    };
+    connection.updatedAt = indy.utils.getCurrentDate();
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.Connection, 
+        connection.connectionId, 
+        JSON.stringify(connection)
+    );
+  
     return connection;
 }
 
@@ -457,11 +485,28 @@ exports.addConnection = async (id, value, tags={}) => {
 }
 
 exports.removeConnection = async (connectionId) => {
-    return await indy.wallet.deleteWalletRecord(
+    let connection = await this.getConnection(connectionId);
+
+    const rejectRequestMessage = indy.problemReport.messages.createProblemeReportMessage(
+        indy.connections.MessageType.ProblemReport,
+        "connection_abandoned",
+        "Connection abandoned.",
+        "connection",
+        connection.threadId
+    );
+
+    const [message, endpoint] = await indy.messages.prepareMessage(
+        rejectRequestMessage, 
+        connection
+    );
+    indy.messages.sendMessage(message, endpoint);
+
+    await indy.wallet.deleteWalletRecord(
         indy.recordTypes.RecordType.Connection, 
         connectionId, 
     );
 }
+
 
 exports.getInvitation = async (invitationId) => {
     console.log("Aqui: ",invitationId)

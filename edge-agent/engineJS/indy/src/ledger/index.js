@@ -89,16 +89,31 @@ exports.getSchema = async (did, schemaId) => {
     return await sdk.parseGetSchemaResponse(getSchemaResponse);
 };
 
+exports.sendSchema = async function(did, schema) {
+    let schemaRequest = await sdk.buildSchemaRequest(did, schema);
+    await sdk.signAndSubmitRequest(poolHandle, await indy.wallet.get(), did, schemaRequest)
+};
+
 exports.getCredDef = async (did, credDefId) => {
     let getCredDefRequest = await sdk.buildGetCredDefRequest(did, credDefId);
     let getCredDefResponse = await sdk.submitRequest(poolHandle, getCredDefRequest);
     return await sdk.parseGetCredDefResponse(getCredDefResponse);
 };
 
+exports.sendCredDef = async function (did, credDef) {
+    let credDefRequest = await sdk.buildCredDefRequest(did, credDef);
+    await sdk.signAndSubmitRequest(poolHandle, await indy.wallet.get(), did, credDefRequest);
+};
+
 exports.getRevocRegDef = async (did, revocRegDefId) => {
     let getRevocRegDefRequest = await sdk.buildGetRevocRegDefRequest(did, revocRegDefId);
     let getRevocRegDefResponse = await sdk.submitRequest(poolHandle, getRevocRegDefRequest);
     return await sdk.parseGetRevocRegDefResponse(getRevocRegDefResponse);
+};
+
+exports.sendRevocRegDef = async (did, revocRegDef) => {
+    let revocRegDefRequest = await sdk.buildRevocRegDefRequest(did, revocRegDef);
+    await sdk.signAndSubmitRequest(poolHandle, await indy.wallet.get(), did, revocRegDefRequest);
 };
 
 exports.getRevocRegDelta = async (did, revocRegDefId, from, to) => {
@@ -111,6 +126,11 @@ exports.getRevocRegEntry = async (did, revocRegDefId, timestamp) => {
     let getRevocRegRequest = await sdk.buildGetRevocRegRequest(did, revocRegDefId, timestamp);
     let getRevocRegResponse = await sdk.submitRequest(poolHandle, getRevocRegRequest);
     return await sdk.parseGetRevocRegResponse(getRevocRegResponse);
+};
+
+exports.sendRevocRegEntry = async (did, revocRegDefId, revDefType, value) => {
+    let revocRegDefEntryRequest = await sdk.buildRevocRegEntryRequest(did, revocRegDefId, revDefType, value);
+    await sdk.signAndSubmitRequest(poolHandle, await indy.wallet.get(), did, revocRegDefEntryRequest);
 };
 
 exports.getDidAttribute = async (submitterDid, targetDid, hash, raw, enc) => {

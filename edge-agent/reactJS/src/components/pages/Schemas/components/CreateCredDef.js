@@ -10,6 +10,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { connect } from 'react-redux';
+import MenuItem from '@material-ui/core/MenuItem';
 
 import axios from 'axios'
 import config from '../../../../config'
@@ -20,6 +21,7 @@ class CreateCredDef extends Component {
         dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
         did: '',
         schemaId: '',
+        supportRevocation: false
     }
 
 
@@ -34,20 +36,16 @@ class CreateCredDef extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/ledger/createCredDef`, {
+        axios.post(`${config.endpoint}/api/ledger/create-cred-def`, {
             did: this.state.did,
-            schemaId: this.state.schemaId
+            schemaId: this.state.schemaId,
+            supportRevocation: this.state.supportRevocation
 
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data);
         })
         .catch(err => {
               console.error(err);
@@ -67,8 +65,20 @@ class CreateCredDef extends Component {
                             Create credential definition
                             </Typography>
                             <form className={classes.form} onSubmit={this.onSubmit}>
-                                <Grid container spacing={2}>
+                                <Grid container spacing={2}>     
                                     <Grid item xs={12}>
+                                        <TextField
+                                            variant="outlined"
+                                            required
+                                            fullWidth
+                                            id="schemaId"
+                                            label="Schema ID"
+                                            name="schemaId"
+                                            value={this.state.schemaId}
+                                            onChange={this.handleChange}
+                                        />
+                                    </Grid>  
+                                    <Grid item xs={12} sm={8}>
                                         <FormControl variant="outlined" className={classes.formControl}>
                                             <InputLabel htmlFor="outlined-did-native-simple">DID</InputLabel>
                                             <Select
@@ -85,19 +95,26 @@ class CreateCredDef extends Component {
                                                 })}
                                             </Select>
                                         </FormControl>
-                                    </Grid>           
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            variant="outlined"
-                                            required
-                                            fullWidth
-                                            id="schemaId"
-                                            label="Schema ID"
-                                            name="schemaId"
-                                            value={this.state.schemaId}
-                                            onChange={this.handleChange}
-                                        />
                                     </Grid>  
+                                    <Grid item xs={12} sm={4}>
+                                        <FormControl variant="outlined" className={classes.formControl}>
+                                            <InputLabel htmlFor="outlined-supportRevocation-native-simple">Support Revocation</InputLabel>
+                                            <Select
+                                                variant="outlined"
+                                                required
+                                                label="Support Revocation"
+                                                value={this.state.supportRevocation}
+                                                onChange={this.handleChange}
+                                                inputProps={{
+                                                    name: 'supportRevocation',
+                                                    id: 'supportRevocation',
+                                                }}
+                                            >
+                                                <MenuItem value={true}>Yes</MenuItem>
+                                                <MenuItem value={false}>No</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>      
                                 </Grid>
                                 <Button
                                     type="button"

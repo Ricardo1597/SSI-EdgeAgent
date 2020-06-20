@@ -6,10 +6,10 @@ const indy = require('../../indy/index.js');
 
 
 // Create and store the DID in the given wallet
-router.post('/createDid', passport.authenticate('jwt', {session: false}), async (req, res) => {  
+router.post('/create-did', passport.authenticate('jwt', {session: false}), async (req, res) => {  
     const { seed } = req.body;
   
-    options = {};
+    let options = {};
     options.method_name = 'mybc'; // to create did:mybc:<identifier>
     if(seed !== '') options.seed= seed; // to create from seed
   

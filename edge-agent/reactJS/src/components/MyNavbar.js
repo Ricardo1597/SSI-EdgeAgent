@@ -8,11 +8,10 @@ import config from '../config'
 import { Nav } from 'react-bootstrap'
 import { connect } from 'react-redux';
 
+
 class MyNavbar extends React.Component {
 
-
   logout = () => {
-
     const jwt = this.props.accessToken;
 
     axios.post(`${config.endpoint}/users/logout`, {}, {
@@ -49,6 +48,7 @@ class MyNavbar extends React.Component {
           ) : null
           }
           <Link to="/schemas" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Schemas</Link>
+          <Link to="/revocations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Revocations</Link>
         </Nav>
         <Nav style={styles.logout}>
           <Link to="/" style={styles.navLinkStyle} onClick={this.logout}>Logout</Link>

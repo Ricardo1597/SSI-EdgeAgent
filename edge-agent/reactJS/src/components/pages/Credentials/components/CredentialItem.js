@@ -19,12 +19,12 @@ export class CredentialItem extends Component {
 
     render() {
         const { classes } = this.props
-        const { attrs, schema_id, cred_def_id } = this.props.credential
+        const { attrs, schema_id, cred_def_id, referent } = this.props.credential
         const schemaParts = schema_id.split(':');
         const schemaName = schemaParts[schemaParts.length-2];
         const schemaVersion = schemaParts[schemaParts.length-1];
         const credDefParts = cred_def_id.split(':')
-        const issuer = credDefParts[credDefParts.length-7] + credDefParts[credDefParts.length-6] + credDefParts[credDefParts.length-5];
+        const issuer = credDefParts[credDefParts.length-7] + ':' + credDefParts[credDefParts.length-6] + ':' + credDefParts[credDefParts.length-5];
         return (
             <Card className={classes.root}>
                 <CardContent>
@@ -32,6 +32,10 @@ export class CredentialItem extends Component {
                         {schemaName}
                     </Typography>
                     <Typography variant="body2" color="textSecondary" component="div"> 
+                        <div style={{marginBottom: 8}}>
+                            <div style={{fontWeight: "bold"}}>Credential ID:</div>
+                            {referent}
+                        </div>
                         <div style={{marginBottom: 8}}>
                             <div style={{fontWeight: "bold"}}>Issuer DID:</div>
                             {issuer}

@@ -27,19 +27,15 @@ function Dashboard(props) {
       const jwt = props.accessToken
 
       axios.defaults.withCredentials = true;
-      axios.post(`${config.endpoint}/api/wallet/createDID`, {
+      axios.post(`${config.endpoint}/api/wallet/create-did`, {
         seed
       }, { 
         headers: { Authorization: `Bearer ${jwt}`} 
       })
       .then(res => {
-        if (res.status === 200) {
-          localStorage.setItem('dids', JSON.stringify(res.data.dids))
-          setDIDs(JSON.parse(localStorage.getItem('dids')))
-        } else {
-          const error = new Error(res.error);
-          throw error;
-        }
+        console.log(res)
+        localStorage.setItem('dids', JSON.stringify(res.data.dids))
+        setDIDs(JSON.parse(localStorage.getItem('dids')))
       })
       .catch(err => {
           console.error(err);

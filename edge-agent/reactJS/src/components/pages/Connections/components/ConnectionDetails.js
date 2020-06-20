@@ -37,23 +37,30 @@ export class ConnectionDetails extends Component {
                             <div style={{fontWeight: "bold"}}>Connection ID:</div>
                             {connectionId}
                         </div>
-                        <div style={{marginBottom: 8}}>
-                            <div style={{fontWeight: "bold"}}>My DID:</div>
-                            {myDid}
-                        </div>
-                        <div style={{marginBottom: 8}}>
-                            <div style={{fontWeight: "bold"}}>My Verkey:</div>
-                            {myVerkey}
-                        </div>
+                        {
+                            myDid ? (
+                                <div>
+                                    <div style={{marginBottom: 8}}>
+                                        <div style={{fontWeight: "bold"}}>My DID:</div>
+                                        {myDid}
+                                    </div>
+
+                                    <div style={{marginBottom: 8}}>
+                                        <div style={{fontWeight: "bold"}}>My Verkey:</div>
+                                        {myVerkey}
+                                    </div>
+                                </div>
+                            ) : null
+                        }
                         <div style={{marginBottom: 8}}>
                             <div style={{fontWeight: "bold"}}>Current State:</div> 
                             {state}
                         </div>
                         {
-                            state === "error" ? (
+                            state === "error" && error && error.description && error.description.en ? (
                                 <div style={{marginBottom: 8}}>
                                     <div style={{fontWeight: "bold"}}>Error:</div> 
-                                    {error.en}
+                                    {error.description.en}
                                 </div>
                             ) : null
                         }

@@ -15,16 +15,11 @@ function RecordActions(props) {
 
     const verifyPresentation = recordId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/presentation_exchanges/${recordId}/verify_presentation`, {}, { 
+        axios.post(`${config.endpoint}/api/presentation-exchanges/${recordId}/verify-presentation`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
         })
         .catch(err => {
               console.error(err);
@@ -32,15 +27,41 @@ function RecordActions(props) {
         });
     }
 
+    const rejectExchange = (recordId, messageType) => {
+        const jwt = props.accessToken;
+        axios.post(`${config.endpoint}/api/presentation-exchanges/${recordId}/reject?messageType=${messageType}`, {}, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
+        })
+        .catch(err => {
+              console.error(err);
+              alert(`Error rejecting ${messageType}. Please try again.`);
+        });
+    }
+
     const { state, id } = props;
 
     switch(state) {
         case 'proposal_received':
-            return <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 2, id)}>Accept Proposal</Button>;
+            return (
+                <div>
+                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 2, id)}>Accept Proposal</Button>
+                    <Button size="small" color="primary" onClick={() => rejectExchange(id, "proposal")}>Reject Proposal</Button>
+                </div>
+            )
         case 'request_received':
-            return <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 3, id)}>Accept Request</Button>;
+            return (
+                <div>
+                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 3, id)}>Accept Request</Button>
+                    <Button size="small" color="primary" onClick={() => rejectExchange(id, "request")}>Reject Request</Button>
+                </div>
+            )
         case 'presentation_received':
-            return <Button size="small" color="primary" onClick={() => verifyPresentation(id)}>Verify Presentation</Button>;
+            return <Button size="small" color="primary" onClick={() => verifyPresentation(id)}>Verify Presentation</Button>
+        case 'done':
+            return <Button size="small" color="primary" onClick={() => verifyPresentation(id)}>Verify Presentation</Button>
         default:
             return null;
     }

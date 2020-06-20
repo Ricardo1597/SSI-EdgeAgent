@@ -15,7 +15,7 @@ function InvitationActions(props) {
 
     const activateInvitation = invitationId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/connections/activate_invitation/${invitationId}`, {}, { 
+        axios.post(`${config.endpoint}/api/connections/activate-invitation/${invitationId}`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
@@ -29,7 +29,7 @@ function InvitationActions(props) {
 
     const deactivateInvitation = invitationId => {
         const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/connections/deactivate_invitation/${invitationId}`, {}, { 
+        axios.post(`${config.endpoint}/api/connections/deactivate-invitation/${invitationId}`, {}, { 
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {

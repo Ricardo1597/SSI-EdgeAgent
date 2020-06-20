@@ -168,7 +168,6 @@ exports.credentialHandler = async (decryptedMessage) => {
     if( credentialExchangeRecord.state != credentialsIndex.CredentialExchangeState.RequestSent) {
         throw new Error(`Invalid state trasition.`);
     }
-        
     const rawCredential = JSON.parse(Buffer.from(message['credentials~attach'][0]['data']["base64"], 'base64').toString('ascii'));
 
     // Update credential exchange record
@@ -177,8 +176,11 @@ exports.credentialHandler = async (decryptedMessage) => {
         null, 
         rawCredential
     );
+
     credentialExchangeRecord.credentialId = credentialId;
     credentialExchangeRecord.credential = credential;
+    credentialExchangeRecord.revocRegId = credential['rev_reg_id'];
+    credentialExchangeRecord.revocationId = credential['cred_rev_id'];
     credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.CredentialReceived;
     credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
@@ -270,18 +272,26 @@ exports.problemReportHandler = async (decryptedMessage) => {
             }
             console.log("Credential exchange request not accepted.");
             break;
+        case "issuance-abandoned":
+            console.log("Credential issuance abandoned.");
+            break;
         default:
             console.log(message.description);
     }
 
-    credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.Error;
-    credentialExchangeRecord.error = message.description;
-    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
-    await indy.wallet.updateWalletRecordValue(
-        indy.recordTypes.RecordType.CredentialExchange, 
-        credentialExchangeRecord.credentialExchangeId, 
-        JSON.stringify(credentialExchangeRecord)
-    );
-
+    if(message.impact === "thread") {
+        credentialExchangeRecord.state = credentialsIndex.CredentialExchangeState.Error;
+        credentialExchangeRecord.error = {
+            self: false,
+            description: message.description
+        };
+        credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
+        await indy.wallet.updateWalletRecordValue(
+            indy.recordTypes.RecordType.CredentialExchange, 
+            credentialExchangeRecord.credentialExchangeId, 
+            JSON.stringify(credentialExchangeRecord)
+        );
+    }
+    
     return null;
 };

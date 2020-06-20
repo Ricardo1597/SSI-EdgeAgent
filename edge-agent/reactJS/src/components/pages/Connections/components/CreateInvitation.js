@@ -44,7 +44,7 @@ class CreateInvitation extends Component {
         e.preventDefault()
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/connections/create_invitation`, {
+        axios.post(`${config.endpoint}/api/connections/create-invitation`, {
             alias: this.state.alias, 
             public: this.state.public,
             did: this.state.did

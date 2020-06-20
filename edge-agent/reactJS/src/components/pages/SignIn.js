@@ -12,7 +12,7 @@ import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-
+import Cookies from 'js-cookie';
 
 import axios from 'axios'
 import config from '../../config'
@@ -35,16 +35,19 @@ class SignIn extends Component {
 
   componentDidMount() {
     const jwt = this.props.accessToken;
-    axios.get(`${config.endpoint}/users/checkToken`, { 
-      headers: { Authorization: `Bearer ${jwt}`}
-    })
-    .then(res => {
-      this.setState({ loading: false, redirect: true });
-    })
-    .catch(err => {
-      this.setState({ loading: false });
-      this.props.updateAccessToken("");
-    });
+    if(jwt !== "" && Cookies.get('refreshToken') !== "") {
+      axios.get(`${config.endpoint}/users/check-token`, { 
+        headers: { Authorization: `Bearer ${jwt}`}
+      })
+      .then(res => {
+        this.setState({ redirect: true });
+      })
+      .catch(err => {
+        this.props.updateAccessToken("");
+      });
+    }
+
+    this.setState({ loading: false });
   }
 
   onSubmit = (e) => {

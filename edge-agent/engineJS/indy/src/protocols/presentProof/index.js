@@ -20,8 +20,20 @@ const PresentationExchangeState = {
     Done: "done",
     Error: "error"
 }
-
 exports.PresentationExchangeState = PresentationExchangeState;
+
+exports.RejectionErrors = {
+    Proposal: {
+        state: PresentationExchangeState.ProposalReceived,
+        code: "proposal_not_accepted",
+        description: "Presentation proposal rejected."
+    },
+    Request: {
+        state: PresentationExchangeState.RequestReceived,
+        code: "request_not_accepted",
+        description: "Presentation request rejected."
+    },
+}
 
 exports.MessageType = messages.MessageType;
 exports.NewMessageType = messages.NewMessageType;
@@ -195,7 +207,7 @@ const getCredentialsInformation = async (credentials) => {
         if (credential['rev_reg_id']) {
             const revRegId = credential["rev_reg_id"]
             if (!(revRegId in revocRegs)) {
-                revocRegs[revRegId] = (await indy.ledger.getRevocRegDef(revRegId))[1];
+                revocRegs[revRegId] = (await indy.ledger.getRevocRegDef(null, revRegId))[1];
             }
         }
     }
@@ -225,16 +237,19 @@ const getNonRevocationInterval = async (credentials, reqReferents) => {
         if (referentNonRevocInterval) {
             const key = `${revRegId}_${nonRevocInterval['from']}_${nonRevocInterval['to']}`;
             if (!(key in revocRegDeltas)) {
-                [delta, deltaTimestamp] = await indy.ledger.getRevocRegDelta(
+                const [, delta, deltaTimestamp] = await indy.ledger.getRevocRegDelta(
                     null,
                     revRegId,
                     nonRevocInterval["from"],
                     nonRevocInterval["to"]
                 );
-                revocRegDeltas[key] = (revRegId, credentialId, delta, deltaTimestamp);
+                console.log('Delta: ', delta);
+                console.log('Timestamp: ', deltaTimestamp);
+                revocRegDeltas[key] = {revRegId, credentialId, delta, deltaTimestamp};
             }
-            reqReferents[referentKey]["timestamp"] = revocRegDeltas[key][3]
+            reqReferents[referentKey]["timestamp"] = revocRegDeltas[key]['deltaTimestamp']
         }
+        console.log(reqReferents)
     }
 
     return [revocRegDeltas, reqReferents];
@@ -245,25 +260,24 @@ const getRevocationStates = async (revocRegs, revocRegDeltas) => {
     let revocationStates = {}
 
     for (const key in revocRegDeltas) {
-        [revRegId, credentialId, delta, deltaTimestamp] = revocRegDeltas[key]
-        if (!(revRegId in revocationStates))
+        const { revRegId, credentialId, delta, deltaTimestamp } = revocRegDeltas[key];
+        if (!(revRegId in revocationStates)){
             revocationStates[revRegId] = {}
-        
+        }
         console.log("Cheguei 4.9")
 
         const revReg = revocRegs[revRegId]
+        const credential = await indy.holder.getCredential(credentialId);
         const blobReaderHandler = await indy.blobStorage.createTailsReader(revReg["value"]["tailsLocation"])
         console.log("Cheguei 4.10")
-
+        console.log(deltaTimestamp)
         try {
-            revocationStates[revRegId][deltaTimestamp] = JSON.parse(
-                await sdk.createRevocationState(
-                    blobReaderHandler,
-                    revReg,
-                    delta,
-                    deltaTimestamp,
-                    credential["rev_reg_id"]
-                )
+            revocationStates[revRegId][deltaTimestamp] = await sdk.createRevocationState(
+                blobReaderHandler,
+                revReg,
+                delta,
+                deltaTimestamp,
+                credential["cred_rev_id"]
             );
         } catch(e) {
             console.log(`Failed to create revocation state: ${e.error_code}, ${e.message}`);
@@ -315,16 +329,25 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
     console.log("Cheguei 4.11")
 
     // Update requested attributes and predicates with timestamp
+    console.log(reqReferents)
     for (var referent in reqReferents) {
         const referented = reqReferents[referent];
-        if (!("timestamp" in referented))
-            continue
-        if (referent in reqCredentials["requested_attributes"])
+        if (!("timestamp" in referented)){
+            continue;
+        }
+        if (referent in reqCredentials["requested_attributes"]){
             reqCredentials["requested_attributes"][referent]["timestamp"] = referented["timestamp"]
-        if (referent in reqCredentials["requested_predicates"])
+        }
+        if (referent in reqCredentials["requested_predicates"]){
             reqCredentials["requested_predicates"][referent]["timestamp"] = referented["timestamp"]
+        }
     }
     console.log("Cheguei 4.12")
+    console.log(presentationRequest);
+    console.log(reqCredentials);
+    console.log(schemas);
+    console.log(credDefs);
+    console.log(revocationStates);
 
     // Calculate and encode data for presentation message
     let presentation = await indy.holder.createPresentation(
@@ -365,7 +388,10 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
 
 
 exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
-    if( presentationExchangeRecord.state != PresentationExchangeState.PresentationReceived) {
+    if( 
+        presentationExchangeRecord.state != PresentationExchangeState.PresentationReceived &&
+        presentationExchangeRecord.state != PresentationExchangeState.Done
+    ) {
         throw new Error(`Invalid state trasition.`);
     }
 
@@ -384,29 +410,33 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
     let revRegEntries = {};
 
     const identifiers = indyProof["identifiers"]
-    
     await Promise.all(identifiers.map(async (identifier) => {
         console.log(identifier)
 
         if (!(identifier["schema_id"] in schemas)) {
             schemas[identifier["schema_id"]] = (await indy.ledger.getSchema(null, identifier["schema_id"]))[1];
         }
+
         if (!(identifier["cred_def_id"] in credDefs)) {
             credDefs[identifier["cred_def_id"]] = (await indy.ledger.getCredDef(null, identifier["cred_def_id"]))[1];
         }
 
         if (identifier["rev_reg_id"]) {
             if (!(identifier["rev_reg_id"] in revRegDefs)) {
-                revRegDefs[identifier["rev_reg_id"]] = (await indy.ledger.getRevocRegDef(identifier["rev_reg_id"]))[1];
+                revRegDefs[identifier["rev_reg_id"]] = (await indy.ledger.getRevocRegDef(null, identifier["rev_reg_id"]))[1];
             }
             if (identifier["timestamp"]) {
                 revRegEntries[identifier["rev_reg_id"]] = {};
-
+                
                 if (!(identifier["timestamp"] in revRegEntries[identifier["rev_reg_id"]])) {
-                    [foundRevRegEntry, foundTimestamp] = await indy.ledger.getRevocRegEntry( 
+                    const [,foundRevRegEntry, foundTimestamp] = await indy.ledger.getRevocRegEntry(
+                        null, 
                         identifier["rev_reg_id"], 
                         identifier["timestamp"]
                     );
+                    console.log(foundTimestamp);
+                    console.log(foundRevRegEntry);
+                    console.log(typeof(foundRevRegEntry));
                     revRegEntries[identifier["rev_reg_id"]][identifier["timestamp"]] = foundRevRegEntry;
                 }
             }
@@ -429,32 +459,35 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
         revRegEntries
     );
     console.log("verified: ", verified)
-    if(!verified) {
-        throw new Error("Failed at presentation verification!")
-    } else {
+    if(verified) {
         console.log("Passed at presentation verification!")
-    }
+
+        // Create ack message
+        const ackMessage = messages.createPresentationAckMessage(
+            presentationExchangeRecord.threadId
+        );
     
-    // Create ack message
-    const ackMessage = messages.createPresentationAckMessage(
-        presentationExchangeRecord.threadId
-    );
+        // Prepare and send message to prover
+        const [message, endpoint] = await indy.messages.prepareMessage(ackMessage, connection);
+        indy.messages.sendMessage(message, endpoint);
+    
+        // Update presentation exchange record
+        presentationExchangeRecord.verified = JSON.stringify(verified);
+        presentationExchangeRecord.state = PresentationExchangeState.Done;
+        presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
+        await indy.wallet.updateWalletRecordValue(
+            indy.recordTypes.RecordType.PresentationExchange, 
+            presentationExchangeRecord.presentationExchangeId, 
+            JSON.stringify(presentationExchangeRecord)
+        );
+        return [verified, presentationExchangeRecord, ackMessage];
 
-    // Prepare and send message to prover
-    const [message, endpoint] = await indy.messages.prepareMessage(ackMessage, connection);
-    indy.messages.sendMessage(message, endpoint);
+    } else {
+        console.log("Failed at presentation verification!")
+        return [verified, presentationExchangeRecord, null];
+    }
 
-    // Update presentation exchange record
-    presentationExchangeRecord.verified = JSON.stringify(verified);
-    presentationExchangeRecord.state = PresentationExchangeState.Done;
-    presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
-    await indy.wallet.updateWalletRecordValue(
-        indy.recordTypes.RecordType.PresentationExchange, 
-        presentationExchangeRecord.presentationExchangeId, 
-        JSON.stringify(presentationExchangeRecord)
-    );
-
-    return [verified, presentationExchangeRecord, ackMessage];
+    
 }
 
 
@@ -472,6 +505,18 @@ exports.createPresentationExchangeRecord = (connectionId, message, initiator, ro
         createdAt: currentDate,
         updatedAt: currentDate,
     }
+}
+
+// Using problem report protocol for hadling rejections
+exports.rejectExchange = async (presentationExchangeRecord, rejectError) => {
+    return await indy.problemReport.rejectExchange(
+        presentationExchangeRecord,
+        presentationExchangeRecord.presentationExchangeId,
+        rejectError,
+        this.MessageType.ProblemReport,
+        indy.recordTypes.RecordType.PresentationExchange,
+        PresentationExchangeState.Error
+    );
 }
 
 exports.getPresentationExchangeRecord = async (id) => {
@@ -520,8 +565,35 @@ exports.addPresentationExchangeRecord = async (id, value, tags={}) => {
     }
 }
 
-exports.removePresentationExchangeRecord = async (id) => {
-    return indy.wallet.deleteWalletRecord(indy.recordTypes.RecordType.PresentationExchange, id);
+exports.removePresentationExchangeRecord = async (id) => {    
+    // Get presentation exchange record
+    const record = await indy.wallet.getWalletRecord(
+      indy.recordTypes.RecordType.PresentationExchange, 
+      id, 
+      {}
+    );
+
+    // Get connection to send message (exchange termination)
+    const connection = await indy.connections.getConnection(record.connectionId);
+
+    const rejectMessage = indy.problemReport.messages.createProblemeReportMessage(
+        indy.presentationExchange.MessageType.ProblemReport,
+        "presentation-abandoned",
+        "Credential presentation abandoned.",
+        "thread",
+        record.threadId
+    );
+
+    const [message, endpoint] = await indy.messages.prepareMessage(
+        rejectMessage, 
+        connection
+    );
+    indy.messages.sendMessage(message, endpoint);
+
+    await indy.wallet.deleteWalletRecord(
+        indy.recordTypes.RecordType.PresentationExchange, 
+        id
+    );
 }
 
 function randomNonce() {

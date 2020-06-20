@@ -15,12 +15,12 @@ const {
 } = require('../authentication/refreshToken')
 
 /* Check user token */
-router.get('/checkToken', passport.authenticate('jwt', {session: false}), (req, res) => {
+router.get('/check-token', passport.authenticate('jwt', {session: false}), (req, res) => {
   res.sendStatus(200);
 });
 
 /* Check user token */
-router.post('/refreshToken', passport.authenticate('refresh', {session: false}), async (req, res) => {
+router.post('/refresh-token', passport.authenticate('refresh', {session: false}), async (req, res) => {
   // If it has passed the middleware, the cookie refresh token is valid
   const newAccessToken = jwt.sign(
     { user: req.user }, 
@@ -127,7 +127,7 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
           
             res.cookie('refreshToken', refreshToken, { 
               httpOnly: true,
-              path: "/users/refreshToken"
+              path: "/users/refresh-token"
             }).status(200).send({accessToken: accessToken, dids: dids});
         });     
     } 
@@ -149,9 +149,11 @@ router.post('/logout', passport.authenticate('jwt', {session: false}), async (re
 
   // Clear cookie (refresh token)
   return res.cookie(
-    'refreshToken', 
-    "",
-    { httpOnly: true }
+    'refreshToken', "", { 
+      httpOnly: true,
+      path: "/users/refresh-token",
+      overwrite: true
+    }
   ).status(200).send()
 })
 
@@ -165,7 +167,6 @@ function checkNotAuthenticated(req, res, next) {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     return res.redirect('/');
   } catch (error) {
-    console.log(error);
     return next();
   }
 }

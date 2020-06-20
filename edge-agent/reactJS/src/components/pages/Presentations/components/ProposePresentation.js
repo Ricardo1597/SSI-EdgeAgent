@@ -60,7 +60,7 @@ class ProposePresentation extends Component {
             
         const jwt = this.props.accessToken;
 
-        axios.post(`${config.endpoint}/api/presentation_exchanges/send_proposal`, {
+        axios.post(`${config.endpoint}/api/presentation-exchanges/send-proposal`, {
             connectionId: this.state.connectionId, 
             comment: this.state.comment,
             presentationPreview: JSON.parse(this.state.presentationPreview),
