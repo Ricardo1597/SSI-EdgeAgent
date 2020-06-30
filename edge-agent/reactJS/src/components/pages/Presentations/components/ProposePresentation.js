@@ -92,7 +92,7 @@ class ProposePresentation extends Component {
                     <Typography component="span" variant="h5">
                     Propose Presentation
                     </Typography>
-                    <form noValidate className={classes.form} onSubmit={this.onSubmit}>
+                    <form className={classes.form} onSubmit={this.onSubmit}>
                         <Grid container align='left' className={classes.column} spacing={2}>
                             <Grid item xs={12}>
                                 <TextField
@@ -123,6 +123,7 @@ class ProposePresentation extends Component {
                             <Grid item xs={12}>
                                 <TextField
                                     variant="outlined"
+                                    required
                                     fullWidth
                                     multiline
                                     rows={10}

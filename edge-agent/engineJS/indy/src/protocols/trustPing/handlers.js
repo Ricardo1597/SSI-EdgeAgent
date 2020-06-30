@@ -5,7 +5,7 @@ const messages = require('./messages')
 
 exports.trustPingHandler = async (decryptedMessage) => {
     const {message, recipient_verkey, sender_verkey} = decryptedMessage
-    const connection = await indy.connections.searchConnection(
+    const connection = await indy.connections.searchConnections(
         {'myVerkey': recipient_verkey}
     );   
 
@@ -30,7 +30,7 @@ exports.trustPingHandler = async (decryptedMessage) => {
 
 exports.trustPingResponseHandler = async (decryptedMessage) => {
     const {message, recipient_verkey, sender_verkey} = decryptedMessage
-    const connection = await indy.connections.searchConnection(
+    const connection = await indy.connections.searchConnections(
         {'myVerkey': recipient_verkey}
     );   
 

@@ -5,12 +5,13 @@ let endpointDid;
 let endpointPublicVerkey;
 
 
-exports.createDid = async (didInfoParam) => {
+exports.createDid = async (alias, didInfoParam) => {
     let didInfo = didInfoParam || {};
     let [did, publicVerkey] = await sdk.createAndStoreMyDid(await indy.wallet.get(), didInfo);
 
     let didMeta = JSON.stringify({
         primary: false,
+        alias: alias,
         credential_definitions: [],
         schemas: []
     });

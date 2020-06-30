@@ -47,14 +47,14 @@ function RecordActions(props) {
         case 'proposal_received':
             return (
                 <div>
-                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 2, id)}>Accept Proposal</Button>
+                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>Accept Proposal</Button>
                     <Button size="small" color="primary" onClick={() => rejectExchange(id, "proposal")}>Reject Proposal</Button>
                 </div>
             )
         case 'request_received':
             return (
                 <div>
-                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 3, id)}>Accept Request</Button>
+                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 2, id)}>Accept Request</Button>
                     <Button size="small" color="primary" onClick={() => rejectExchange(id, "request")}>Reject Request</Button>
                 </div>
             )

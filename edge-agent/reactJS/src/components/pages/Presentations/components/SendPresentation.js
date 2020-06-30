@@ -77,9 +77,8 @@ class SendPresentation extends Component {
     render() {
         const { classes } = this.props;
 
-        console.log(this.props.recordId)
-
-        return (
+        return this.props.recordId 
+        ? (
             <Container spacing={2}>
                 <div className={classes.paper} >
                     <Typography component="span" variant="h5">
@@ -115,7 +114,7 @@ class SendPresentation extends Component {
                     </form>
                 </div>
             </Container>
-        )
+        ) : null
     }
 }
 

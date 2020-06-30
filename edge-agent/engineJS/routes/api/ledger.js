@@ -33,17 +33,27 @@ router.post('/create-schema', passport.authenticate('jwt', {session: false}), as
     if(didParts[1] !== 'mybc'){
       return res.status(400).send({message: "Invalid DID: wrong blockchain."})
     }
-    let [id, schema] = await indy.issuer.createSchema(did, name, version, attributes);
-  
-    res.status(200).send({id: id, schema:schema})
+    try{
+      let [id, schema] = await indy.issuer.createSchema(did, name, version, attributes);
+      res.status(200).send({id: id, schema:schema})
+    } catch(error) {
+      if(error.indyCode === 307){ // PoolLedgerTimeout
+        res.status(404).send({message: "No permission to create schemas in the ledger."})
+      } else {
+        res.status(400).send({error})
+      }
+    }
 });
   
   
 // Get schema from the ledger
 router.get('/get-schema', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  try{
     let [id, schema] = await indy.ledger.getSchema(null, req.query.schemaId)
-  
     res.status(200).send({id: id, schema: schema})
+  } catch(error) {
+    res.status(400).send({error})
+  }
 });
   
   
@@ -58,17 +68,28 @@ router.post('/create-cred-def', passport.authenticate('jwt', {session: false}), 
     if(didParts[1] !== 'mybc'){
       return res.status(400).send({message: "Invalid DID: wrong blockchain."})
     }
-    let [credDefId, credDef] = await indy.issuer.createCredDef(did, schemaId, "TAG1", supportRevocation);
-  
-    res.status(200).send({credDefId: credDefId, credDef:credDef})
+
+    try{
+      let [credDefId, credDef] = await indy.issuer.createCredDef(did, schemaId, "TAG1", supportRevocation);
+      res.status(200).send({credDefId: credDefId, credDef:credDef})
+    } catch(error) {
+      if(error.indyCode === 307){ // PoolLedgerTimeout
+        res.status(404).send({message: "No permission to create schemas in the ledger."});
+      } else {
+        res.status(400).send({error});
+      }
+    }
 });
   
   
 // Get credential definition from the ledger
 router.get('/get-cred-def', passport.authenticate('jwt', {session: false}), async (req, res) => {
-    let [id, credDef] = await indy.ledger.getCredDef(null, req.query.credDefId)
-  
-    res.status(200).send({id: id, credDef: credDef})
+    try{
+      let [id, credDef] = await indy.ledger.getCredDef(null, req.query.credDefId)
+      res.status(200).send({id: id, credDef: credDef})
+    } catch(error) {
+      res.status(400).send({error})
+    }
 });
 
 module.exports = router;

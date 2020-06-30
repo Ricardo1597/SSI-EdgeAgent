@@ -23,29 +23,54 @@ class GetSchema extends Component {
         })
     }
 
-    onSubmit = (e) => {
-      e.preventDefault();
-      const jwt = this.props.accessToken;
-
-      axios.get(`${config.endpoint}/api/ledger/get-schema`, {
-        params: {
-          schemaId: this.state.schemaId
-        },
-        headers: { Authorization: `Bearer ${jwt}`} 
-      })
-      .then(res => {
-        if (res.status === 200) {
-          console.log(res.data)
-          this.setState({schema: res.data.schema})
-        } else {
-          const error = new Error(res.error);
-          throw error;
+    handleValidation = () => {
+        let errors = [];
+        let formIsValid = true;
+    
+        // schemaId: schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3
+        if(this.state.schemaId.length < 1 ){
+            formIsValid = false;
+            errors["schemaId"] = "Cannot be empty";
+        } else if(!this.state.schemaId.match(/^[a-zA-Z0-9:\-._]+$/)){
+            formIsValid = false;
+            errors["schemaId"] = "Invalid characters";
         }
-      })
-      .catch(err => {
-          console.error(err);
-          alert('Error getting schema. Please try again.');
-      });
+    
+        console.log(errors)
+        this.setState({errors: errors});
+        return formIsValid;
+    }
+    
+    
+    onSubmit = (e) => {
+        e.preventDefault();
+    
+        if(!this.handleValidation()){
+          console.log(this.state.errors)
+          return;
+        }
+
+        const jwt = this.props.accessToken;
+
+        axios.get(`${config.endpoint}/api/ledger/get-schema`, {
+            params: {
+            schemaId: this.state.schemaId
+            },
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            if (res.status === 200) {
+            console.log(res.data)
+            this.setState({schema: res.data.schema})
+            } else {
+            const error = new Error(res.error);
+            throw error;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error getting schema. Please try again.');
+        });
     }
 
     render() {

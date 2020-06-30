@@ -4,33 +4,40 @@ const messages = require('./messages')
 exports.messages = messages;
 
 // Using problem report protocol to hadling rejections
-exports.rejectExchange = async (record, recordId, rejectError, messageType, recordType, stateToTransit) => {
-    if( record.state != rejectError.state) {
+exports.sendProblemReport = async (record, recordId, rejectError, impact, messageType, recordType, stateToTransit=null) => {
+    if( rejectError.state && record.state != rejectError.state) {
         throw new Error(`Invalid state trasition.`);
     }
 
-    // Get connection to send message (exchange rejection)
-    const connection = await indy.connections.getConnection(record.connectionId);
-
-    const rejectMessage = messages.createProblemeReportMessage(
+    // Create problem report message
+    const problemReportMessage = indy.problemReport.messages.createProblemReportMessage(
         messageType,
         rejectError.code,
         rejectError.description,
-        "thread",
-        connection.threadId
+        impact,
+        record.threadId
     );
 
+    // Get connection to send message (problem report)
+    let connection = {};
+    if(recordType === indy.recordTypes.RecordType.Connection){
+        connection = record;
+    } else {
+        connection = await indy.connections.getConnection(record.connectionId);
+    }
     const [message, endpoint] = await indy.messages.prepareMessage(
-        rejectMessage, 
+        problemReportMessage, 
         connection
     );
     indy.messages.sendMessage(message, endpoint);
     
     // Update record
-    record.state = stateToTransit;
+    if(stateToTransit) {
+        record.state = stateToTransit;
+    }
     record.error = {
         self: true,
-        description: rejectMessage.description 
+        description: problemReportMessage.description 
     };
     record.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
@@ -39,5 +46,5 @@ exports.rejectExchange = async (record, recordId, rejectError, messageType, reco
         JSON.stringify(record)
     );
   
-    return [record, rejectMessage];
+    return [record, problemReportMessage];
 }

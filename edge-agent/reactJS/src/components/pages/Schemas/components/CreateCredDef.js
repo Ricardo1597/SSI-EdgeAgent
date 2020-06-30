@@ -18,10 +18,13 @@ import config from '../../../../config'
 
 class CreateCredDef extends Component {
     state = {
-        dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
+        dids: JSON.parse(localStorage.getItem('dids'))
+                  .filter(did => did.role !== 'no role' && did.role !== null)
+                  .map(did => did.did),
         did: '',
         schemaId: '',
-        supportRevocation: false
+        supportRevocation: false,
+        errors: []
     }
 
 
@@ -32,8 +35,45 @@ class CreateCredDef extends Component {
     }
 
 
-    onSubmit = e => {
-        e.preventDefault()
+    handleValidation = () => {
+        let errors = [];
+        let formIsValid = true;
+    
+        // schemaId: schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3
+        if(this.state.schemaId.length < 1 ){
+            formIsValid = false;
+            errors["schemaId"] = "Cannot be empty";
+        } else if(!this.state.schemaId.match(/^[a-zA-Z0-9:\-._]+$/)){
+            formIsValid = false;
+            errors["schemaId"] = "Invalid characters";
+        }
+    
+        // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
+        if(this.state.did.length > 0 ){
+            formIsValid = false;
+            errors["did"] = "Cannot be empty";
+        } else if(!this.state.did.match(/^[a-zA-Z0-9:]+$/)){
+            formIsValid = false;
+            errors["did"] = "Invalid characters";
+        } else if(this.state.did.split(':').length !== 3){
+            formIsValid = false;
+            errors["did"] = "Invalid DID";
+        }
+    
+        console.log(errors)
+        this.setState({errors: errors});
+        return formIsValid;
+    }
+    
+    
+    onSubmit = (e) => {
+        e.preventDefault();
+    
+        if(!this.handleValidation()){
+          console.log(this.state.errors)
+          return;
+        }
+
         const jwt = this.props.accessToken;
 
         axios.post(`${config.endpoint}/api/ledger/create-cred-def`, {
@@ -80,25 +120,25 @@ class CreateCredDef extends Component {
                                     </Grid>  
                                     <Grid item xs={12} sm={8}>
                                         <FormControl variant="outlined" className={classes.formControl}>
-                                            <InputLabel htmlFor="outlined-did-native-simple">DID</InputLabel>
+                                            <InputLabel>DID</InputLabel>
                                             <Select
                                                 variant="outlined"
+                                                required
                                                 label="DID"
                                                 name="did"
                                                 id="did"
                                                 value={this.state.did}
                                                 onChange={this.handleChange}
-                                                required
                                             >
                                                 {this.state.dids.map(did => {
-                                                    return (<option key={did} value={did}>{did}</option>)
+                                                    return (<MenuItem key={did} value={did}>{did}</MenuItem>)
                                                 })}
                                             </Select>
                                         </FormControl>
                                     </Grid>  
                                     <Grid item xs={12} sm={4}>
                                         <FormControl variant="outlined" className={classes.formControl}>
-                                            <InputLabel htmlFor="outlined-supportRevocation-native-simple">Support Revocation</InputLabel>
+                                            <InputLabel>Support Revocation</InputLabel>
                                             <Select
                                                 variant="outlined"
                                                 required

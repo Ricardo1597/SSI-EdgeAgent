@@ -135,7 +135,6 @@ const useStyles = theme => ({
         borderRadius: 10,
         flexGrow: 1,
         backgroundColor: '#F6F6F6',
-        minWidth: 500,
     }
 });
 

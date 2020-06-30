@@ -9,8 +9,8 @@ exports.PublicKeyType = {
 }
 
 
-exports.createDidAndDidDoc = async (options) => {
-    const [did, verkey] = await indy.did.createDid(options);
+exports.createDidAndDidDoc = async (alias, options) => {
+    const [did, verkey] = await indy.did.createDid(alias, options);
     const didDoc = this.createDidDoc(did, verkey);
 
     return [did, verkey, didDoc]

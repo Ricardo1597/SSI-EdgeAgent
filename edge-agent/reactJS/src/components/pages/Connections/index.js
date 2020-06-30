@@ -13,27 +13,26 @@ import PendingConnections from './components/PendingConnections';
 import CreateInvitation from './components/CreateInvitation'
 import ReceiveInvitation from './components/ReceiveInvitation'
 import Invitations from './components/Invitations';
-
+import qs from 'qs'
 
 
 class Connections extends Component {
-    state = {
-        tab: 0,
-    }
 
     handleChangeTabs = (e, newValue) => {
-        this.setState({tab: newValue})
+        this.props.history.push(`/connections?tab=${newValue}`);
     }
 
 
     render() {
         const { classes } = this.props
+        const search = qs.parse(this.props.location.search, { ignoreQueryPrefix: true })
+        const tab = parseInt(search.tab) || 0;
 
         return (
             <div className={classes.root}>
                 <AppBar position="static" color="default">
                     <Tabs
-                        value={this.state.tab}
+                        value={tab}
                         onChange={this.handleChangeTabs}
                         indicatorColor="primary"
                         textColor="primary"
@@ -45,19 +44,19 @@ class Connections extends Component {
                         <Tab className={classes.button} label="Receive invitation" {...a11yProps(4)} />
                     </Tabs>
                 </AppBar>
-                <TabPanel value={this.state.tab} index={0}>
+                <TabPanel value={tab} index={0}>
                     <ActiveConnections/>
                 </TabPanel>
-                <TabPanel value={this.state.tab} index={1}>
+                <TabPanel value={tab} index={1}>
                     <PendingConnections/>
                 </TabPanel>
-                <TabPanel value={this.state.tab} index={2}>
+                <TabPanel value={tab} index={2}>
                     <Invitations/>
                 </TabPanel>
-                <TabPanel value={this.state.tab} index={3}>
+                <TabPanel value={tab} index={3}>
                     <CreateInvitation/>
                 </TabPanel>
-                <TabPanel value={this.state.tab} index={4}>
+                <TabPanel value={tab} index={4}>
                     <ReceiveInvitation/>
                 </TabPanel>            
             </div>

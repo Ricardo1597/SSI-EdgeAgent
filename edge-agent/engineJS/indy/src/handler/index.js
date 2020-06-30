@@ -31,21 +31,21 @@ module.exports = function(config) { //factory function creates object and return
                 let handler = messageHandlerMap[decryptedMessage.message['@type']];
                 if(handler.length === 2) { // number of parameters
                     handler(decryptedMessage, function(err) {
-                        if(err) {
-                            console.error(err.stack);
-                            throw err;
+                        if(err) { 
+                            console.error(err);
+                            res.status(200).send();
                         } else {
-                            res.status(202).send("Accepted");
+                            res.status(202).send();
                         }
                     })
                 } else {
                     handler(decryptedMessage)
                         .then((data) => {
-                            res.status(202).send("Accepted");
+                            res.status(202).send();
                         })
                         .catch((err) => {
-                            console.error(err.stack);
-                            throw err;
+                            console.error(err);
+                            res.status(200).send();
                         })
                 }
             } else {
@@ -53,7 +53,7 @@ module.exports = function(config) { //factory function creates object and return
             }
 
         } catch(err) {
-            console.error(err.stack);
+            console.error(err);
             if(err.message === "Invalid Request" || err.message === "Invalid Message") {
                 res.status(400).send(err.message);
             } else {
@@ -76,6 +76,7 @@ module.exports = function(config) { //factory function creates object and return
         factory.defineHandler(indy.credentialExchange.MessageType.CredentialRequest, indy.credentialExchange.handlers.requestHandler);
         factory.defineHandler(indy.credentialExchange.MessageType.CredentialIssuance, indy.credentialExchange.handlers.credentialHandler);
         factory.defineHandler(indy.credentialExchange.MessageType.CredentialAck, indy.credentialExchange.handlers.acknowledgeHandler);
+        factory.defineHandler(indy.credentialExchange.MessageType.RevocationNotification, indy.credentialExchange.handlers.revocationHandler);
         factory.defineHandler(indy.credentialExchange.MessageType.ProblemReport, indy.credentialExchange.handlers.problemReportHandler);
         factory.defineHandler(indy.presentationExchange.MessageType.PresentationProposal, indy.presentationExchange.handlers.proposalHandler);
         factory.defineHandler(indy.presentationExchange.MessageType.PresentationRequest, indy.presentationExchange.handlers.requestHandler);
@@ -98,6 +99,7 @@ module.exports = function(config) { //factory function creates object and return
     factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialRequest, indy.credentialExchange.handlers.requestHandler);
     factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialIssuance, indy.credentialExchange.handlers.credentialHandler);
     factory.defineHandler(indy.credentialExchange.NewMessageType.CredentialAck, indy.credentialExchange.handlers.acknowledgeHandler);
+    factory.defineHandler(indy.credentialExchange.NewMessageType.RevocationNotification, indy.credentialExchange.handlers.revocationHandler);
     factory.defineHandler(indy.credentialExchange.NewMessageType.ProblemReport, indy.credentialExchange.handlers.problemReportHandler);
     factory.defineHandler(indy.presentationExchange.NewMessageType.PresentationProposal, indy.presentationExchange.handlers.proposalHandler);
     factory.defineHandler(indy.presentationExchange.NewMessageType.PresentationRequest, indy.presentationExchange.handlers.requestHandler);

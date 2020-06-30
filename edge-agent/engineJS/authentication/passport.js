@@ -7,6 +7,7 @@ var passport = require('passport')
 var localStrategy = require('passport-local').Strategy
 var UserModel = require('../models/users')
 const indy = require('../indy/index')
+const config = require('../config')
 require('dotenv/config')
 const { getRefreshTokenVersion } = require('./refreshToken')
 
@@ -77,7 +78,7 @@ passport.use('jwt', new JWTStrategy({
 const cookieExtractor = (req) => {
     var token = null;
     if (req && req.cookies) {
-        token = req.cookies['refreshToken'];
+        token = req.cookies['refreshToken' + config.adminPort];
     } else {
         console.log('Cookie extractor: no cookie found');
     }

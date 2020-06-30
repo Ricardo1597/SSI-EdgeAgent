@@ -255,6 +255,8 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
             throw new Error(` Credential definition id ${credDefId} has no active revocation registry.`);
         }
 
+        console.log(revocRegRecord)
+
         credentialExchangeRecord.revocRegId = revocRegRecord.revocRegId;
         if(revocRegRecord.tailsLocalPath) {
             tailsReaderHandler = await indy.blobStorage.createTailsReader(revocRegRecord.tailsLocalPath)
@@ -290,6 +292,20 @@ exports.issuerCreateAndSendCredential = async (credentialExchangeRecord, comment
         credentialExchangeRecord.credentialExchangeId, 
         JSON.stringify(credentialExchangeRecord)
     );
+
+    if(credentialExchangeRecord.revocRegId) {
+        // Update revocation registry record
+        let revocRegRecord = await indy.revocation.searchRevocRegRecord(
+            {'revocRegId': credentialExchangeRecord.revocRegId}
+        );
+        revocRegRecord.currCredNum++;
+        
+        await indy.wallet.updateWalletRecordValue(
+            indy.recordTypes.RecordType.RevocationRegistry, 
+            revocRegRecord.recordId, 
+            JSON.stringify(revocRegRecord)
+        );
+    }
 
     return [credentialExchangeRecord, credentialIssuedMessage];
 }
@@ -366,6 +382,7 @@ exports.revokeCredential = async (revocRegId, credRevId, publish) => {
     if(!revocRegRecord){
         throw new Error(`No revocation registry record found for id ${revocRegId}`)
     }
+
     if(publish) {
         // Create entry and send it to the ledger
         const [delta, invalidCredRevIds] = await indy.wallet.issuerRevokeCredentials(
@@ -374,7 +391,11 @@ exports.revokeCredential = async (revocRegId, credRevId, publish) => {
             [credRevId]
         );
 
+        // If delta is null then no credential was revoked
         if(delta) {
+            // If credential was on pending revocations, remove it
+            revocRegRecord.pendingPub = revocRegRecord.pendingPub.filter(item => item !== credRevId);
+
             // Update revocation registry entry with new delta
             revocRegRecord.revocRegEntry = delta;
             await indy.wallet.updateWalletRecordValue(
@@ -391,6 +412,44 @@ exports.revokeCredential = async (revocRegId, credRevId, publish) => {
         return null;
     }
 }
+
+
+
+exports.sendRevocationNotification = async (recordId, comment) => {
+    // Get credential exchange record
+    let credentialExchangeRecord = await indy.wallet.getWalletRecord(
+        indy.recordTypes.RecordType.CredentialExchange, 
+        recordId, 
+        {}
+    );
+    
+    if( credentialExchangeRecord.state != CredentialExchangeState.Done) {
+        throw new Error(`Invalid state trasition.`);
+    }
+
+    // Get connection to send message (revoked credential)
+    const connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
+
+    const credentialRevokedMessage = messages.createCredentialRevokedMessage(credentialExchangeRecord.threadId, comment);
+
+    // Create and send ack message to a given endpoint
+    const [message, endpoint] = await indy.messages.prepareMessage(credentialRevokedMessage, connection);
+    indy.messages.sendMessage(message, endpoint);
+
+    // Update credential exchange record
+    credentialExchangeRecord.isCredentialRevoked = true;
+    credentialExchangeRecord.updatedAt = indy.utils.getCurrentDate();
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.CredentialExchange, 
+        credentialExchangeRecord.credentialExchangeId, 
+        JSON.stringify(credentialExchangeRecord)
+    );
+
+    return [credentialExchangeRecord, credentialRevokedMessage];
+}
+
+
+
 
 // Issuer publishs pending revocations
 exports.publishPendingRevocations = async (revocRegId=null) => {
@@ -461,10 +520,11 @@ exports.createCredentialExchangeRecord = (connectionId, message, initiator, role
 
 // Using problem report protocol for hadling rejections
 exports.rejectExchange = async (credentialExchangeRecord, rejectError) => {
-    return await indy.problemReport.rejectExchange(
+    return await indy.problemReport.sendProblemReport(
         credentialExchangeRecord,
         credentialExchangeRecord.credentialExchangeId,
         rejectError,
+        "thread",
         this.MessageType.ProblemReport,
         indy.recordTypes.RecordType.CredentialExchange,
         CredentialExchangeState.Error
@@ -482,12 +542,14 @@ exports.getCredentialExchangeRecord = async (id) => {
     } catch(error) {
         if(error.indyCode && error.indyCode === 212){
             console.log("Unable to get credential exchange record. Wallet item not found.");
+            return null;
+        } else {
+            throw error;
         }
-        return null;
     }
 }
 
-exports.searchCredentialExchangeRecord = async (query) => {
+exports.searchCredentialExchangeRecord = async (query, all=false) => {
     const records = await indy.wallet.searchWalletRecord(
         indy.recordTypes.RecordType.CredentialExchange,
         query, 
@@ -495,19 +557,11 @@ exports.searchCredentialExchangeRecord = async (query) => {
     );
         
     if(records.length < 1){
-        console.log("Unable to get credential exchange record. Wallet item not found.");
+        console.log("Unable to find credential exchange record. Wallet item not found.");
         return null;
     }
 
-    return records[0];
-}
-
-exports.getAllCredentialExchangeRecords = async () => {
-    return await indy.wallet.searchWalletRecord(
-        indy.recordTypes.RecordType.CredentialExchange, 
-        {}, 
-        {}
-    );
+    return all ? records : records[0];
 }
 
 exports.addCredentialExchangeRecord = async (id, value, tags={}) => {
@@ -521,8 +575,10 @@ exports.addCredentialExchangeRecord = async (id, value, tags={}) => {
     } catch(error) {
         if(error.indyCode && error.indyCode === 213){
             console.log("Unable to add credential exchange record. Wallet item already exists.");
+            return null;
+        } else {
+            throw error;
         }
-        //throw error;
     }
 }
 
@@ -537,7 +593,7 @@ exports.removeCredentialExchangeRecord = async (id) => {
     // Get connection to send message (exchange termination)
     const connection = await indy.connections.getConnection(record.connectionId);
 
-    const rejectMessage = indy.problemReport.messages.createProblemeReportMessage(
+    const rejectMessage = indy.problemReport.messages.createProblemReportMessage(
         indy.credentialExchange.MessageType.ProblemReport,
         "issuance-abandoned",
         "Credential issuance abandoned.",

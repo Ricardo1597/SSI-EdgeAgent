@@ -10,6 +10,7 @@ import Container from '@material-ui/core/Container';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 
 import config from '../../config'
 import axios from 'axios'
@@ -18,7 +19,9 @@ import { connect } from 'react-redux';
 
 class Nyms extends Component {
     state = {
-        dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
+        dids: JSON.parse(localStorage.getItem('dids'))
+                  .filter(did => did.role !== 'no role' && did.role !== null)
+                  .map(did => did.did),
         did: '',
         newDid: '',
         newVerKey: '',
@@ -105,21 +108,18 @@ class Nyms extends Component {
                             <Grid container spacing={2}>
                                 <Grid item xs={12}>
                                     <FormControl variant="outlined" className={classes.formControl}>
-                                        <InputLabel htmlFor="outlined-did-native-simple">DID</InputLabel>
+                                        <InputLabel>DID</InputLabel>
                                         <Select
-                                            native
+                                            variant="outlined"
                                             required
                                             label="DID"
+                                            name="did"
+                                            id="did"
                                             value={this.state.did}
                                             onChange={this.handleChange}
-                                            inputProps={{
-                                                name: 'did',
-                                                id: 'outlined-did-native-simple',
-                                            }}
                                         >
-                                            <option aria-label="None" value="" />
                                             {this.state.dids.map(did => {
-                                                return (<option key={did} value={did}>{did}</option>)
+                                                return (<MenuItem key={did} value={did}>{did}</MenuItem>)
                                             })}
                                         </Select>
                                     </FormControl>
@@ -150,24 +150,21 @@ class Nyms extends Component {
                                 </Grid>              
                                 <Grid item xs={12}>
                                     <FormControl variant="outlined" className={classes.formControl}>
-                                        <InputLabel htmlFor="outlined-role-native-simple">Role</InputLabel>
+                                        <InputLabel>Role</InputLabel>
                                         <Select
-                                            native
+                                            variant="outlined"
                                             required
                                             label="Role"
+                                            name="role"
+                                            id="role"
                                             value={this.state.role}
                                             onChange={this.handleChange}
-                                            inputProps={{
-                                                name: 'role',
-                                                id: 'outlined-role-native-simple',
-                                            }}
                                         >
-                                            <option aria-label="None" value="" />
-                                            <option value='COMMON_USER'>Common User</option>
-                                            <option value='NETWORK_MONITOR'>Network Monitor</option>
-                                            <option value='TRUST_ANCHOR'>Trust Anchor</option>
-                                            <option value='STEWARD'>Steward</option>
-                                            <option value='TRUSTEE'>Trustee</option>
+                                            <MenuItem key={0} value='COMMON_USER'>Common User</MenuItem>
+                                            <MenuItem key={1} value='NETWORK_MONITOR'>Network Monitor</MenuItem>
+                                            <MenuItem key={2} value='TRUST_ANCHOR'>Trust Anchor</MenuItem>
+                                            <MenuItem key={3} value='STEWARD'>Steward</MenuItem>
+                                            <MenuItem key={4} value='TRUSTEE'>Trustee</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>    

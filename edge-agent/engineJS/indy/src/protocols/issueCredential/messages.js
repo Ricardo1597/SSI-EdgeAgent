@@ -9,6 +9,7 @@ const MessageType = {
   CredentialAck: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/ack',
   CredentialPreview: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview',
   ProblemReport: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/problem-report',
+  RevocationNotification: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/revocation_notification/1.0/revoke',
 };
 exports.MessageType = MessageType;
 
@@ -20,6 +21,7 @@ const NewMessageType = {
   CredentialAck: 'https://didcomm.org/issue-credential/1.0/ack',
   CredentialPreview: 'https://didcomm.org/issue-credential/1.0/credential-preview',
   ProblemReport: 'https://didcomm.org/issue-credential/1.0/problem-report',
+  RevocationNotification: 'https://didcomm.org/revocation_notification/1.0/revoke',
 };
 exports.NewMessageType = NewMessageType;
 
@@ -111,6 +113,18 @@ exports.createCredentialAckMessage = (thid) => {
     },
   };
 }
+
+exports.createCredentialRevokedMessage = (thid, comment) => {
+  return {
+    '@type': MessageType.RevocationNotification,
+    '@id': uuid(),
+    '~thread': {
+      thid: thid,
+    },
+    comment: comment
+  };
+}
+
 
 exports.createCredentialPreview = (attributes) => {
   let res = {}

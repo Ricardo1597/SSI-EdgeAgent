@@ -21,9 +21,12 @@ class CreateInvitation extends Component {
     state = {
         alias: '',
         isPublic: false,
+        isMultiuse: true,
         did: '',
         invitation: '',
-        dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
+        dids: JSON.parse(localStorage.getItem('dids'))
+                  .filter(did => did.role !== 'no role')
+                  .map(did => did.did),
     }
 
 
@@ -46,7 +49,8 @@ class CreateInvitation extends Component {
 
         axios.post(`${config.endpoint}/api/connections/create-invitation`, {
             alias: this.state.alias, 
-            public: this.state.public,
+            isPublic: this.state.isPublic,
+            isMultiuse: this.state.isMultiuse,
             did: this.state.did
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
@@ -79,7 +83,7 @@ class CreateInvitation extends Component {
                             </Typography>
                             <form className={classes.form} onSubmit={this.onSubmit}>
                                 <Grid container spacing={2}>
-                                    <Grid item xs={12}>
+                                    <Grid item xs={12} sm={9}>
                                         <TextField
                                             variant="outlined"
                                             required
@@ -93,16 +97,33 @@ class CreateInvitation extends Component {
                                     </Grid>  
                                     <Grid item xs={12} sm={3}>
                                         <FormControl variant="outlined" className={classes.formControl}>
-                                            <InputLabel htmlFor="outlined-public-native-simple">Public</InputLabel>
+                                            <InputLabel>Multiuse</InputLabel>
+                                            <Select
+                                                variant="outlined"
+                                                required
+                                                label="Multiuse"
+                                                name="isMultiuse"
+                                                id="isMultiuse"
+                                                value={this.state.isMultiuse}
+                                                onChange={this.handleChange}
+                                            >
+                                                <MenuItem value={true}>Yes</MenuItem>
+                                                <MenuItem value={false}>No</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>  
+                                    <Grid item xs={12} sm={3}>
+                                        <FormControl variant="outlined" className={classes.formControl}>
+                                            <InputLabel>Public</InputLabel>
                                             <Select
                                                 variant="outlined"
                                                 required
                                                 label="Public"
-                                                value={this.state.public}
+                                                value={this.state.isPublic}
                                                 onChange={this.changePublic}
                                                 inputProps={{
-                                                    name: 'public',
-                                                    id: 'outlined-public-native-simple',
+                                                    name: 'isPublic',
+                                                    id: 'outlined-isPublic-native-simple',
                                                 }}
                                             >
                                                 <MenuItem value={true}>Yes</MenuItem>
@@ -110,12 +131,13 @@ class CreateInvitation extends Component {
                                             </Select>
                                         </FormControl>
                                     </Grid>  
-                                    <Grid item hidden={!this.state.public} xs={12} sm={9}>
+                                    <Grid item xs={12} sm={9}>
                                         <FormControl variant="outlined" className={classes.formControl}>
-                                            <InputLabel htmlFor="outlined-did-native-simple">DID</InputLabel>
+                                            <InputLabel>DID</InputLabel>
                                             <Select
                                                 variant="outlined"
                                                 label="DID"
+                                                disabled={!this.state.isPublic}
                                                 name="did"
                                                 id="did"
                                                 value={this.state.did}

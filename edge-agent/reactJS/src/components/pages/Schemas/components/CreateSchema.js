@@ -8,8 +8,14 @@ import { withStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import { connect } from 'react-redux';
+import MenuItem from '@material-ui/core/MenuItem';
+import Paper from '@material-ui/core/Paper';
+import AttributesTable from '../../../AttributesTable';
+import Container from '@material-ui/core/Container';
 
+import uuid from "uuid";
+
+import { connect } from 'react-redux';
 import axios from 'axios'
 import config from '../../../../config'
 
@@ -20,8 +26,11 @@ class CreateSchema extends Component {
         attribute: '',
         attributes: [],
         did: '',
-        dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
-        schema: ''
+        dids: JSON.parse(localStorage.getItem('dids'))
+                  .filter(did => did.role !== 'no role' && did.role !== null)
+                  .map(did => did.did),
+        schema: '',
+        errors: []
     }
 
 
@@ -31,20 +40,87 @@ class CreateSchema extends Component {
         })
     }
 
-    handleChangeAttribute = e => {
+    onAddAttribute = () => {
+        if(!this.handleAttributeValidation()){
+            console.log(this.state.errors)
+            return;
+        }
         this.setState({
-            [e.target.name]: e.target.value
-        })
+            attributes: [...this.state.attributes, {id: uuid(), name: this.state.attribute}],
+            attribute: '',
+        });
     }
 
-    onSubmit = e => {
-        e.preventDefault()
+    onEditAttribute = () => {
+        alert("Edit is not yet working...")
+    }
+
+    onDeleteAttribute = (id) => {
+        this.setState({
+            attributes: this.state.attributes.filter(attr => attr.id !== id)
+        });
+    }
+
+    handleValidation = () => {
+        let errors = [];
+        let formIsValid = true;
+    
+        // name
+        if(this.state.name.length === 0 ){
+            formIsValid = false;
+            errors["name"] = "Cannot be empty";
+        } else if(!this.state.name.match(/^[a-zA-Z0-9\-_]+$/)){
+            formIsValid = false;
+            errors["name"] = "Invalid characters";
+        }
+    
+        // version
+        if(this.state.version.length === 0 ){
+            formIsValid = false;
+            errors["version"] = "Cannot be empty";
+        } else if(!this.state.version.match(/^[0-9\.]+$/)){
+            formIsValid = false;
+            errors["version"] = "Invalid characters";
+        } 
+    
+        // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
+        if(this.state.did.length === 0 ){
+            formIsValid = false;
+            errors["did"] = "Cannot be empty";
+        } else if(!this.state.did.match(/^[a-zA-Z0-9:]+$/)){
+            formIsValid = false;
+            errors["did"] = "Invalid characters";
+        } else if(this.state.did.split(':').length !== 3){
+            formIsValid = false;
+            errors["did"] = "Invalid DID";
+        }        
+        
+        // attributes
+        if(this.state.attributes.length === 0 ){
+            formIsValid = false;
+            errors["attributes"] = "Cannot be empty";
+        }
+    
+        console.log(errors)
+        this.setState({errors: errors});
+        return formIsValid;
+    }
+    
+    
+    onSubmit = (e) => {
+        e.preventDefault();
+    
+        if(!this.handleValidation()){
+          console.log(this.state.errors)
+          return;
+        }
+
         const jwt = this.props.accessToken;
 
         axios.post(`${config.endpoint}/api/ledger/create-schema`, {
             name: this.state.name, 
             version: this.state.version,
-            attributes: this.state.attributes,
+            attributes: this.state.attributes.map(attr => attr.name),
             did: this.state.did
         }, { 
             headers: { Authorization: `Bearer ${jwt}`} 
@@ -58,22 +134,36 @@ class CreateSchema extends Component {
         });
     }
 
-    onAddAttribute = () => {
-        this.setState({
-            attributes: [...this.state.attributes, this.state.attribute],
-            attribute: ''
-          });
-    }
 
+    handleAttributeValidation = () => {
+        let errors = [];
+        let formIsValid = true;
+    
+        // attribute
+        if(this.state.attribute.length < 3 ){
+            formIsValid = false;
+            errors["attribute"] = "Must be at least 3 characters long";
+        } else if(!this.state.attribute.match(/^[a-zA-Z0-9_]+$/)){
+            formIsValid = false;
+            errors["attribute"] = "Invalid characters";
+        } else if(this.state.attributes.map(attr => attr.name)
+                                       .includes(this.state.attribute))
+        {
+            formIsValid = false;
+            errors["attribute"] = "Attribute already added";
+        }
+    
+        console.log(errors)
+        this.setState({errors: errors});
+        return formIsValid;
+    }
 
 
     render() {
         const { classes } = this.props;
-
-        let value = JSON.stringify(this.state.attributes).replace(/"/g, '\'').replace(/,/g, ", ");
         
         return (
-            <Grid container>
+            <Container spacing={2}>
                 <Grid item xs={12} lg={5}>
                     <div className={classes.paper}>
                         <Typography component="span" variant="h5">
@@ -83,20 +173,18 @@ class CreateSchema extends Component {
                             <Grid container spacing={2}>
                                 <Grid item xs={12}>
                                     <FormControl variant="outlined" className={classes.formControl}>
-                                        <InputLabel htmlFor="outlined-did-native-simple">DID</InputLabel>
+                                        <InputLabel htmlFor='did'>DID</InputLabel>
                                         <Select
-                                            native
+                                            variant="outlined"
                                             required
                                             label="DID"
+                                            name="did"
+                                            id="did"
                                             value={this.state.did}
                                             onChange={this.handleChange}
-                                            inputProps={{
-                                                name: 'did',
-                                                id: 'outlined-did-native-simple',
-                                            }}
                                         >
                                             {this.state.dids.map(did => {
-                                                return (<option key={did} value={did}>{did}</option>)
+                                                return (<MenuItem key={did} value={did}>{did}</MenuItem>)
                                             })}
                                         </Select>
                                     </FormControl>
@@ -124,58 +212,51 @@ class CreateSchema extends Component {
                                         value={this.state.version}
                                         onChange={this.handleChange}
                                     />
-                                </Grid>   
-                                <Grid item className={classes.leftMargin} xs={12} sm={4}>
-                                    <h6>Attributes: </h6>                          
+                                </Grid>  
+                                <Typography style={{marginLeft: 10}} variant="subtitle1">
+                                Attributes *
+                                </Typography>                    
+                                <Grid style={{marginBottom: -15}} item xs={12}>
+                                    <Paper className={classes.root}>
+                                        <AttributesTable 
+                                            rows={this.state.attributes}
+                                            width={'100%'}
+                                            height={215}
+                                            rowHeight={45}
+                                            onDeleteAttribute={this.onDeleteAttribute}
+                                            onEditAttribute={this.onEditAttribute}
+                                        />
+                                    </Paper>
                                 </Grid>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        variant="outlined"
-                                        fullWidth
-                                        multiline
-                                        required
-                                        rows={6}
-                                        name="attributes"
-                                        id="attributes"
-                                        value={value}
-                                        disabled
-                                        className={classes.jsonBox}
-
-                                    />
-                                </Grid>
-                                <Grid item xs={9} sm={9}>
+                                <Grid item xs={10}>
                                     <TextField
                                         variant="outlined"
                                         fullWidth
                                         id="attribute"
-                                        label="Attribute"
+                                        label="Attribute Name"
                                         name="attribute"
                                         value={this.state.attribute}
                                         onChange={this.handleChange}
                                         onKeyPress={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault()
-                                                if (this.state.attribute.length < 3){
-                                                    alert('Attribute must be at least 3 characters long.') 
-                                                } else{
-                                                    this.onAddAttribute()
-                                                }
+                                                this.onAddAttribute()
                                             }
                                         }}
                                     />
-                                </Grid>                              
-                                <Grid item xs={2} sm={2}>
+                                </Grid>                               
+                                <Grid item xs={2}>
                                     <Button
                                         type="button"
                                         fullWidth
                                         variant="contained"
                                         color="primary"
-                                        className={classes.add}
+                                        className={classes.addAttr}
                                         onClick={this.onAddAttribute}
                                     >
                                         Add
                                     </Button>
-                                </Grid>
+                                </Grid>  
                             </Grid>
                             <Button
                                 type="button"
@@ -207,7 +288,7 @@ class CreateSchema extends Component {
                             
                     }
                 </Grid>
-            </Grid>
+            </Container>
         )
     }
 }
@@ -235,6 +316,10 @@ const useStyles = theme => ({
     add: {
         height: '40px',
         marginTop: 10
+    },
+    addAttr: {
+        height: 40,
+        width: '100%',
     },
     form: {
         width: '500px', 

@@ -78,7 +78,7 @@ class AllRecords extends Component {
                             {
                                 this.state.exchanges ? (
                                     this.state.exchanges.filter(exchange => {
-                                        return exchange.state !== 'done';
+                                        return exchange.state !== 'mudar para done';
                                     }).map(exchange => ( 
                                         <Grid 
                                             item 

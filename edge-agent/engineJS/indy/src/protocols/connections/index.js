@@ -4,6 +4,7 @@ const indy = require('../../../index.js');
 const uuid = require('uuid');
 const messages = require('./messages')
 const generalTypes = require('../generalTypes');
+const { connection } = require('mongoose');
 
 exports.handlers = require('./handlers');
 
@@ -21,6 +22,18 @@ const ConnectionState = {
 
 exports.ConnectionState = ConnectionState
   
+exports.RejectionErrors = {
+    Request: {
+        state: ConnectionState.Requested,
+        code: "request_not_accepted",
+        description: "Connection request rejected."
+    },
+    Response: {
+        state: ConnectionState.Responded,
+        code: "response_not_accepted",
+        description: "Connection response rejected."
+    }
+}
 
 exports.decodeInvitationFromUrl = function (invitationUrl) {
     const encodedInvitation = invitationUrl.split('c_i=')[1];
@@ -118,7 +131,7 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
 
     // Create did and did document for this specific connection
     const options = {method_name: 'peer'};
-    const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(options);    
+    const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc("Connection: " + connection.alias, options);    
     
     // Save created did document in the wallet
     await indy.didDoc.addLocalDidDocument(myDidDoc);
@@ -184,44 +197,6 @@ exports.rejectInvitation = async (connectionId) => {
 }
 
 
-exports.rejectRequest = async (connectionId) => {
-    let connection = await this.getConnection(connectionId);
-
-    if(connection.state != ConnectionState.Requested){
-        throw new Error(`Invalid state trasition.`)
-    }
-
-    const rejectRequestMessage = problemReportMessage.createProblemeReportMessage(
-        indy.connections.MessageType.ProblemReport,
-        "request_not_accepted",
-        "Connection request rejected.",
-        "connection",
-        connection.threadId
-    );
-
-    const [message, endpoint] = await indy.messages.prepareMessage(
-        rejectRequestMessage, 
-        connection
-    );
-    indy.messages.sendMessage(message, endpoint);
-    
-    // Update connection record
-    connection.state = ConnectionState.Error;
-    connection.error = {
-        self: true,
-        description: rejectRequestMessage.description 
-    };
-    connection.updatedAt = indy.utils.getCurrentDate();
-    await indy.wallet.updateWalletRecordValue(
-        indy.recordTypes.RecordType.Connection, 
-        connection.connectionId, 
-        JSON.stringify(connection)
-    );
-  
-    return connection;
-}
-
-
 exports.createAndSendResponse = async (connectionId) => {
     let connection = await this.getConnection(connectionId);
 
@@ -259,43 +234,20 @@ exports.createAndSendResponse = async (connectionId) => {
 }
 
 
-exports.rejectResponse = async (connectionId) => {
-    let connection = await this.getConnection(connectionId);
+// Using problem report protocol for hadling rejections
+exports.rejectExchange = async (connectionId, rejectError) => {
+    const connectionRecord = await this.getConnection(connectionId);
 
-    if(connection.state != ConnectionState.Responded){
-        throw new Error(`Invalid state trasition.`)
-    }
-
-    const rejectResponseMessage = problemReportMessage.createProblemeReportMessage(
-        indy.connections.MessageType.ProblemReport,
-        "response_not_accepted",
-        "Connection response rejected.",
+    return await indy.problemReport.sendProblemReport(
+        connectionRecord,
+        connectionId,
+        rejectError,
         "connection",
-        connection.threadId
+        this.MessageType.ProblemReport,
+        indy.recordTypes.RecordType.Connection,
+        ConnectionState.Error
     );
-
-    const [message, endpoint] = await indy.messages.prepareMessage(
-        signedConnectionResponse, 
-        connection
-    );
-    indy.messages.sendMessage(message, endpoint);
-    
-    // Update connection record
-    connection.state = ConnectionState.Error;
-    connection.error = {
-        self: true,
-        description: rejectResponseMessage.description 
-    };
-    connection.updatedAt = indy.utils.getCurrentDate();
-    await indy.wallet.updateWalletRecordValue(
-        indy.recordTypes.RecordType.Connection, 
-        connection.connectionId, 
-        JSON.stringify(connection)
-    );
-  
-    return connection;
 }
-
 
 exports.createAndSendAck = async (connectionId) => {
     let connection = await this.getConnection(connectionId);
@@ -391,7 +343,7 @@ exports.getDidAndDocument = async (isPublic, myDid=null) => {
       } else {
         // Create local did and did document
         const options = {method_name: 'peer'};
-        [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(options);
+        [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc("Connection: " + connection.alias, options);
     
         // Save created did document in the wallet
         await indy.didDoc.addLocalDidDocument(myDidDoc);
@@ -440,12 +392,14 @@ exports.getConnection = async (connectionId) => {
     } catch(error) {
         if(error.indyCode && error.indyCode === 212){
             console.log("Unable to get connection record. Wallet item not found.");
+            return null;
+        } else {
+            throw error;
         }
-        return null;
     }
 }
 
-exports.searchConnection = async (query) => {
+exports.searchConnections = async (query, all=false) => {
     const connections = await indy.wallet.searchWalletRecord(
         indy.recordTypes.RecordType.Connection,
         query, 
@@ -457,15 +411,7 @@ exports.searchConnection = async (query) => {
         return null;
     }
 
-    return connections[0];
-}
-
-exports.getAllConnections = async () => {
-    return await indy.wallet.searchWalletRecord(
-        indy.recordTypes.RecordType.Connection, 
-        {}, 
-        {}
-    );
+    return all ? connections : connections[0];
 }
 
 exports.addConnection = async (id, value, tags={}) => {
@@ -479,15 +425,16 @@ exports.addConnection = async (id, value, tags={}) => {
     } catch(error) {
         if(error.indyCode && error.indyCode === 213){
             console.log("Unable to add connection record. Wallet item already exists.");
+        } else {
+            throw error;
         }
-        // throw error;
     }
 }
 
 exports.removeConnection = async (connectionId) => {
     let connection = await this.getConnection(connectionId);
 
-    const rejectRequestMessage = indy.problemReport.messages.createProblemeReportMessage(
+    const abandonConnectionMessage = indy.problemReport.messages.createProblemReportMessage(
         indy.connections.MessageType.ProblemReport,
         "connection_abandoned",
         "Connection abandoned.",
@@ -496,7 +443,7 @@ exports.removeConnection = async (connectionId) => {
     );
 
     const [message, endpoint] = await indy.messages.prepareMessage(
-        rejectRequestMessage, 
+        abandonConnectionMessage, 
         connection
     );
     indy.messages.sendMessage(message, endpoint);
@@ -508,7 +455,7 @@ exports.removeConnection = async (connectionId) => {
 }
 
 
-exports.getInvitation = async (invitationId) => {
+exports.getInvitation = async (invitationId, all=false) => {
     console.log("Aqui: ",invitationId)
     try {
         return await indy.wallet.getWalletRecord(
@@ -519,10 +466,10 @@ exports.getInvitation = async (invitationId) => {
     } catch(error) {
         if(error.indyCode && error.indyCode === 212){
             console.log("Unable to get invitation record. Wallet item not found.");
+            return null;
         } else {
-            console.log(error)
+            throw error;
         }
-        return null;
     }
 }
 

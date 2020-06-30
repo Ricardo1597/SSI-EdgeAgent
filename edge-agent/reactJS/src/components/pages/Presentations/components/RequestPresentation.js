@@ -111,6 +111,7 @@ class RequestPresentation extends Component {
 
     render() {
         const { classes } = this.props;
+        console.log("recordId: ", this.props.recordId, typeof(this.props.recordId))
 
         return (
             <Container spacing={2}>
@@ -120,20 +121,22 @@ class RequestPresentation extends Component {
                     </Typography>
                     <form noValidate className={classes.form} onSubmit={this.onSubmit}>
                         <Grid container align='left' className={classes.column} spacing={2}>
-                            {!this.props.recordId ? (
-                                <Grid item xs={12}>
-                                    <TextField
-                                        variant="outlined"
-                                        required
-                                        fullWidth
-                                        id="connectionId"
-                                        label="Connection ID"
-                                        name="connectionId"
-                                        value={this.state.connectionId}
-                                        onChange={this.handleChange}
-                                    />
-                                </Grid>
-                            ) : null }
+                            { !this.props.recordId 
+                                ? (
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            variant="outlined"
+                                            required
+                                            fullWidth
+                                            id="connectionId"
+                                            label="Connection ID"
+                                            name="connectionId"
+                                            value={this.state.connectionId}
+                                            onChange={this.handleChange}
+                                        />
+                                    </Grid>
+                                ) : null 
+                            }
                             <Grid item xs={12}>
                                 <TextField
                                     variant="outlined"

@@ -33,16 +33,48 @@ class OfferCredential extends Component {
         })
     }
 
-    onAddAttribute = () => {
-        if (this.state.credAttrName.length < 3){
-            alert('Attribute name must be at least 3 characters long.') 
-        } else {
-            this.setState({
-                credAttributes: [...this.state.credAttributes, {id: uuid(), name: this.state.credAttrName, value: this.state.credAttrValue}],
-                credAttrName: '',
-                credAttrValue: '',
-            });
+    handleAttributeValidation = () => {
+        let errors = [];
+        let formIsValid = true;
+    
+        // credAttrName
+        if(this.state.credAttrName.length < 3 ){
+            formIsValid = false;
+            errors["credAttrName"] = "Must be at least 3 characters long";
+        } else if(!this.state.credAttrName.match(/^[a-zA-Z0-9_]+$/)){
+            formIsValid = false;
+            errors["credAttrName"] = "Invalid characters";
+        } else if(this.state.credAttributes.map(attr => attr.name)
+                                           .includes(this.state.credAttrName))
+        {
+            formIsValid = false;
+            errors["credAttrName"] = "Attribute already added";
         }
+
+        // credAttrValue
+        if(this.state.credAttrValue.length < 1 ){
+            formIsValid = false;
+            errors["credAttrValue"] = "Must be at least 3 characters long";
+        } else if(!this.state.credAttrValue.match(/^[a-zA-Z0-9_]+$/)){
+            formIsValid = false;
+            errors["credAttrValue"] = "Invalid characters";
+        }
+    
+        console.log(errors)
+        this.setState({errors: errors});
+        return formIsValid;
+    }
+
+    onAddAttribute = () => {
+        if(!this.handleAttributeValidation()){
+            console.log(this.state.errors)
+            return;
+        }
+        this.setState({
+            credAttributes: [...this.state.credAttributes, {id: uuid(), name: this.state.credAttrName, value: this.state.credAttrValue}],
+            credAttrName: '',
+            credAttrValue: '',
+        });
     }
 
     onEditAttribute = () => {
@@ -139,7 +171,7 @@ class OfferCredential extends Component {
             <Container spacing={2}>
                 <div className={classes.paper} >
                     <Typography component="span" variant="h5">
-                    Propose Credential
+                    Offer Credential
                     </Typography>
                     <form noValidate className={classes.form} onSubmit={this.onSubmit2}>
                         <Grid container align='center' spacing={2}>

@@ -34,7 +34,7 @@ class SignUp extends Component {
 
   componentDidMount() {
     const jwt = this.props.accessToken;
-    if(jwt !== "" && Cookies.get('refreshToken') !== "") {
+    if(jwt !== "" && Cookies.get('refreshToken' + process.env.REACT_APP_SERVER_PORT) !== "") {
       axios.get(`${config.endpoint}/users/check-token`, { 
         headers: { Authorization: `Bearer ${jwt}`}
       })

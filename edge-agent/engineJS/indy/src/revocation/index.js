@@ -260,6 +260,7 @@ exports.createRevocRegRecord = (tag, issuerDid, credDefId, revocRegId, revocRegD
         hasPendingRevocations: false,
         revocDefType: revocDefType,
         maxCredNum: maxCredNum,
+        currCredNum: 0,
         issuanceType: issuanceType, 
         createdAt: currentDate,
         updatedAt: currentDate,

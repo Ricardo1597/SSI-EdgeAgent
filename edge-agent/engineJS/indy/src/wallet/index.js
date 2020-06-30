@@ -134,6 +134,35 @@ exports.getCredentials = async () => {
     return await sdk.proverGetCredentials(walletHandle, {});
 }
 
+exports.searchCredentials = async (query) => {
+    const count = 10;
+
+    if (!walletHandle) {
+        throw new Error(`Wallet has not been initialized yet`);
+    }
+    const [searchHandle, totalCount] = await sdk.proverSearchCredentials(walletHandle, query);
+    let credentials = []
+    try {
+        while (true) {
+            const credentialsResult = JSON.parse(await sdk.proverFetchCredentials(searchHandle, count));
+
+            for (let credential of credentialsResult) {
+                credentials.push(credential);
+            }
+
+            if(credentialsResult.length < count){
+                break;
+            }
+        }
+    } catch (error) {
+        console.log('Error searching for credentials: ', error);
+        // pass
+    } finally {
+        await sdk.proverCloseCredentialsSearch(searchHandle);
+        return credentials;
+    }
+}
+
 exports.storeCredential = async (credId, credReqMetadata, cred, credDef, revRegDef) => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
@@ -206,35 +235,43 @@ exports.addWalletRecord = async (type, id, value, tags) => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
     }
-    return await sdk.addWalletRecord(walletHandle, type, id, value, tags);
+
+    try {
+        await sdk.addWalletRecord(walletHandle, type, id, value, tags);
+    } catch(error) {
+        if(error.indyCode === 213){ // WalletItemAlreadyExists
+            await sdk.updateWalletRecordValue(walletHandle, type, id, value);
+            await sdk.updateWalletRecordTags(walletHandle, type, id, tags);
+        }
+    }
 }
 
 exports.updateWalletRecordValue = async (type, id, value) => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
     }
-    return await sdk.updateWalletRecordValue(walletHandle, type, id, value);
+    await sdk.updateWalletRecordValue(walletHandle, type, id, value);
 }
 
 exports.addWalletRecordTags = async (type, id, tags) => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
     }
-    return await sdk.addWalletRecordTags(walletHandle, type, id, tags);
+    await sdk.addWalletRecordTags(walletHandle, type, id, tags);
 }
 
 exports.updateWalletRecordTags = async (type, id, tags) => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
     }
-    return await sdk.addWalletRecordTags(walletHandle, type, id, tags);
+    await sdk.addWalletRecordTags(walletHandle, type, id, tags);
 }
 
 exports.deleteWalletRecord = async (type, id) => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);
     }
-    return await sdk.deleteWalletRecord(walletHandle, type, id);
+    await sdk.deleteWalletRecord(walletHandle, type, id);
 }
 
 exports.searchWalletRecord = async (type, query, options) => {

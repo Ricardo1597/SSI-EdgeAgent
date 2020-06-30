@@ -12,51 +12,65 @@ import ProposePresentation from './components/ProposePresentation'
 import RequestPresentation from './components/RequestPresentation'
 import SendPresentation from './components/SendPresentation'
 import AllRecords from '../Presentations/components/AllRecords';
-
+import qs from 'qs'
 
 
 class Presentations extends Component {
-    state = {
-        tab: 0,
-        recordId: null
+
+    getDIDPermissions = () => {
+        const dids = JSON.parse(localStorage.getItem('dids'));
+        return (dids && dids.filter(did => (did.role !== null) && (did.role !== "no role")).length > 0) ? true : false
     }
 
+
     handleChangeTabs = (e, newValue, recordId=null) => {
-        this.setState({
-            tab: newValue,
-            recordId: recordId
-        })
+        if(recordId) {
+            this.props.history.push(`/presentations?tab=${newValue}&recordId=${recordId}`);
+        } else {
+            this.props.history.push(`/presentations?tab=${newValue}`);
+        }
     }
 
 
     render() {
         const { classes } = this.props
+        const search = qs.parse(this.props.location.search, { ignoreQueryPrefix: true })
+        const tab = parseInt(search.tab) || 0;
+        const recordId = search.recordId;
+
         return (
             <div className={classes.root}>
                 <AppBar position="static" color="default">
                     <Tabs
-                        value={this.state.tab}
+                        value={tab}
                         onChange={this.handleChangeTabs}
-                        indicatorColor={this.state.tab!==3 ? "primary" : "transparent"}
+                        indicatorColor={tab!==2 ? "primary" : "transparent"}
                         textColor="primary"
                     >
                         <Tab className={classes.button} label="Presentation Exchanges" {...a11yProps(0)} />
-                        <Tab className={classes.button} label="Propose Presentation" {...a11yProps(1)} />
-                        <Tab className={classes.button} label="Request Presentation" {...a11yProps(2)} />
+                        { !this.getDIDPermissions()
+                            ? <Tab className={classes.button} label="Propose Presentation" {...a11yProps(1)} />
+                            : <Tab className={classes.button} label="Request Presentation" {...a11yProps(1)} />
+                        }
                         <Tab style={{visibility: 'hidden'}}/>
                     </Tabs>
                 </AppBar>
-                <TabPanel value={this.state.tab} index={0}>
+                <TabPanel value={tab} index={0}>
                     <AllRecords changeTabs={this.handleChangeTabs}/>
                 </TabPanel>
-                <TabPanel value={this.state.tab} index={1}>
-                    <ProposePresentation/>
-                </TabPanel>
-                <TabPanel value={this.state.tab} index={2}>
-                    <RequestPresentation recordId={this.state.recordId}/>
-                </TabPanel>
-                <TabPanel value={this.state.tab} index={3}>
-                    <SendPresentation recordId={this.state.recordId}/>
+                { !this.getDIDPermissions()
+                    ? (
+                            <TabPanel value={tab} index={1}>
+                                <ProposePresentation/>
+                            </TabPanel>
+                    ) : (
+                        <TabPanel value={tab} index={1}>
+                            <RequestPresentation recordId={recordId}/>
+                        </TabPanel>
+                    )
+                }
+                <TabPanel value={tab} index={2}>
+                    <SendPresentation recordId={recordId}/>
                 </TabPanel>            
             </div>
         )

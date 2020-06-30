@@ -35,7 +35,8 @@ exports.sendMessage = (payload, endpoint) => {
     }
   })
   .catch((error) => {
-    console.error(error);
+    console.error("Error status: ", error.response.status);
+    console.error("Error Description: ", error.response.data);
   })
 }
 

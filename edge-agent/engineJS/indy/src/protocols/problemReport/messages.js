@@ -1,6 +1,6 @@
 const uuid = require('uuid');
 
-exports.createProblemeReportMessage = (messageType, errorCode, description, impact, pthid) => {
+exports.createProblemReportMessage = (messageType, errorCode, description, impact, pthid) => {
     return {
         "@type": messageType,
         "@id": uuid(),

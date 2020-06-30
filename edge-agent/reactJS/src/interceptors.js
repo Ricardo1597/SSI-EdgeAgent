@@ -40,9 +40,7 @@ export default {
                         // Refresh access token
                         let res = refreshAccessToken(store)
                         .then(token => {
-                            console.log("aqui11")
                             if(!token) {
-                                console.log("aqui12")
                                 return Promise.reject(new Error("Unable to refresh token."));
                             }
                             originalRequest._retry = true
@@ -51,11 +49,10 @@ export default {
                             return axios(originalRequest)
                         })
                         .catch(error => {
-                            console.log("aqui13: ", error)
+                            console.log("Error resending request: ", error)
                             return Promise.reject(error)
                         });
                         console.log("antes do resolve")
-                        console.log(res)
                         resolve(res);
                     } 
                         
@@ -73,12 +70,10 @@ const refreshAccessToken = async (store) => {
         withCredentials: true,
     })
     .then(res => {
-        console.log("aqui14: ", res)
         store.dispatch({type: 'UPDATE_ACCESSTOKEN', token: res.data.accessToken});
         return res.data.accessToken;
     })
     .catch(error => {
-        console.log("aqui14: ", error)
         store.dispatch({type: 'UPDATE_ACCESSTOKEN', token: ""});
         return null;
     });

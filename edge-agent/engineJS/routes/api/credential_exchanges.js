@@ -6,25 +6,34 @@ const indy = require('../../indy/index.js');
 
 // Get all credential exchange records
 router.get('/', passport.authenticate('jwt', {session: false}), async (req, res) => {
-    let records = await indy.credentialExchange.getAllCredentialExchangeRecords();
-    
-    res.status(200).send({records});
+    try {
+      let records = await indy.credentialExchange.searchCredentialExchangeRecord({}, true);
+      res.status(200).send({records});
+    } catch(error){
+        res.status(400).send({error});
+    }
 });
 
   
 // Get credential exchange record by id
 router.get('/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
-    let record = await indy.credentialExchange.getCredentialExchangeRecord(req.params.id);
-  
-    res.status(200).send({record});
+    try {
+      let record = await indy.credentialExchange.getCredentialExchangeRecord(req.params.id)
+      res.status(200).send({record});
+    } catch(error){
+        res.status(400).send({error});
+    }
 });
   
   
 // Remove credential exchange record by id
 router.delete('/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
-    await indy.credentialExchange.removeCredentialExchangeRecord(req.params.id);
-  
-    res.status(200).send({id: req.params.id});
+    try {
+      await indy.credentialExchange.removeCredentialExchangeRecord(req.params.id)
+      res.status(200).send({id: req.params.id});
+    } catch(error){
+        res.status(400).send({error});
+    }
 });
   
   
@@ -40,8 +49,8 @@ router.post('/send-proposal', passport.authenticate('jwt', {session: false}), as
     );
     res.status(200).send({record, messageSent});
   } catch(error) {
-    console.log('Error sendind proposal: ', error)
-    res.status(400).send({mesasge: "Error sendind proposal"})
+    console.log('Error sending proposal: ', error)
+    res.status(400).send({error})
   }
 });
   
@@ -55,10 +64,10 @@ router.post('/send-offer', passport.authenticate('jwt', {session: false}), async
       req.body.credAttributes,
       req.body.credDefId,
     );
-    return res.status(200).send({record, messageSent});
+    res.status(200).send({record, messageSent});
   } catch(error) {
-    console.log('Error sendind offer: ', error)
-    res.status(400).send({mesasge: "Error sendind offer"})
+    console.log('Error sending offer: ', error);
+    res.status(400).send({error});
   }
 });
 
@@ -79,8 +88,8 @@ router.post('/:id/send-offer', passport.authenticate('jwt', {session: false}), a
     );
     return res.status(200).send({record, messageSent});
   } catch(error) {
-    console.log('Error sendind offer: ', error)
-    return res.status(400).send({mesasge: "Error sendind offer"})
+    console.log('Error sending offer: ', error);
+    return res.status(400).send({error});
   }
 });
   
@@ -100,8 +109,8 @@ router.post('/:id/send-request', passport.authenticate('jwt', {session: false}),
     );
     return res.status(200).send({record, messageSent});
   } catch(error) {
-    console.log('Error sendind proposal: ', error)
-    res.status(400).send({mesasge: "Error sendind proposal"})
+    console.log('Error sending proposal: ', error);
+    res.status(400).send({error});
   }
 });
   
@@ -123,8 +132,8 @@ router.post('/:id/send-credential', passport.authenticate('jwt', {session: false
     );
     res.status(200).send({record, messageSent});
   } catch(error) {
-    console.log('Error sendind credential: ', error)
-    res.status(400).send({mesasge: "Error sendind credential"})
+    console.log('Error sending credential: ', error);
+    res.status(400).send({error});
   }
 });
   
@@ -136,8 +145,8 @@ router.post('/revoke', passport.authenticate('jwt', {session: false}), async fun
       invalidCredRevIds = await indy.credentialExchange.revokeCredential(revocRegId, credRevId, publish);
       res.status(200).send({ok: true, invalidCredRevIds});
     } catch(error) {
-      console.log('Error revoking credential: ', error)
-      res.status(400).send({mesasge: "Error revoking credential"})
+      console.log('Error revoking credential: ', error);
+      res.status(400).send({error});
     }
 });
 
@@ -149,8 +158,8 @@ router.post('/publish-revocations', passport.authenticate('jwt', {session: false
     res.status(200).send({delta, invalidCredRevIds});
 
   } catch(error) {
-    console.log('Error publishing revocations: ', error)
-    res.status(400).send({mesasge: "Error publishing revocations"})
+    console.log('Error publishing revocations: ', error);
+    res.status(400).send({error});
   }
 });
 
@@ -161,8 +170,23 @@ router.post('/:id/publish-revocations', passport.authenticate('jwt', {session: f
     const [delta, invalidCredRevIds] = await indy.credentialExchange.publishPendingRevocations(req.query.id);
     res.status(200).send({record, messageSent});
   } catch(error) {
-    console.log('Error publishing revocations: ', error)
-    res.status(400).send({mesasge: "Error publishing revocations"})
+    console.log('Error publishing revocations: ', error);
+    res.status(400).send({error});
+  }
+});
+
+
+// Issuer send credential exchange credential
+router.post('/:id/send-revocation-notification', passport.authenticate('jwt', {session: false}), async function (req, res) {
+  try{
+    const [record, messageSent] = await indy.credentialExchange.sendRevocationNotification(
+      req.params.id, 
+      req.body.comment
+    );
+    res.status(200).send({record, messageSent});
+  } catch(error) {
+    console.log('Error sending revocation notification: ', error);
+    res.status(400).send({error});
   }
 });
 
@@ -198,8 +222,8 @@ router.post('/:id/reject', passport.authenticate('jwt', {session: false}), async
     );
     res.status(200).send({record, messageSent});
   } catch(error) {
-    console.log('Error sendind rejection: ', error)
-    res.status(400).send({mesasge: "Error sendind rejection"})
+    console.log('Error sending rejection: ', error);
+    res.status(400).send({error});
   }
 });
 

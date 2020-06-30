@@ -125,7 +125,7 @@ class CreateRegistry extends Component {
                             </Grid> 
                             <Grid item xs={4}>
                                 <FormControl variant="outlined" className={classes.formControl}>
-                                    <InputLabel htmlFor="outlined-issuanceByDefault-native-simple">Issuance by default</InputLabel>
+                                    <InputLabel>Issuance by default</InputLabel>
                                     <Select
                                         variant="outlined"
                                         required

@@ -69,13 +69,13 @@ class RevokeCredential extends Component {
     onSubmit = (e) => {
         e.preventDefault()
 
-        this.setState({"loading": true});
-
         if(!this.handleValidation()){
             console.log(this.state.errors)
             return;
         }
-            
+        
+        this.setState({"loading": true});
+
         const jwt = this.props.accessToken;
 
         axios.post(`${config.endpoint}/api/credential-exchanges/revoke`, {

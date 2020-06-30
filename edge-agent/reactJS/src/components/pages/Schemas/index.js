@@ -9,51 +9,61 @@ import { withStyles } from '@material-ui/core/styles';
 import GetSchema from './components/GetSchema'
 import CreateSchema from './components/CreateSchema'
 import CreateCredDef from './components/CreateCredDef';
-
+import qs from 'qs';
 
 class Schema extends Component {
-    state = {
-        tab: 0,
-    }
-
-
-    handleChange = e => {
-        this.setState({
-            [e.target.name]: e.target.value
-        })
-    }
 
     handleChangeTabs = (e, newValue) => {
-        this.setState({tab: newValue})
+        this.props.history.push(`/schemas?tab=${newValue}`);
     }
 
+    getDIDPermissions = () => {
+        const dids = JSON.parse(localStorage.getItem('dids'));
+        return (dids && dids.filter(did => (did.role !== null) && (did.role !== "no role")).length > 0) ? true : false
+    }
 
     render() {
         const { classes } = this.props;
+        const search = qs.parse(this.props.location.search, { ignoreQueryPrefix: true })
+        const tab = parseInt(search.tab) || 0;
 
         return (
             <div className={classes.root}>
                 <AppBar position="static" color="default">
                     <Tabs
-                        value={this.state.tab}
+                        value={tab}
                         onChange={this.handleChangeTabs}
                         indicatorColor="primary"
                         textColor="primary"
                     >
                         <Tab className={classes.button} label="Get Schema" {...a11yProps(0)} />
-                        <Tab className={classes.button} label="Create Schema" {...a11yProps(1)} />
-                        <Tab className={classes.button} label="Create Cred Def" {...a11yProps(2)} />
+                        { this.getDIDPermissions()
+                            ? <Tab className={classes.button} label="Create Schema" {...a11yProps(1)} />
+                            : null
+                        }               
+                        { this.getDIDPermissions()
+                            ? <Tab className={classes.button} label="Create Cred Def" {...a11yProps(2)} />
+                            : null
+                        }
                     </Tabs>
                 </AppBar>
-                <TabPanel value={this.state.tab} index={0}>
+                <TabPanel value={tab} index={0}>
                     <GetSchema/>
                 </TabPanel>
-                <TabPanel value={this.state.tab} index={1}>
-                    <CreateSchema/>
-                </TabPanel>
-                <TabPanel value={this.state.tab} index={2}>
-                    <CreateCredDef/>
-                </TabPanel>
+                { this.getDIDPermissions()
+                    ? (
+                        <TabPanel value={tab} index={1}>
+                            <CreateSchema/>
+                        </TabPanel>
+                    ) : null
+                }
+                { this.getDIDPermissions()
+                    ? (
+                        <TabPanel value={tab} index={2}>
+                            <CreateCredDef/>
+                        </TabPanel>
+                    ) : null
+                }
             </div>
         )
     }

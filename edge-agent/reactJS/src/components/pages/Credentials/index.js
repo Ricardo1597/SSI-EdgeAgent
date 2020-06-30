@@ -16,57 +16,70 @@ import OfferCredential from './components/OfferCredential'
 import RequestCredential from './components/RequestCredential'
 import IssueCredential from './components/IssueCredential'
 import AllRecords from './components/AllRecords'
+import qs from 'qs'
 
 class Credentials extends Component{
-  state = {
-    tab: 0,
-  }
 
-  handleChangeTabs = (e, newValue) => {
-      this.setState({tab: newValue})
-  }
+    getDIDPermissions = () => {
+        const dids = JSON.parse(localStorage.getItem('dids'));
+        return (dids && dids.filter(did => (did.role !== null) && (did.role !== "no role")).length > 0) ? true : false
+    }
 
-  render() {
-    const { classes } = this.props
+    handleChangeTabs = (e, newValue) => {
+        this.props.history.push(`/credentials?tab=${newValue}`);
+    }
+
+
+    render() {
+        const { classes } = this.props
+        const search = qs.parse(this.props.location.search, { ignoreQueryPrefix: true })
+        const tab = parseInt(search.tab) || 0;
 
     return (
-      <div className={classes.root}>
-          <AppBar position="static" color="default">
-              <Tabs
-                  value={this.state.tab}
-                  onChange={this.handleChangeTabs}
-                  indicatorColor="primary"
-                  textColor="primary"
-              >
-                  <Tab className={classes.button} label="Credentials" {...a11yProps(0)} />
-                  <Tab className={classes.button} label="Credential Exchanges" {...a11yProps(1)} />
-                  <Tab className={classes.button} label="Propose Credential" {...a11yProps(2)} />
-                  <Tab className={classes.button} label="Offer Credential" {...a11yProps(3)} />
-                  {/* don't show this for now (probably won't be needed)
-                  <Tab className={classes.button} label="Request Credential" {...a11yProps(4)} />
-                  <Tab className={classes.button} label="Issue Credential" {...a11yProps(5)} />*/}
-              </Tabs>
-          </AppBar>
-          <TabPanel value={this.state.tab} index={0}>
-              <SeeCredentials/>
-          </TabPanel>
-          <TabPanel value={this.state.tab} index={1}>
-              <AllRecords/>
-          </TabPanel>
-          <TabPanel value={this.state.tab} index={2}>
-              <ProposeCredential/>
-          </TabPanel>
-          <TabPanel value={this.state.tab} index={3}>
-              <OfferCredential/>
-          </TabPanel> 
-          { /* don't show this for now (probably wont be needed)
-          <TabPanel value={this.state.tab} index={4}>
-              <RequestCredential/>
-          </TabPanel>    
-          <TabPanel value={this.state.tab} index={5}>
-              <IssueCredential/>
-          </TabPanel>  */}       
-      </div>
+        <div className={classes.root}>
+            <AppBar position="static" color="default">
+                <Tabs
+                    value={tab}
+                    onChange={this.handleChangeTabs}
+                    indicatorColor="primary"
+                    textColor="primary"
+                >
+                    <Tab className={classes.button} label="Credentials" {...a11yProps(0)} />
+                    <Tab className={classes.button} label="Credential Exchanges" {...a11yProps(1)} />
+                    { !this.getDIDPermissions()
+                        ? <Tab className={classes.button} label="Propose Credential" {...a11yProps(2)} />
+                        : <Tab className={classes.button} label="Offer Credential" {...a11yProps(2)} />
+                    }
+                    {/* don't show this for now (probably won't be needed)
+                    <Tab className={classes.button} label="Request Credential" {...a11yProps(4)} />
+                    <Tab className={classes.button} label="Issue Credential" {...a11yProps(5)} />*/}
+                </Tabs>
+            </AppBar>
+            <TabPanel value={tab} index={0}>
+                <SeeCredentials/>
+            </TabPanel>
+            <TabPanel value={tab} index={1}>
+                <AllRecords/>
+            </TabPanel>
+            { !this.getDIDPermissions()
+                ? (
+                    <TabPanel value={tab} index={2}>
+                        <ProposeCredential/>
+                    </TabPanel>
+                ) : (
+                    <TabPanel value={tab} index={2}>
+                        <OfferCredential/>
+                    </TabPanel> 
+                )
+            }
+            { /* don't show this for now (probably wont be needed)
+            <TabPanel value={this.state.tab} index={4}>
+                <RequestCredential/>
+            </TabPanel>    
+            <TabPanel value={this.state.tab} index={5}>
+                <IssueCredential/>
+            </TabPanel>  */}       
+        </div>
     )
   }
 }

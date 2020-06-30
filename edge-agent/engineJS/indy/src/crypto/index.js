@@ -32,7 +32,10 @@ exports.verify = async (message, field, keysToCompare=null) => {
 
   const signerVerkey = data.signer;
   if(keysToCompare && keysToCompare.indexOf(signerVerkey) == -1) {
-    throw new Error("Verkey used to sign field not recognized");
+    throw {
+      externalMessage: "Verkey used to sign field not recognized",
+      internalMessage: "Verkey used to sign field not recognized"
+    };
   } 
   // first 8 bytes are for 64 bit integer from unix epoch
   const signedData = base64url.toBuffer(data.sig_data);
@@ -42,7 +45,10 @@ exports.verify = async (message, field, keysToCompare=null) => {
   const valid = await sdk.cryptoVerify(signerVerkey, signedData, signature);
 
   if (!valid) {
-    throw new Error('Signature is not valid!');
+    throw {
+      externalMessage: 'Field signature not valid.',
+      internalMessage: 'Field signature not valid.'
+    };
   }
 
   const originalMessage = {

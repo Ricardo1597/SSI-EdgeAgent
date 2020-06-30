@@ -5,6 +5,7 @@ var jwt = require('jsonwebtoken')
 const passport = require('passport');
 const sdk = require('indy-sdk');
 const indy = require('../indy/index.js');
+const config = require('../config')
 require('dotenv/config');
 
 const UserModel = require('../models/users')
@@ -28,7 +29,7 @@ router.post('/refresh-token', passport.authenticate('refresh', {session: false})
     {expiresIn: '15m'}
   );
   
-  return res.status(200).send({ok: true, accessToken: newAccessToken});
+  return res.status(200).send({accessToken: newAccessToken});
 });
 
 
@@ -42,7 +43,7 @@ router.post('/register', checkNotAuthenticated, async (req, res) => {
 
   // Check if passwords match
   if(password !== password2) 
-    res.status(400).send('Passwords do not match')
+    return res.status(400).send('Passwords do not match')
 
   try {
     await indy.wallet.setup(username+'_wallet', password);
@@ -125,7 +126,7 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
               return did;
             }))  
           
-            res.cookie('refreshToken', refreshToken, { 
+            res.cookie('refreshToken' + config.adminPort, refreshToken, { 
               httpOnly: true,
               path: "/users/refresh-token"
             }).status(200).send({accessToken: accessToken, dids: dids});
@@ -139,22 +140,23 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
 
 // LOGOUT
 router.post('/logout', passport.authenticate('jwt', {session: false}), async (req,res) => {
-  await indy.wallet.close();
-  console.log('wallet closed');
+  try {
+    await indy.wallet.close();
+    console.log('wallet closed');
 
-  // Revoke refresh token by incrementing the stored version
-  incrementRefreshTokenVersion(req.user.username);
+    // Revoke refresh token by incrementing the stored version
+    incrementRefreshTokenVersion(req.user.username);
 
-  req.logout();
+    req.logout();
 
-  // Clear cookie (refresh token)
-  return res.cookie(
-    'refreshToken', "", { 
-      httpOnly: true,
-      path: "/users/refresh-token",
-      overwrite: true
-    }
-  ).status(200).send()
+    // Clear cookie (refresh token)
+    return res.cookie(
+      'refreshToken' + config.adminPort, "", { }
+    ).status(200).send();
+
+  } catch(error) {
+    res.status(400).send({error});
+  }
 })
 
 

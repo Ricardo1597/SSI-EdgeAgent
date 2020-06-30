@@ -28,13 +28,15 @@ class MyNavbar extends React.Component {
     
   }
 
-  showSchemaOps = () => {
+  getDIDPermissions = () => {
     const dids = JSON.parse(localStorage.getItem('dids'));
     return (dids && dids.filter(did => (did.role !== null) && (did.role !== "no role")).length > 0) ? true : false
   }
 
 
-  render() {    
+  render() {  
+    const permission = this.getDIDPermissions();
+    
     // Validate token in the server
     return( (this.props.accessToken === "") ? '' :
       <Navbar style={styles.navStyle} bg="dark" variant="dark">
@@ -43,12 +45,12 @@ class MyNavbar extends React.Component {
           <Link to="/connections" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Connections</Link>
           <Link to="/credentials" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Credentials</Link>
           <Link to="/presentations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Presentations</Link>
-          { (this.showSchemaOps) ? (
-            <Link to="/nyms" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Nyms</Link>
-          ) : null
-          }
+          <Link to="/nyms" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Nyms</Link>
           <Link to="/schemas" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Schemas</Link>
-          <Link to="/revocations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Revocations</Link>
+          { permission 
+            ? <Link to="/revocations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Revocations</Link>
+            : null 
+          }
         </Nav>
         <Nav style={styles.logout}>
           <Link to="/" style={styles.navLinkStyle} onClick={this.logout}>Logout</Link>
