@@ -49,22 +49,22 @@ exports.encodeInvitationToUrl = function (invitation) {
   
 
 exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, isPublic=false, multiuse=true) => {
-    // Check if provided verkey was never used
-    const invitations = await indy.wallet.searchWalletRecord(
-        indy.recordTypes.RecordType.Invitation,
-        {'myVerkey': myVerkey},
-        {}
-    );
-    if(invitations.length !== 0)
-        throw new Error(`Invitation already created with verkey ${myVerkey}. Please use another verkey.`);
+    // // Check if provided verkey was never used
+    // const invitations = await indy.wallet.searchWalletRecord(
+    //     indy.recordTypes.RecordType.Invitation,
+    //     {'myDid': myDid, 'myVerkey': myVerkey},
+    //     {}
+    // );
+    // if(invitations.length > 0) {
+    //     throw new Error(`Invitation already created with DID ${myDid}. Please use another verkey.`);
+    // }
 
-    const invitationDetails = createInvitationDetails(myDidDoc);
-    const invitationMessage = await messages.createInvitationMessage(invitationDetails);
+    const invitationMessage = messages.createInvitationMessage(myDidDoc, isPublic);
 
     const currentDate = indy.utils.getCurrentDate();
 
     let invitation = {
-        invitationId: uuid(),
+        invitationId: invitationMessage['@id'],
         invitation: invitationMessage,
         alias: invitationAlias,
         isMultiuse: multiuse,
@@ -82,7 +82,7 @@ exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, is
         indy.recordTypes.RecordType.Invitation, 
         invitation.invitationId, 
         JSON.stringify(invitation), 
-        {'myVerkey': invitation.myVerkey}
+        {}
     );
 
     return invitationMessage;
@@ -90,11 +90,12 @@ exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, is
 
 
 exports.receiveInvitation = async (connectionAlias, invitation, autoAccept=false) => {
-    // Validate id verkey in invitation is the same as in the did document agent service.
-    // (only if did document is in a blockchain)
-    if(invitation.did.split(':')[1] !== "peer") {
-        validateInvitationKeys(invitation.did, invitation.recipientKeys);
-    }
+    // This is not needed because now we get the recipient key directly from the blockchain.
+    // // Validate id verkey in invitation is the same as in the did document agent service.
+    // // (only if did document is in a blockchain)
+    // if(invitation.did.split(':')[1] !== "peer") {
+    //     validateInvitationKeys(invitation.did, invitation.recipientKeys);
+    // }
 
     const currentDate = indy.utils.getCurrentDate()
 
@@ -139,7 +140,11 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     connection.myDid = myDid;
     connection.myVerkey = myVerkey;
 
-    const connectionRequest = messages.createConnectionRequestMessage(myDid, myDidDoc);
+    const connectionRequest = messages.createConnectionRequestMessage(
+        myDid, 
+        myDidDoc,
+        connection.invitation['@id']
+    );
     
     // Prepare and send connection request
     const [message, endpoint] = await indy.messages.prepareMessage(
@@ -351,15 +356,6 @@ exports.getDidAndDocument = async (isPublic, myDid=null) => {
       return [myDid, myVerkey, myDidDoc];
 }
 
-const createInvitationDetails = (myDidDoc) => {
-    return {
-        did: myDidDoc.id,
-        recipientKeys: myDidDoc.service[0].recipientKeys,
-        serviceEndpoint: myDidDoc.service[0].serviceEndpoint,
-        routingKeys: myDidDoc.service[0].routingKeys,
-    };
-}
-
 exports.validateSenderKey = async (theirDid, senderKey) => { 
     const theirDidDoc = await indy.did.resolveDid(theirDid);
     const theirKeys = theirDidDoc.service[0].recipientKeys;
@@ -455,7 +451,7 @@ exports.removeConnection = async (connectionId) => {
 }
 
 
-exports.getInvitation = async (invitationId, all=false) => {
+exports.getInvitation = async (invitationId) => {
     console.log("Aqui: ",invitationId)
     try {
         return await indy.wallet.getWalletRecord(

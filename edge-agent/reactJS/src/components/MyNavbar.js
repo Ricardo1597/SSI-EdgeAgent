@@ -9,18 +9,18 @@ import { Nav } from 'react-bootstrap'
 import { connect } from 'react-redux';
 
 
-class MyNavbar extends React.Component {
+function MyNavbar(props) {
 
-  logout = () => {
-    const jwt = this.props.accessToken;
+  const logout = () => {
+    const jwt = props.accessToken;
 
     axios.post(`${config.endpoint}/users/logout`, {}, {
       headers: { Authorization: `Bearer ${jwt}`} 
     })
     .then( res => {
       localStorage.clear();
-      this.props.updateAccessToken("");
-      this.props.history.push('/login')
+      props.updateAccessToken("");
+      props.history.push('/login')
     })
     .catch(err => {
       console.log('Error logging out')
@@ -28,36 +28,30 @@ class MyNavbar extends React.Component {
     
   }
 
-  getDIDPermissions = () => {
+  const getDIDPermissions = () => {
     const dids = JSON.parse(localStorage.getItem('dids'));
     return (dids && dids.filter(did => (did.role !== null) && (did.role !== "no role")).length > 0) ? true : false
   }
 
-
-  render() {  
-    const permission = this.getDIDPermissions();
-    
-    // Validate token in the server
-    return( (this.props.accessToken === "") ? '' :
-      <Navbar style={styles.navStyle} bg="dark" variant="dark">
-        <Link style={styles.navHome} to="/">SelfSov</Link>
-        <Nav className="mr-auto">
-          <Link to="/connections" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Connections</Link>
-          <Link to="/credentials" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Credentials</Link>
-          <Link to="/presentations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Presentations</Link>
-          <Link to="/nyms" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Nyms</Link>
-          <Link to="/schemas" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Schemas</Link>
-          { permission 
-            ? <Link to="/revocations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Revocations</Link>
-            : null 
-          }
-        </Nav>
-        <Nav style={styles.logout}>
-          <Link to="/" style={styles.navLinkStyle} onClick={this.logout}>Logout</Link>
-        </Nav>
-      </Navbar>
-    );
-  }
+  
+  return( (props.accessToken === "") ? '' :
+    <Navbar style={styles.navStyle} bg="dark" variant="dark">
+      <Link style={styles.navHome} to="/">SelfSov</Link>
+      <Nav className="mr-auto">
+        <Link to="/connections" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Connections</Link>
+        <Link to="/credentials" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Credentials</Link>
+        <Link to="/presentations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Presentations</Link>
+        <Link to="/ledger" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Ledger</Link>
+        { getDIDPermissions() 
+          ? <Link to="/revocations" style={{...styles.navLinkMargins, ...styles.navLinkStyle}}>Revocations</Link>
+          : null 
+        }
+      </Nav>
+      <Nav style={styles.logout}>
+        <Link to="/" style={styles.navLinkStyle} onClick={() => logout()}>Logout</Link>
+      </Nav>
+    </Navbar>
+  );
 }
 
 

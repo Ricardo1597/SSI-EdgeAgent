@@ -53,6 +53,25 @@ router.post('/send-proposal', passport.authenticate('jwt', {session: false}), as
     res.status(400).send({error})
   }
 });
+
+// Holder sends credential exchange proposal
+router.post('/:id/send-proposal', passport.authenticate('jwt', {session: false}), async function (req, res) {
+  try{  
+    // Get credential exchange record
+    let credentialExchangeRecord = await indy.wallet.getWalletRecord(
+      indy.recordTypes.RecordType.CredentialExchange, 
+      req.params.id, 
+      {}
+    );
+  
+    const [record, messageSent] = await indy.credentialExchange.holderSendProposal(credentialExchangeRecord);
+    return res.status(200).send({record, messageSent});
+
+  } catch(error) {
+    console.log('Error sending proposal: ', error);
+    return res.status(400).send({error});
+  }
+});
   
 
 // Issuer accepts credential exchange proposal and sends credential exchange offer

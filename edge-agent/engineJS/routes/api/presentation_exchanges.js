@@ -52,7 +52,29 @@ router.post('/send-proposal', passport.authenticate('jwt', {session: false}), as
     res.status(400).send({error});
   }
 });
+
+// Issuer send presentation exchange request
+router.post('/:id/send-proposal', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  try {
+    // Get presentation exchange record
+    let presentationExchangeRecord = await indy.wallet.getWalletRecord(
+      indy.recordTypes.RecordType.PresentationExchange, 
+      req.params.id, 
+      {}
+    );
   
+    const [record, messageSent] = await indy.presentationExchange.proverSendProposal(
+      presentationExchangeRecord
+    );
+  
+    res.status(200).send({record, messageSent});
+
+  } catch(error) {
+    console.log(error);
+    res.status(400).send({error});
+  }
+});
+
   
 // Issuer send independent presentation exchange request
 router.post('/send-request', passport.authenticate('jwt', {session: false}), async (req, res) => {
@@ -75,7 +97,7 @@ router.post('/send-request', passport.authenticate('jwt', {session: false}), asy
 });
   
   
-// Issuer send presentation exchange request in response to a previous proposal
+// Issuer send presentation exchange request
 router.post('/:id/send-request', passport.authenticate('jwt', {session: false}), async (req, res) => {
   try {
     // Get presentation exchange record

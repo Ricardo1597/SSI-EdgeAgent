@@ -20,7 +20,7 @@ import { connect } from 'react-redux';
 class AllRecords extends Component {
     state = {
         exchanges: [],
-        exchange: '',
+        exchange: null,
     }
 
 
@@ -48,6 +48,16 @@ class AllRecords extends Component {
         });
     }
     
+    // Set state with props on page refresh
+    componentWillReceiveProps(props) {
+        props.recordId 
+            ? this.setState({
+                exchange: this.state.exchanges.find(exchange => {
+                    return exchange.presentationExchangeId === props.recordId;
+                })
+            })
+            : this.setState({exchange: this.state.exchanges[0]})
+    }   
 
     componentWillMount() {
         const jwt = this.props.accessToken;
@@ -56,15 +66,13 @@ class AllRecords extends Component {
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-                this.setState({
-                    exchanges: res.data.records
-                })
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
+            this.setState({
+                exchanges: res.data.records
+            })
+            this.props.recordId 
+                ? this.changeExchange(this.props.recordId)
+                : this.setState({exchange: res.data.records[0]})
         })
         .catch(err => {
               console.error(err);
@@ -79,7 +87,7 @@ class AllRecords extends Component {
             <div className={classes.root}>
                 <Grid container>
                     <Grid item className={classes.card}>
-                        <Container maxWidth="xs">
+                        <Container style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
                             {
                                 this.state.exchanges ? (
                                     this.state.exchanges.map(exchange => ( 
@@ -89,14 +97,26 @@ class AllRecords extends Component {
                                             key={exchange.presentationExchangeId}
                                             onClick={this.changeExchange.bind(this, exchange.presentationExchangeId)}
                                         > 
-                                            <RecordSummary 
+                                        { this.state.exchange && exchange.presentationExchangeId === this.state.exchange.presentationExchangeId
+                                            ? <RecordSummary 
                                                 record={{
                                                     id: exchange.presentationExchangeId,
                                                     createdAt: exchange.createdAt,
                                                     updatedAt: exchange.updatedAt,
                                                     // other attributes
                                                 }}
+                                                selected = {true}
                                             />
+                                            : <RecordSummary 
+                                                record={{
+                                                    id: exchange.presentationExchangeId,
+                                                    createdAt: exchange.createdAt,
+                                                    updatedAt: exchange.updatedAt,
+                                                    // other attributes
+                                                }}
+                                                selected = {false}
+                                            />
+                                        }
                                         </Grid>
                                     ))
                                 ) : null
@@ -105,7 +125,7 @@ class AllRecords extends Component {
                     </Grid>
                     <Grid item className={classes.details}>
                         {
-                            this.state.exchange !== '' ? (
+                            this.state.exchange ? (
                                 <Card>
                                     <RecordDetails 
                                         record={{
@@ -123,6 +143,7 @@ class AllRecords extends Component {
                                         <RecordActions
                                             id={this.state.exchange.presentationExchangeId}
                                             state={this.state.exchange.state}
+                                            role={this.state.exchange.role}
                                             changeTabs={this.props.changeTabs}
                                         />
                                         <Button 

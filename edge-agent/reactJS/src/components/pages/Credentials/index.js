@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-import config from '../../../config'
 
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -13,8 +11,6 @@ import { connect } from 'react-redux';
 import SeeCredentials from './components/SeeCredentials'
 import ProposeCredential from './components/ProposeCredential'
 import OfferCredential from './components/OfferCredential'
-import RequestCredential from './components/RequestCredential'
-import IssueCredential from './components/IssueCredential'
 import AllRecords from './components/AllRecords'
 import qs from 'qs'
 
@@ -59,7 +55,7 @@ class Credentials extends Component{
                 <SeeCredentials/>
             </TabPanel>
             <TabPanel value={tab} index={1}>
-                <AllRecords/>
+                <AllRecords recordId={search.recordId}/>
             </TabPanel>
             { !this.getDIDPermissions()
                 ? (
@@ -71,14 +67,7 @@ class Credentials extends Component{
                         <OfferCredential/>
                     </TabPanel> 
                 )
-            }
-            { /* don't show this for now (probably wont be needed)
-            <TabPanel value={this.state.tab} index={4}>
-                <RequestCredential/>
-            </TabPanel>    
-            <TabPanel value={this.state.tab} index={5}>
-                <IssueCredential/>
-            </TabPanel>  */}       
+            }   
         </div>
     )
   }

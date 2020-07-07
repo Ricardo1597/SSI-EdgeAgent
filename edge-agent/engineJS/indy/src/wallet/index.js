@@ -144,7 +144,7 @@ exports.searchCredentials = async (query) => {
     let credentials = []
     try {
         while (true) {
-            const credentialsResult = JSON.parse(await sdk.proverFetchCredentials(searchHandle, count));
+            const credentialsResult = await sdk.proverFetchCredentials(searchHandle, count);
 
             for (let credential of credentialsResult) {
                 credentials.push(credential);

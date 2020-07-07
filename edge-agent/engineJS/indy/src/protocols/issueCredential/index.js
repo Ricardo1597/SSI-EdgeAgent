@@ -59,8 +59,6 @@ const CredDefTags = [
 
 // Holder starts exchange at credential proposal
 exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, schemaId, credDefId) => {
-    // Get connection to send message (credential proposal)
-    const connection = await indy.connections.getConnection(connectionId);
 
     const credentialPreview = messages.createCredentialPreview(attributes);
     
@@ -80,16 +78,36 @@ exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, 
         CredentialExchangeState.Init,
         credentialProposalMessage['@id']
     );
+
+    // Add credential exchange record to the wallet
+    await this.addCredentialExchangeRecord(
+        credentialExchangeId, 
+        JSON.stringify(credentialExchangeRecord), 
+        {'connectionId': connectionId, 'threadId': credentialExchangeRecord.threadId}
+    );
     
+    return await this.holderSendProposal(credentialExchangeRecord);
+}
+
+exports.holderSendProposal = async (credentialExchangeRecord) => {
+    const { state, connectionId, credentialExchangeId } = credentialExchangeRecord;
+    const credentialProposalMessage = JSON.parse(credentialExchangeRecord.credentialProposalDict);
+
+    if( state != CredentialExchangeState.Init) {
+        throw new Error(`Invalid state trasition.`);
+    }
+
+    // Get connection to send message (credential proposal)
+    const connection = await indy.connections.getConnection(connectionId);
     const [message, endpoint] = await indy.messages.prepareMessage(credentialProposalMessage, connection);
     indy.messages.sendMessage(message, endpoint);
 
-    // Add credential exchange record to the wallet
+    // Update credential exchange record
     credentialExchangeRecord.state = CredentialExchangeState.ProposalSent
-    await this.addCredentialExchangeRecord(
-        credentialExchangeRecord.credentialExchangeId, 
-        JSON.stringify(credentialExchangeRecord), 
-        {'connectionId': connection.connectionId, 'threadId': credentialProposalMessage['~thread']['thid']}
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.CredentialExchange,
+        credentialExchangeId, 
+        JSON.stringify(credentialExchangeRecord)
     );
 
     return [credentialExchangeRecord, credentialProposalMessage];
@@ -125,7 +143,7 @@ exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDef
         {'connectionId': connectionId, 'threadId': credentialProposalMessage['~thread']['thid']}
     );
                                       
-    return await exports.issuerCreateAndSendOffer(credentialExchangeRecord, comment)
+    return await this.issuerCreateAndSendOffer(credentialExchangeRecord, comment)
 }
 
 

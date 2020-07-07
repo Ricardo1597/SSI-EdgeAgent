@@ -7,7 +7,6 @@ import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import Container from '@material-ui/core/Container';
 import CardActions from '@material-ui/core/CardActions';
-import Button from '@material-ui/core/Button';
 
 import ConnectionItem from './ConnectionItem';
 import ConnectionDetails from './ConnectionDetails';
@@ -18,40 +17,30 @@ import { connect } from 'react-redux';
 
 class PendingConnections extends Component {
     state = {
-        connections: [],
-        connection: '',
+        connection: null,
     }
 
-
     changeConnection = (id) => {
-        const connection = this.state.connections.find(connection => {
+        const connection = this.props.connections.find(connection => {
             return connection.connectionId === id;
         })
         if(connection != null)
             this.setState({connection: connection})
     }
 
-    componentWillMount() {
-        const jwt = this.props.accessToken;
+    // Set state with props on page refresh
+    componentWillReceiveProps(props) {
+        props.connectionId 
+            ? this.setState({
+                connection: props.connections.find(connection => {
+                    return connection.connectionId === props.connectionId }) 
+            })
+            : this.setState({connection: props.connections[0]})
+    }
 
-        axios.get(`${config.endpoint}/api/connections`, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-                this.setState({
-                    connections: res.data.connections
-                })
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error getting connections. Please try again.');
-        });
+    // Set state with props on tab change
+    componentWillMount() {
+        this.setState({connection: this.props.connections[0]})
     }
 
     render() {
@@ -61,19 +50,20 @@ class PendingConnections extends Component {
             <div className={classes.root} >
                 <Grid container>
                     <Grid item className={classes.card}>
-                        <Container maxWidth="xs">
+                        <Container style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
                             {
-                                this.state.connections ? (
-                                    this.state.connections.filter(connection => {
-                                        return connection.state !== 'complete';
-                                    }).map(connection => ( 
+                                this.props.connections ? (
+                                    this.props.connections.map(connection => (
                                         <Grid 
                                             item 
                                             xs={12}   
                                             key={connection.connectionId}
                                             onClick={this.changeConnection.bind(this, connection.connectionId)}
                                         > 
-                                            <ConnectionItem connection={connection}/>
+                                            { this.state.connection && connection.connectionId === this.state.connection.connectionId
+                                                ? <ConnectionItem connection={connection} selected={true}/>
+                                                : <ConnectionItem connection={connection} selected={false}/>
+                                            }
                                         </Grid>
                                     ))
                                 ) : <p>No active connections.</p>
@@ -81,18 +71,18 @@ class PendingConnections extends Component {
                         </Container>
                     </Grid>
                     <Grid item className={classes.details}>
-                        <Card>
-                            {
-                                this.state.connection !== '' ? (
+                        {
+                            this.state.connection ? (
+                                <Card>
                                     <div>
-                                    <ConnectionDetails connection={this.state.connection}/>
-                                    <CardActions>
-                                        <PendingConnectionActions connection={this.state.connection}/>
-                                    </CardActions>
+                                        <ConnectionDetails connection={this.state.connection}/>
+                                        <CardActions>
+                                            <PendingConnectionActions connection={this.state.connection}/>
+                                        </CardActions>
                                     </div>
-                                ) : null
-                            }
-                        </Card>
+                                </Card>
+                            ) : null
+                        }
                     </Grid>
                 </Grid>
             </div>

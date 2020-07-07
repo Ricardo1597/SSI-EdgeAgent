@@ -21,22 +21,31 @@ const NewMessageType = {
 exports.NewMessageType = NewMessageType;
 
 
-exports.createInvitationMessage = (invitationDetails) => {
-  return {
-    '@type': MessageType.ConnectionInvitation,
-    '@id': uuid(),
-    did: invitationDetails.did,
-    recipientKeys: invitationDetails.recipientKeys,
-    serviceEndpoint: invitationDetails.serviceEndpoint,
-    routingKeys: invitationDetails.routingKeys,
-  };
+exports.createInvitationMessage = (myDidDoc, isPublic=false) => {
+  return isPublic 
+    ? {
+      '@type': MessageType.ConnectionInvitation,
+      '@id': uuid(),
+      did: myDidDoc.id,
+    } 
+    : {
+      '@type': MessageType.ConnectionInvitation,
+      '@id': uuid(),
+      did: myDidDoc.id,
+      recipientKeys: myDidDoc.service[0].recipientKeys,
+      serviceEndpoint: myDidDoc.service[0].serviceEndpoint,
+      routingKeys: myDidDoc.service[0].routingKeys,
+    }
 }
 
 
-exports.createConnectionRequestMessage = (did, didDoc) => {
+exports.createConnectionRequestMessage = (did, didDoc, pthid) => {
   return {
     '@type': MessageType.ConnectionRequest,
     '@id': uuid(),
+    '~thread': {
+      pthid: pthid,
+    },
     connection: {
       did: did,
       did_doc: didDoc,

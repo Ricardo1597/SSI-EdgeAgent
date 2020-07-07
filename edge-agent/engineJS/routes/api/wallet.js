@@ -10,33 +10,43 @@ router.post('/create-did', passport.authenticate('jwt', {session: false}), async
     const { seed, alias } = req.body;
   
     let options = {};
+    options.method_name = 'mybc'; // to create did:mybc:<identifier>
     if(seed !== '') {
-      options.method_name = 'mybc'; // to create did:mybc:<identifier>
-      options.seed= seed; // to create from seed
-    } else { // Probably this will never be used
-      options.method_name = 'peer'; // to create did:peer:<identifier>
+      options.seed = seed; // to create from seed
     }
 
     try {
       let [newDid, newVerKey] = await indy.did.createDid(alias, options);
     
-      // If did is a already a nym (created with seed), create and send his did document to the ledger
+      // If did is a already a nym (i.e. created with seed), create and send his did document to the ledger
       if(JSON.parse((await indy.ledger.getNym(newDid)).result.data)) {
         await indy.ledger.createNymDocument(newDid, newVerKey);
       }
+      let did = await sdk.getMyDidWithMeta(await indy.wallet.get(), newDid);
+      let didInfo = JSON.parse((await indy.ledger.getNym(did.did)).result.data)
+      did.role = (didInfo ? didInfo.role : "no role");
+      did.metadata = JSON.parse(did.metadata);
     
-      let dids = await sdk.listMyDidsWithMeta(await indy.wallet.get());
-    
-      dids = await Promise.all(dids.map(async (did) => {    
-        let didInfo = JSON.parse((await indy.ledger.getNym(did.did)).result.data) 
-        did.role = (didInfo ? didInfo.role : "no role");
-        return did;
-      }))
-    
-      res.status(200).send({dids: dids});
+      res.status(200).send({did: did});
     
     } catch(error) {
+      console.log(error)
       res.status(400).send({error});
+  }
+});
+
+// Get did 
+router.get('/did/:id', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  try {
+    let did = await sdk.getMyDidWithMeta(await indy.wallet.get(), req.params.id);
+    let didInfo = JSON.parse((await indy.ledger.getNym(did.did)).result.data)
+    did.role = (didInfo ? didInfo.role : "no role");
+    did.metadata = JSON.parse(did.metadata);
+  
+    res.status(200).send({did: did});
+
+  } catch(error) {
+    res.status(400).send({error});
   }
 });
 

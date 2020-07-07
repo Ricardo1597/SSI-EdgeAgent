@@ -15,13 +15,41 @@ import ReceiveInvitation from './components/ReceiveInvitation'
 import Invitations from './components/Invitations';
 import qs from 'qs'
 
+import axios from 'axios'
+import config from '../../../config'
 
 class Connections extends Component {
+    state = {
+        activeConnections: [],
+        pendingConnections: [],
+    }
 
     handleChangeTabs = (e, newValue) => {
         this.props.history.push(`/connections?tab=${newValue}`);
     }
 
+    componentWillMount() {
+        const jwt = this.props.accessToken;
+
+        axios.get(`${config.endpoint}/api/connections`, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)                
+            this.setState({
+                activeConnections: res.data.connections.filter(connection => {
+                    return connection.state === 'complete'
+                }),
+                pendingConnections: res.data.connections.filter(connection => {
+                    return connection.state !== 'complete'
+                })
+            })            
+        })
+        .catch(err => {
+              console.error(err);
+              alert('Error getting connections. Please try again.');
+        });
+    }
 
     render() {
         const { classes } = this.props
@@ -45,10 +73,16 @@ class Connections extends Component {
                     </Tabs>
                 </AppBar>
                 <TabPanel value={tab} index={0}>
-                    <ActiveConnections/>
+                    <ActiveConnections 
+                        connections={this.state.activeConnections}
+                        connectionId={search.connectionId}
+                    />
                 </TabPanel>
                 <TabPanel value={tab} index={1}>
-                    <PendingConnections/>
+                    <PendingConnections 
+                        connections={this.state.pendingConnections}
+                        connectionId={search.connectionId}
+                    />
                 </TabPanel>
                 <TabPanel value={tab} index={2}>
                     <Invitations/>

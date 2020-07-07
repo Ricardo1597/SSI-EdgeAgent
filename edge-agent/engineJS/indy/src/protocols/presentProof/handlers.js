@@ -3,7 +3,7 @@ const indy = require('../../../index.js');
 const generalTypes = require('../generalTypes');
 const presentationsIndex = require('./index')
 
-exports.proposalHandler = async (decryptedMessage) => {
+exports.proposalHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -35,6 +35,13 @@ exports.proposalHandler = async (decryptedMessage) => {
             
         console.log("Presentation Exchange Id created in proposal handler: ", presentationExchangeRecord.presentationExchangeId)    
 
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'presentation',
+            type: 'proposal',
+            record: presentationExchangeRecord
+        });
+
     } catch(error){
         // problem report
         await sendHandlerProblemReport(
@@ -51,7 +58,7 @@ exports.proposalHandler = async (decryptedMessage) => {
 };
 
 
-exports.requestHandler = async (decryptedMessage) => {
+exports.requestHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -118,6 +125,13 @@ exports.requestHandler = async (decryptedMessage) => {
             );
         }
 
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'presentation',
+            type: 'request',
+            record: presentationExchangeRecord
+        });
+
     } catch(error){
         // problem report
         await sendHandlerProblemReport(
@@ -134,7 +148,7 @@ exports.requestHandler = async (decryptedMessage) => {
 };
 
 
-exports.presentationHandler = async (decryptedMessage) => {
+exports.presentationHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -173,6 +187,13 @@ exports.presentationHandler = async (decryptedMessage) => {
             presentationExchangeRecord.presentationExchangeId, 
             JSON.stringify(presentationExchangeRecord)
         );
+
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'presentation',
+            type: 'presentation',
+            record: presentationExchangeRecord
+        });
 
     } catch(error){
         // problem report

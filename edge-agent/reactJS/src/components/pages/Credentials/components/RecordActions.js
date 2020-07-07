@@ -13,6 +13,20 @@ function RecordActions(props) {
     const classes = useStyles();
 
 
+    const sendProposal = recordId => {
+        const jwt = props.accessToken;
+        axios.post(`${config.endpoint}/api/credential-exchanges/${recordId}/send-proposal`, {}, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
+        })
+        .catch(err => {
+              console.error(err);
+              alert('Error sending proposal. Please try again.');
+        });
+    }
+
     const acceptProposal = recordId => {
         const jwt = props.accessToken;
         axios.post(`${config.endpoint}/api/credential-exchanges/${recordId}/send-offer`, {}, { 
@@ -23,10 +37,9 @@ function RecordActions(props) {
         })
         .catch(err => {
               console.error(err);
-              alert('Error accepting connection. Please try again.');
+              alert('Error accepting proposal. Please try again.');
         });
     }
-
 
     const acceptOffer = recordId => {
         const jwt = props.accessToken;
@@ -38,7 +51,7 @@ function RecordActions(props) {
         })
         .catch(err => {
               console.error(err);
-              alert('Error accepting connection. Please try again.');
+              alert('Error accepting offer. Please try again.');
         });
     }
 
@@ -52,7 +65,7 @@ function RecordActions(props) {
         })
         .catch(err => {
               console.error(err);
-              alert('Error accepting connection. Please try again.');
+              alert('Error accepting request. Please try again.');
         });
     }
 
@@ -70,9 +83,17 @@ function RecordActions(props) {
         });
     }
 
-    const { state, id } = props;
+    const { state, id, role } = props;
 
     switch(state) {
+        case 'init' && role == 'holder':
+            return (
+                <Button size="small" color="primary" onClick={() => sendProposal(id)}>Send Proposal</Button>
+            )
+        case 'init' && role == 'issuer':
+            return (
+                <Button size="small" color="primary" onClick={() => acceptProposal(id)}>Send Offer</Button>
+            )
         case 'proposal_received':
             return (
                 <div>

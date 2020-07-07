@@ -4,7 +4,7 @@ const generalTypes = require('../generalTypes');
 const messages = require('./messages')
 const credentialsIndex = require('./index')
 
-exports.proposalHandler = async (decryptedMessage) => {
+exports.proposalHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -38,6 +38,13 @@ exports.proposalHandler = async (decryptedMessage) => {
             "Credential Exchange Id created in proposal handler: ", 
             credentialExchangeRecord.credentialExchangeId
         );
+    
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'credential',
+            type: 'proposal',
+            record: credentialExchangeRecord
+        });
         
         let auto_offer = false // Change to allow user choice
         if(auto_offer)
@@ -58,7 +65,7 @@ exports.proposalHandler = async (decryptedMessage) => {
     return null;
 };
 
-exports.offerHandler = async (decryptedMessage) => {
+exports.offerHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -138,6 +145,13 @@ exports.offerHandler = async (decryptedMessage) => {
                 JSON.stringify(credentialExchangeRecord), 
             );
         }
+    
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'credential',
+            type: 'offer',
+            record: credentialExchangeRecord
+        });
 
         let autoRequest = false // Change to allow user choice
         if(autoRequest)
@@ -158,7 +172,7 @@ exports.offerHandler = async (decryptedMessage) => {
     return null;
 };
 
-exports.requestHandler = async (decryptedMessage) => {
+exports.requestHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -196,6 +210,13 @@ exports.requestHandler = async (decryptedMessage) => {
             JSON.stringify(credentialExchangeRecord), 
         );
 
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'credential',
+            type: 'request',
+            record: credentialExchangeRecord
+        });
+
         let autoResponse = false // Change to allow user choice
         if(autoResponse)
             credentialsIndex.issuerCreateAndSendCredential();
@@ -215,7 +236,7 @@ exports.requestHandler = async (decryptedMessage) => {
     return null;
 };
 
-exports.credentialHandler = async (decryptedMessage) => {
+exports.credentialHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -263,6 +284,13 @@ exports.credentialHandler = async (decryptedMessage) => {
         );
 
         await credentialsIndex.createAndSendAck(credentialExchangeRecord);
+
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'credential',
+            type: 'credential',
+            record: credentialExchangeRecord
+        });
 
     } catch(error){
         // problem report
@@ -338,7 +366,7 @@ exports.acknowledgeHandler = async (decryptedMessage) => {
     return null;
 };
 
-exports.revocationHandler = async (decryptedMessage) => {
+exports.revocationHandler = async (decryptedMessage, socket) => {
     const {message, recipient_verkey, sender_verkey} = decryptedMessage
 
     const connection = await indy.connections.searchConnections(
@@ -362,6 +390,13 @@ exports.revocationHandler = async (decryptedMessage) => {
         credentialExchangeRecord.credentialExchangeId, 
         JSON.stringify(credentialExchangeRecord), 
     );
+
+    // Emit event to client-side
+    socket.emit('notification', { 
+        protocol: 'credential',
+        type: 'revocation',
+        record: credentialExchangeRecord
+    });
 
     return null;
 };

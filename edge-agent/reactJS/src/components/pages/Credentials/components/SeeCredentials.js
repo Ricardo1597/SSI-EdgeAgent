@@ -14,26 +14,26 @@ class SeeCredential extends Component {
     }
 
     componentWillMount() {
-    const jwt = this.props.accessToken;
-    
-    axios.get(`${config.endpoint}/api/wallet/credentials`, { 
-        headers: { Authorization: `Bearer ${jwt}`} 
-    })
-    .then(res => {
-        if (res.status === 200) {
-        console.log(res.data)
-        this.setState({
-            credentials: res.data.credentials
+        const jwt = this.props.accessToken;
+        
+        axios.get(`${config.endpoint}/api/wallet/credentials`, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
         })
-        } else {
-        const error = new Error(res.error);
-        throw error;
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Error getting credentials. Please try again.');
-    });
+        .then(res => {
+            if (res.status === 200) {
+            console.log(res.data)
+            this.setState({
+                credentials: res.data.credentials
+            })
+            } else {
+            const error = new Error(res.error);
+            throw error;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error getting credentials. Please try again.');
+        });
     }
 
 

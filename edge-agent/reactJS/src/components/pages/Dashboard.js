@@ -79,10 +79,12 @@ class Dashboard extends Component {
       headers: { Authorization: `Bearer ${jwt}`} 
     })
     .then(res => {
-      console.log(res);
-      localStorage.setItem('dids', JSON.stringify(res.data.dids));
+      console.log(res.data);
+      let dids = JSON.parse(localStorage.getItem("dids"));
+      dids = [res.data.did, ...dids];
+      localStorage.setItem('dids', JSON.stringify(dids));
       this.setState({ 
-        dids: JSON.parse(localStorage.getItem('dids')) 
+        dids: dids 
       });
     })
     .catch(err => {
@@ -93,12 +95,11 @@ class Dashboard extends Component {
 
   getRole = (role) => {
       switch(role){
-          case null: return "Common user";
           case "0": return "Trustee user";
           case "2": return "Steward user";
           case "101": return "Trust anchor user";
           case "201": return "Network monitor user";
-          default: return "Peer did";
+          default: return "Not in use";
       }
   }
 
@@ -167,7 +168,8 @@ class Dashboard extends Component {
           <Table size="small" aria-label="customized table">
               <TableHead>
               <TableRow height='40px'>
-                <StyledTableCell width='50%' align="center" >DID</StyledTableCell>
+                <StyledTableCell align="center">DID</StyledTableCell>
+                <StyledTableCell align="center">Alias</StyledTableCell>
                 <StyledTableCell align="center">Role</StyledTableCell>
               </TableRow>
               </TableHead>
@@ -175,7 +177,8 @@ class Dashboard extends Component {
               {this.state.dids.map((did) => (
                 <StyledTableRow key={did.did}>
                 <StyledTableCell align="center">{did.did}</StyledTableCell>
-                <StyledTableCell align="center">{this.getRole(did.role)}</StyledTableCell>
+                <StyledTableCell align="center">{JSON.stringify(did.metadata.alias)}</StyledTableCell>
+                <StyledTableCell align="center">{did.did.includes('peer') ? "Peer did" : this.getRole(did.role)}</StyledTableCell>
                 </StyledTableRow>
               ))}
               </TableBody>
@@ -215,7 +218,7 @@ const useStyles = theme => ({
     },
     table: {
         margin: 30,
-        width: '500px',
+        width: '800px',
     },
     pageMargin: {
         margin: 30,

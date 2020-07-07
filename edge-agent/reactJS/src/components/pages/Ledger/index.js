@@ -9,12 +9,15 @@ import { withStyles } from '@material-ui/core/styles';
 import GetSchema from './components/GetSchema'
 import CreateSchema from './components/CreateSchema'
 import CreateCredDef from './components/CreateCredDef';
+import GetCredDef from './components/GetCredDef';
 import qs from 'qs';
+import GetNym from './components/GetNym';
+import CreateNym from './components/CreateNym';
 
 class Schema extends Component {
 
     handleChangeTabs = (e, newValue) => {
-        this.props.history.push(`/schemas?tab=${newValue}`);
+        this.props.history.push(`/ledger?tab=${newValue}`);
     }
 
     getDIDPermissions = () => {
@@ -37,12 +40,18 @@ class Schema extends Component {
                         textColor="primary"
                     >
                         <Tab className={classes.button} label="Get Schema" {...a11yProps(0)} />
+                        <Tab className={classes.button} label="Get Credential Definition" {...a11yProps(1)} />
+                        <Tab className={classes.button} label="Get Nym" {...a11yProps(2)} />
                         { this.getDIDPermissions()
-                            ? <Tab className={classes.button} label="Create Schema" {...a11yProps(1)} />
+                            ? <Tab className={classes.button} label="Create Schema" {...a11yProps(3)} />
                             : null
                         }               
                         { this.getDIDPermissions()
-                            ? <Tab className={classes.button} label="Create Cred Def" {...a11yProps(2)} />
+                            ? <Tab className={classes.button} label="Create Cred Def" {...a11yProps(4)} />
+                            : null
+                        }              
+                        { this.getDIDPermissions()
+                            ? <Tab className={classes.button} label="Create Nym" {...a11yProps(5)} />
                             : null
                         }
                     </Tabs>
@@ -50,17 +59,30 @@ class Schema extends Component {
                 <TabPanel value={tab} index={0}>
                     <GetSchema/>
                 </TabPanel>
+                <TabPanel value={tab} index={1}>
+                    <GetCredDef/>
+                </TabPanel>
+                <TabPanel value={tab} index={2}>
+                    <GetNym/>
+                </TabPanel>
                 { this.getDIDPermissions()
                     ? (
-                        <TabPanel value={tab} index={1}>
+                        <TabPanel value={tab} index={3}>
                             <CreateSchema/>
                         </TabPanel>
                     ) : null
                 }
                 { this.getDIDPermissions()
                     ? (
-                        <TabPanel value={tab} index={2}>
+                        <TabPanel value={tab} index={4}>
                             <CreateCredDef/>
+                        </TabPanel>
+                    ) : null
+                }
+                { this.getDIDPermissions()
+                    ? (
+                        <TabPanel value={tab} index={5}>
+                            <CreateNym/>
                         </TabPanel>
                     ) : null
                 }

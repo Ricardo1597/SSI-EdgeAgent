@@ -44,6 +44,19 @@ exports.sendMessage = (payload, endpoint) => {
 
 async function getMessageArgs(connection, invitation=null) {
   if (invitation) {
+    // public invitation needs to get the document from the blockchain
+    if(invitation.did && invitation.did.split(':')[1] !== "peer"){
+      const didDoc = await indy.ledger.getDidAttribute(null, invitation.did, null, 'did-document', null);
+      if (!didDoc) {
+        throw new Error(`DidDoc for invitation with did ${invitation.did} not found!`);
+      }
+      return {
+        endpoint: didDoc.service[0].serviceEndpoint,
+        recipientKeys: didDoc.service[0].recipientKeys,
+        routingKeys: didDoc.service[0].routingKeys,
+        senderVk: connection.myVerkey,
+      };
+    }
     return {
       endpoint: invitation.serviceEndpoint,
       recipientKeys: invitation.recipientKeys,

@@ -4,6 +4,7 @@ const indy = require('../indy');
 var adminApp = require('../adminApp');
 var app = require('../connectionApp');
 const config = require('../config')
+const socketio = require('socket.io');
 
 
 /**
@@ -13,14 +14,23 @@ const adminPort = config.adminPort
 adminApp.set('port', adminPort);
 const adminServer = require('http').Server(adminApp);
 
-
 /**
  * Create HTTP server for connections API.
  */
 const inboundPort = config.inboundPort
 app.set('port', inboundPort);
 const server = require('http').Server(app);
+// Create sockets for this server
+const io = socketio(server);
+io.on('connection', (socket) => {
+  console.log('We have a new connection!!!');
 
+  socket.on('disconnect', () => {
+    console.log('User has left!!!')
+  })
+})
+// To access it later on
+app.io = io;
 
 /**
  * Connect to indy pool (ledger)

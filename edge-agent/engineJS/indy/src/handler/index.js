@@ -9,7 +9,7 @@ module.exports = function(config) { //factory function creates object and return
         config = {};
     }
 
-    factory.defineHandler = function(messageType, handler) {
+    factory.defineHandler = (messageType, handler) => {
         if(!messageType || typeof messageType !== 'string') {
             throw Error("Invalid message type: messageType must be a non-empty string");
         }
@@ -22,15 +22,15 @@ module.exports = function(config) { //factory function creates object and return
         messageHandlerMap[messageType] = handler;
     };
 
-    factory.middleware = async function(req, res) {
+    factory.middleware = async (req, res) => {
         try{
             let decryptedMessage = await indy.wallet.unpack(req.body);
             console.log("Message received: " + JSON.stringify(decryptedMessage));
 
             if(messageHandlerMap[decryptedMessage.message['@type']]) {
                 let handler = messageHandlerMap[decryptedMessage.message['@type']];
-                if(handler.length === 2) { // number of parameters
-                    handler(decryptedMessage, function(err) {
+                if(handler.length === 3) { // number of parameters
+                    handler(decryptedMessage, req.app.io, function(err) {
                         if(err) { 
                             console.error(err);
                             res.status(200).send();
@@ -39,7 +39,7 @@ module.exports = function(config) { //factory function creates object and return
                         }
                     })
                 } else {
-                    handler(decryptedMessage)
+                    handler(decryptedMessage, req.app.io)
                         .then((data) => {
                             res.status(202).send();
                         })

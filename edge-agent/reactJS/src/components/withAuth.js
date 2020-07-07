@@ -4,7 +4,7 @@ import config from '../config'
 import axios from 'axios';
 
 
-function withAuth(ComponentToProtect, accessToken, updateAccessToken, ...rest) {
+export default function withAuth(ComponentToProtect, accessToken, updateAccessToken, ...rest) {
 
   return class extends Component {
     constructor() {
@@ -45,6 +45,3 @@ function withAuth(ComponentToProtect, accessToken, updateAccessToken, ...rest) {
     }
   }
 }
-
-
-export default withAuth

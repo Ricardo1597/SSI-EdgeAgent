@@ -56,7 +56,7 @@ class Presentations extends Component {
                     </Tabs>
                 </AppBar>
                 <TabPanel value={tab} index={0}>
-                    <AllRecords changeTabs={this.handleChangeTabs}/>
+                    <AllRecords changeTabs={this.handleChangeTabs} recordId={recordId}/>
                 </TabPanel>
                 { !this.getDIDPermissions()
                     ? (

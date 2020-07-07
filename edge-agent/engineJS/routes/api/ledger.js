@@ -8,8 +8,11 @@ const indy = require('../../indy/index.js');
 router.post('/send-nym', passport.authenticate('jwt', {session: false}), async (req, res) => {
     let { did, newDid, newVerKey, role } = req.body
     if(role === 'COMMON_USER') role = null
+    console.log("cheguei 1")
     const nym = await indy.ledger.sendNym(did, newDid, newVerKey, role);
+    console.log("cheguei 2")
     const didDoc = await indy.ledger.createNymDocument(newDid, newVerKey);
+    console.log("cheguei 3")
   
     res.status(200).send({did: nym, role: role, didDoc:didDoc})
 });
@@ -19,7 +22,7 @@ router.post('/send-nym', passport.authenticate('jwt', {session: false}), async (
 router.get('/get-nym', passport.authenticate('jwt', {session: false}), async (req, res) => {
     let getDidResponse = await indy.ledger.getNym(req.query.did);
   
-    res.status(200).send({did: getDidResponse.result.data})
+    res.status(200).send({did: JSON.parse(getDidResponse.result.data)})
 });
   
   

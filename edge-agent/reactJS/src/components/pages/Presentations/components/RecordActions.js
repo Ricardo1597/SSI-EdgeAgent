@@ -13,6 +13,20 @@ function RecordActions(props) {
     const classes = useStyles();
 
 
+    const sendProposal = recordId => {
+        const jwt = props.accessToken;
+        axios.post(`${config.endpoint}/api/presentation-exchanges/${recordId}/send-proposal`, {}, { 
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
+        })
+        .catch(err => {
+              console.error(err);
+              alert('Error sending proposal. Please try again.');
+        });
+    }
+
     const verifyPresentation = recordId => {
         const jwt = props.accessToken;
         axios.post(`${config.endpoint}/api/presentation-exchanges/${recordId}/verify-presentation`, {}, { 
@@ -41,9 +55,17 @@ function RecordActions(props) {
         });
     }
 
-    const { state, id } = props;
+    const { state, id, role } = props;
 
     switch(state) {
+        case 'init' && role == 'prover':
+            return (
+                <Button size="small" color="primary" onClick={() => sendProposal(id)}>Send Proposal</Button>
+            )
+        case 'init' && role == 'verifier':
+            return (
+                <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>Send Request</Button>
+            )
         case 'proposal_received':
             return (
                 <div>

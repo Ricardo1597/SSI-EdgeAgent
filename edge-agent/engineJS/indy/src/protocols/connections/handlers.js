@@ -3,7 +3,7 @@ const indy = require('../../../index.js');
 const connectionsIndex = require('./index');
 const generalTypes = require('../generalTypes');
 
-exports.requestHandler = async (decryptedMessage) => {
+exports.requestHandler = async (decryptedMessage, socket) => {
     const {message, recipient_verkey, sender_verkey} = decryptedMessage;
 
     try {
@@ -17,18 +17,14 @@ exports.requestHandler = async (decryptedMessage) => {
             };
         }
 
-        const invitations = await indy.wallet.searchWalletRecord(
-            indy.recordTypes.RecordType.Invitation,
-            {'myVerkey': recipient_verkey},
-            {}
-        );
-        if(invitations.length < 1){ // Invitation not found
+        const invitation = await indy.connections.getInvitation(message['~thread']['pthid']);
+        
+        if(!invitation){ // Invitation not found
             throw {
                 externalMessage: 'Invitation not valid.',
                 internalMessage: `Invitation for verkey ${recipient_verkey} not found!`,
             };
         }
-        const invitation = invitations[0]
 
         if(!invitation.isActive) { // Cannot accept request for inactive invitation
             throw {
@@ -90,6 +86,13 @@ exports.requestHandler = async (decryptedMessage) => {
             JSON.stringify(invitation)
         );
 
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'connection',
+            type: 'request',
+            record: connection
+        });
+
         let autoAccept = false // REMOVE LATER AND USE USER OPTION
         if(autoAccept)
             await indy.connections.createAndSendResponse(connection.connectionId);
@@ -123,7 +126,7 @@ exports.requestHandler = async (decryptedMessage) => {
     return null;
 };
 
-exports.responseHandler = async (decryptedMessage) => {
+exports.responseHandler = async (decryptedMessage, socket) => {
     const { message, recipient_verkey, sender_verkey } = decryptedMessage;
     
     let connection = await indy.connections.searchConnections(
@@ -174,6 +177,13 @@ exports.responseHandler = async (decryptedMessage) => {
             connection.connectionId, 
             JSON.stringify(connection)
         );
+
+        // Emit event to client-side
+        socket.emit('notification', { 
+            protocol: 'connection',
+            type: 'response',
+            record: connection
+        });
         
         let autoAccept = true // REMOVE LATER AND USE USER OPTION
         if(autoAccept)

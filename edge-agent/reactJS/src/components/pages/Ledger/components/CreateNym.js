@@ -1,23 +1,21 @@
 import React, { Component } from 'react'
-
 import Button from '@material-ui/core/Button';
-import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import Card from '@material-ui/core/Card';
 import { withStyles } from '@material-ui/core/styles';
-import Container from '@material-ui/core/Container';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import Container from '@material-ui/core/Container';
 
-import config from '../../config'
-import axios from 'axios'
 import { connect } from 'react-redux';
+import axios from 'axios'
+import config from '../../../../config'
 
-
-class Nyms extends Component {
+class CreateNym extends Component {
     state = {
         dids: JSON.parse(localStorage.getItem('dids'))
                   .filter(did => did.role !== 'no role' && did.role !== null)
@@ -26,7 +24,8 @@ class Nyms extends Component {
         newDid: '',
         newVerKey: '',
         role: '',
-        didNym: '',
+        nym: '',
+        errors: []
     }
 
 
@@ -36,8 +35,63 @@ class Nyms extends Component {
         })
     }
 
-    onSubmit = e => {
-        e.preventDefault()
+    handleValidation = () => {
+        let errors = [];
+        let formIsValid = true;
+    
+        // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
+        if(this.state.did.length === 0 ){
+            formIsValid = false;
+            errors["did"] = "Cannot be empty";
+        } else if(!this.state.did.match(/^[a-zA-Z0-9:]+$/)){
+            formIsValid = false;
+            errors["did"] = "Invalid characters";
+        } else if(this.state.did.split(':').length !== 3){
+            formIsValid = false;
+            errors["did"] = "Invalid DID";
+        }        
+        
+        // newDid: Th7MpTaRZVRYnPiabds81Y
+        if(this.state.newDid.length === 0 ){
+            formIsValid = false;
+            errors["newDid"] = "Cannot be empty";
+        } else if(!this.state.newDid.match(/^[a-zA-Z0-9]+$/)){
+            formIsValid = false;
+            errors["newDid"] = "Invalid characters";
+        }       
+        
+        // newVerkey: ~7TYfekw4GUagBnBVCqPjiC
+        if(this.state.newVerKey.length === 0 ){
+            formIsValid = false;
+            errors["newVerKey"] = "Cannot be empty";
+        } else if(!this.state.newVerKey.match(/^[a-zA-Z0-9~]+$/)){
+            formIsValid = false;
+            errors["newVerKey"] = "Invalid characters";
+        }    
+        
+        // role
+        if(this.state.role.length === 0 ){
+            formIsValid = false;
+            errors["role"] = "Cannot be empty";
+        } else if(!this.state.role.match(/^[A-Z_]+$/)){
+            formIsValid = false;
+            errors["role"] = "Invalid characters";
+        } 
+    
+        console.log(errors)
+        this.setState({errors: errors});
+        return formIsValid;
+    }
+    
+    
+    onSubmit = (e) => {
+        e.preventDefault();
+    
+        if(!this.handleValidation()){
+          console.log(this.state.errors)
+          return;
+        }
+
         const jwt = this.props.accessToken;
 
         axios.post(`${config.endpoint}/api/ledger/send-nym`, {
@@ -49,66 +103,29 @@ class Nyms extends Component {
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data);
         })
         .catch(err => {
               console.error(err);
-              alert('Error creating NYM. Please try again.');
+              alert('Error creating schema. Please try again.');
         });
-    }
-
-
-    onSubmit2 = e => {
-        e.preventDefault()
-        const jwt = this.props.accessToken;
-
-        axios.get(`${config.endpoint}/api/ledger/get-nym`, {
-            params: {
-              did: this.state.didNym
-            },
-            headers: { Authorization: `Bearer ${jwt}`} 
-          })
-        .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error getting NYM. Please try again.');
-        });
-    }
-
-
-    renderNym = () => {
-        // Render the server response from getting the Nym info
     }
 
     render() {
         const { classes } = this.props;
-
+        
         return (
-            <Grid container component="main">
-                <CssBaseline />
-                <Grid item xs={12} md={6}>
-                    <Container maxWidth="xs">
-                        <div className={classes.paper} >
-                            <Typography component="span" variant="h5">
-                            Create Nym
-                            </Typography>
-                            <form className={classes.form} noValidate onSubmit={this.onSubmit}>
+            <Container spacing={2}>
+                <Grid item xs={12} lg={5}>
+                    <div className={classes.paper}>
+                        <Typography component="span" variant="h5">
+                        Create Nym
+                        </Typography>
+                        <form className={classes.form} onSubmit={this.onSubmit}>
                             <Grid container spacing={2}>
                                 <Grid item xs={12}>
                                     <FormControl variant="outlined" className={classes.formControl}>
-                                        <InputLabel>DID</InputLabel>
+                                        <InputLabel htmlFor='did'>DID</InputLabel>
                                         <Select
                                             variant="outlined"
                                             required
@@ -147,7 +164,7 @@ class Nyms extends Component {
                                         value={this.state.newVerKey}
                                         onChange={this.handleChange}
                                     />
-                                </Grid>              
+                                </Grid>           
                                 <Grid item xs={12}>
                                     <FormControl variant="outlined" className={classes.formControl}>
                                         <InputLabel>Role</InputLabel>
@@ -167,104 +184,96 @@ class Nyms extends Component {
                                             <MenuItem key={4} value='TRUSTEE'>Trustee</MenuItem>
                                         </Select>
                                     </FormControl>
-                                </Grid>    
+                                </Grid>   
                             </Grid>
                             <Button
-                                type="submit"
+                                type="button"
                                 fullWidth
                                 variant="contained"
                                 color="primary"
-                                className={classes.submit}
+                                className={[classes.add, classes.button]}
+                                onClick={this.onSubmit}
                             >
-                                Add Nym
+                                Create
                             </Button>
-                            </form>
-                        </div>
-                    </Container>
+                        </form>
+                    </div>
                 </Grid>
-                <div className={classes.paper} >
-                    <Typography component="span" variant="h5">
-                    Get Nym
-                    </Typography>
-                    <form className={classes.form} noValidate onSubmit={this.onSubmit2}>
-                        <Grid container spacing={1}>
-                            <Grid item xs={12}>
-                                <TextField 
-                                    variant="outlined"
-                                    required
-                                    fullWidth
-                                    type="text"
-                                    id="didNym"
-                                    label="DID"
-                                    name="didNym"
-                                    autoFocus
-                                    value={this.state.didNym}
-                                    onChange={this.handleChange}
-                                />
-                                <Button 
-                                    type="submit"
-                                    fullWidth
-                                    variant="contained"
-                                    color="primary" 
-                                    className={classes.submit}
-                                >Get
-                                </Button>
-                            </Grid>
-                        </Grid>
-                        <Grid>
-                            {this.renderNym()}
-                        </Grid>
-                    </form>
-                </div>
-            </Grid>
+                <Grid item xs={12} lg={7}>
+                    {
+                        this.state.nym ? (
+                            <Card className={classes.card}>
+                                <div className={classes.marginBottom}>
+                                    <div style={{fontWeight: "bold"}}>DID:</div>
+                                    {this.state.nym.dest}
+                                </div>
+                                <div className={classes.marginBottom}>
+                                    <div style={{fontWeight: "bold"}}>Verkey:</div>
+                                    {this.state.nym.verkey}
+                                </div>
+                                <div className={classes.marginBottom}>
+                                    <div style={{fontWeight: "bold"}}>Role:</div>
+                                    {this.getRole(this.state.nym.role)}
+                                </div>
+                                <div className={classes.marginBottom}>
+                                    <div style={{fontWeight: "bold"}}>Added by:</div>
+                                    {this.state.nym.identifier}
+                                </div>
+                            </Card>
+                        ) : null
+                    }
+                </Grid>
+            </Container>
         )
     }
 }
 
-
 // Styles
 const useStyles = theme => ({
-    root: {
-        //height: '80vh',
-    },
     paper: {
-        marginTop: 60,
+        marginTop: 30,
+        marginBottom: 30,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
     },
-    form: {
-        width: '400px', // Fix IE 11 issue.
-        marginTop: theme.spacing(3),
+    result: {
+        margin: 30,
+        display: 'flex',
+        flexDirection: 'line',
+        alignItems: 'center',
     },
-    submit: {
-        margin: theme.spacing(3, 0, 2),
+    button : {
+        "&:focus": {
+            outline:"none",
+        }
     },
     add: {
         height: '40px',
         marginTop: 10
     },
-    jsonBox: {
-        marginTop: -10,
+    addAttr: {
+        height: 40,
+        width: '100%',
     },
-    leftMargin: {
-        marginLeft: 10,
-        marginBottom: -10
+    form: {
+        width: '500px', 
+        marginTop: theme.spacing(3),
     },
     formControl: {
         width: '100%',
     },
-    selectEmpty: {
-        marginTop: theme.spacing(2),
-    },
+    card: {
+        width: '200px',
+        padding: 20,
+        margin: 20
+    }
 });
 
-
-  
 const mapStateToProps = (state) => {
     return {
         accessToken: state.accessToken
     }
 }
   
-export default connect(mapStateToProps)(withStyles(useStyles)(Nyms))
+export default connect(mapStateToProps)(withStyles(useStyles)(CreateNym))

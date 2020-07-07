@@ -55,10 +55,31 @@ exports.proverCreateAndSendProposal = async (connectionId, comment, presentation
         presentationProposalMessage, 
         generalTypes.Initiator.Self, 
         generalTypes.Roles.Prover, 
-        PresentationExchangeState.ProposalSent,
+        PresentationExchangeState.Init,
         presentationProposalMessage['@id']
     );
-    
+
+    // Save created presentation exchange record in the wallet
+    await this.addPresentationExchangeRecord(
+        presentationExchangeId, 
+        JSON.stringify(presentationExchangeRecord), 
+        {'connectionId': connectionId, 'threadId': presentationExchangeRecord.threadId}
+    );
+
+    return await this.proverSendProposal(presentationExchangeRecord);
+}
+
+exports.proverSendProposal = async (presentationExchangeRecord) => {
+    const { state, connectionId, presentationExchangeId } = presentationExchangeRecord;
+    const presentationProposalMessage = JSON.parse(presentationExchangeRecord.presentationProposalDict);
+
+    if( state != PresentationExchangeState.Init) {
+        throw new Error(`Invalid state trasition.`);
+    }
+
+    // Get connection to send message (presentation proposal)
+    const connection = await indy.connections.getConnection(connectionId);
+
     // Create and send proposal message to a given endpoint
     const [message, endpoint] = await indy.messages.prepareMessage(
         presentationProposalMessage, 
@@ -67,10 +88,11 @@ exports.proverCreateAndSendProposal = async (connectionId, comment, presentation
     indy.messages.sendMessage(message, endpoint);
 
     // Save created presentation exchange record in the wallet
-    await this.addPresentationExchangeRecord(
-        presentationExchangeRecord.presentationExchangeId, 
-        JSON.stringify(presentationExchangeRecord), 
-        {'connectionId': connection.connectionId, 'threadId': presentationExchangeRecord.threadId}
+    presentationExchangeRecord.state = PresentationExchangeState.ProposalSent
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.PresentationExchange,  
+        presentationExchangeId, 
+        JSON.stringify(presentationExchangeRecord)
     );
     
     return [presentationExchangeRecord, presentationProposalMessage];
