@@ -107,7 +107,7 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
             var accessToken = jwt.sign(
               { user: user }, 
               process.env.ACCESS_TOKEN_SECRET, 
-              {expiresIn: '5s'}
+              {expiresIn: '15m'}
             );
             var refreshToken = jwt.sign(
               { user: user, version: version }, 

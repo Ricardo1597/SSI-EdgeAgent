@@ -127,7 +127,7 @@ exports.verifierCreateAndSendRequest = async (presentationExchangeRecord, commen
     );
 
     // Generate nonce if none is passed
-    if(!presentationRequest.nonce) presentationRequest.nonce = randomNonce();
+    if(!presentationRequest.nonce) presentationRequest.nonce = this.randomNonce();
 
     // Encode data for request message
     const data = Buffer.from(JSON.stringify(presentationRequest)).toString("base64");
@@ -600,7 +600,7 @@ exports.removePresentationExchangeRecord = async (id) => {
     );
 }
 
-function randomNonce() {
+exports.randomNonce = () => {
     let number1 = Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER)).toString();
     let number2 = Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER)).toString();
     return number1 + number2; 

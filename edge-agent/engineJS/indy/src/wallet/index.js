@@ -163,6 +163,82 @@ exports.searchCredentials = async (query) => {
     }
 }
 
+exports.searchCredentialsForProofRequest = async (proofReq, query=null) => {
+    const count = 10;
+
+    if (!walletHandle) {
+        throw new Error(`Wallet has not been initialized yet`);
+    }
+    let credentials = {};
+    let searchHandle = await sdk.proverSearchCredentialsForProofReq(walletHandle, proofReq, query);
+
+    try {
+        console.log("cheguei1");
+        console.log(proofReq)
+
+        // requested attributes
+        credentials['requested_attributes'] = {};
+        for(const referent in proofReq.requested_attributes) {
+            console.log("loop1");
+            console.log(referent)
+            credentials['requested_attributes'][referent] = [];
+            while (true) {
+                const credentialsResult = await sdk.proverFetchCredentialsForProofReq(searchHandle, referent, count);
+
+                for (let credential of credentialsResult) {
+                    console.log(credential)
+                    credentials['requested_attributes'][referent].push(credential);
+                }
+                if(credentialsResult.length < count) break;
+            }
+        }
+
+        await sdk.proverCloseCredentialsSearchForProofReq(searchHandle);
+        searchHandle = await sdk.proverSearchCredentialsForProofReq(walletHandle, proofReq, query);
+
+        // requested predicated
+        credentials['requested_predicates'] = {};
+        for(const referent in proofReq.requested_predicates) {
+            console.log("loop2");
+            console.log(referent)
+            credentials['requested_predicates'][referent] = [];
+            while (true) {
+                const credentialsResult = await sdk.proverFetchCredentialsForProofReq(searchHandle, referent, count);
+
+                for (let credential of credentialsResult) {
+                    console.log(credential)
+                    credentials['requested_predicates'][referent].push(credential);
+                }
+                if(credentialsResult.length < count) break;
+            }
+        }
+
+        // self attested attributes
+        credentials['self_attested_attributes'] = {};
+        for(const referent in proofReq.self_attested_attributes) {
+            console.log("loop3");
+            console.log(referent)
+            credentials['self_attested_attributes'][referent] = [];
+            while (true) {
+                const credentialsResult = await sdk.proverFetchCredentialsForProofReq(searchHandle, referent, count);
+
+                for (let credential of credentialsResult) {
+                    console.log(credential)
+                    credentials['self_attested_attributes'][referent].push(credential);
+                }
+                if(credentialsResult.length < count) break;
+            }
+        }
+
+    } catch (error) {
+        console.log('Error searching for credentials: ', error);
+        // pass
+    } finally {
+        await sdk.proverCloseCredentialsSearchForProofReq(searchHandle);
+        return credentials;
+    }
+}
+
 exports.storeCredential = async (credId, credReqMetadata, cred, credDef, revRegDef) => {
     if (!walletHandle) {
         throw new Error(`Wallet has not been initialized yet`);

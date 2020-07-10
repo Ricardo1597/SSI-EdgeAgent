@@ -53,10 +53,8 @@ router.get('/did/:id', passport.authenticate('jwt', {session: false}), async (re
 // Get all credentials
 router.get('/credentials', passport.authenticate('jwt', {session: false}), async (req, res) => {
   try {
-    let credentials = await indy.wallet.getCredentials();
-    let credentials2 = await indy.wallet.searchCredentials({});
+    let credentials = await indy.wallet.searchCredentials({});
     console.log(credentials);
-    console.log(credentials2);
     res.status(200).send({credentials});
   } catch(error) {
     res.status(400).send({error});
@@ -68,6 +66,22 @@ router.get('/credentials', passport.authenticate('jwt', {session: false}), async
   const query = req.body.query // change to individual filters?
   try {
     let credentials = await indy.wallet.searchCredentials(query);
+    res.status(200).send({credentials});
+  } catch(error) {
+    res.status(400).send({error});
+  }
+});
+
+// Search valid credentials for a given proof request
+router.post('/credentials-for-request', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  let { proofRequest } = req.body;
+  console.log(proofRequest)
+  try {
+    // Generate nonce if none is passed
+    if(!proofRequest.nonce) proofRequest.nonce = indy.presentationExchange.randomNonce();
+
+    let credentials = await indy.wallet.searchCredentialsForProofRequest(req.body.proofRequest);
+    console.log("Aqui2: ", credentials);
     res.status(200).send({credentials});
   } catch(error) {
     res.status(400).send({error});

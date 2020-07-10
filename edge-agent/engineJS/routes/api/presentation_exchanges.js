@@ -124,6 +124,8 @@ router.post('/:id/send-request', passport.authenticate('jwt', {session: false}),
   
 // Holder send presentation exchange proposal
 router.post('/:id/send-presentation', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  const { requestedAttributes } = req.body;
+  
   try {
     // Get presentation exchange record
     let presentationExchangeRecord = await indy.wallet.getWalletRecord(
@@ -131,10 +133,35 @@ router.post('/:id/send-presentation', passport.authenticate('jwt', {session: fal
       req.params.id, 
       {}
     );
+
+    // Convert the data to the correct format
+    let reqAttributes = {}
+    reqAttributes.requested_attributes = {};
+    Object.entries(requestedAttributes.requested_attributes).map(([key, value]) => {
+        reqAttributes.requested_attributes[key] = {
+            cred_id: value,
+            revealed: true
+        }
+    })
+    reqAttributes.requested_predicates = {};
+    Object.entries(requestedAttributes.requested_predicates).map(([key, value]) => {
+        reqAttributes.requested_predicates[key] = {
+            cred_id: value
+        }
+    })
+    reqAttributes.self_attested_attributes = {};
+    Object.entries(requestedAttributes.self_attested_attributes).map(([key, value]) => {
+        reqAttributes.self_attested_attributes[key] = {
+            cred_id: value,
+            revealed: true
+        }
+    })
+
+    console.log('Requested attributes: ', reqAttributes)
   
     const [record, messageSent] = await indy.presentationExchange.proverCreateAndSendPresentation(
       presentationExchangeRecord, 
-      req.body.requestedCredentials
+      reqAttributes
     );
     res.status(200).send({record, messageSent});
 
