@@ -35,18 +35,18 @@ router.post('/refresh-token', passport.authenticate('refresh', {session: false})
 
 // REGISTER
 router.post('/register', checkNotAuthenticated, async (req, res) => {
-  const { name, username, password, password2 } = req.body;
+  const { name, username, password1, password2 } = req.body;
 
   // Check required fields
-  if(!name || !username || !password || !password2)
+  if(!name || !username || !password1 || !password2)
     return res.status(400).send('Please fill in all fields')
 
   // Check if passwords match
-  if(password !== password2) 
+  if(password1 !== password2) 
     return res.status(400).send('Passwords do not match')
 
   try {
-    await indy.wallet.setup(username+'_wallet', password);
+    await indy.wallet.setup(username+'_wallet', password1);
     console.log('wallet created')
     
     return res.sendStatus(200)
@@ -92,7 +92,7 @@ router.post('/login', checkNotAuthenticated, (req,res,next) => {
               return next(err);
             }
             else{
-              res.status(401).send({message: 'Invalid credentials'});
+              return res.status(401).send({error: 'Invalid credentials'});
               //return next(new Error('Invalid credentials'))
             }               
         }

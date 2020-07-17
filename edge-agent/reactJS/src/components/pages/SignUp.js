@@ -11,19 +11,27 @@ import Container from '@material-ui/core/Container';
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Cookies from 'js-cookie';
+import Paper from '@material-ui/core/Paper';
 
 import axios from 'axios';
 import config from '../../config'
 
+import '../../styles.css'
 
 class SignUp extends Component {
   state = {
     name: '',
     username: '',
-    password: '',
+    password1: '',
     password2: '',
     loading: true,
     redirect: false,
+    formErrors: {
+      name: '',
+      username: '',
+      password1: '',
+      password2: '',
+    },
   }
 
   handleChange = e => {
@@ -31,6 +39,54 @@ class SignUp extends Component {
           [e.target.name]: e.target.value
       })
   }
+
+  isFormValid = () => {
+    let valid = true;
+    Object.values(this.state.formErrors).forEach(val => {
+      val.length && (valid=false);
+    })
+
+    return valid;
+  }
+
+
+  handleValidation = (e) => {
+    const { name, value } = e.target;
+    let errors = this.state.formErrors;
+    // clean previous error
+    errors[name] = '';
+
+    switch(name){
+      case 'name':
+        if(value.length === 0){
+          errors.name = "Required";
+        } else if(!value.match(/^[a-zA-Z0-9\-_ ]+$/)){
+          errors.name = "Invalid characters";
+        }
+        break; 
+      case 'username':
+        if(value.length === 0){
+          errors.username = "Required";
+        } else if(!value.match(/^[a-zA-Z0-9\-_]+$/)){
+          errors.username = "Invalid characters";
+        }
+        break; 
+      case 'password1':
+      case 'password2':
+        if(value.length === 0){
+          errors[name] = "Required";
+        } else if(value.length < 6 ){
+          errors[name] = "Must be at least 6 characters long";
+        } else if(!/(?=.*[0-9])/.test(value)){
+          errors[name] = "Must contain a number";
+        }  
+        break;
+      default:
+        break;
+    }
+
+    this.setState({formErrors: errors})
+}
 
   componentDidMount() {
     const jwt = this.props.accessToken;
@@ -52,10 +108,16 @@ class SignUp extends Component {
   
   onSubmit = (e) => {
     e.preventDefault();
+
+    //check if all fields are valid
+    if(!this.isFormValid()){
+      return;
+    }
+
     axios.post(`${config.endpoint}/users/register`, {
       name: this.state.name,
       username: this.state.username,
-      password: this.state.password,
+      password1: this.state.password1,
       password2: this.state.password2,
     })
     .then(res => {
@@ -84,17 +146,17 @@ class SignUp extends Component {
       <Grid container component="main" className={classes.root}>
         <CssBaseline />
         <Container maxWidth="xs">
-          <div className={classes.paper} >
-              <Avatar className={classes.avatar}>
-              </Avatar>
-              <Typography component="span" variant="h5">
-              Sign up
-              </Typography>
-              <form className={classes.form} noValidate onSubmit={this.onSubmit}>
-              <Grid container spacing={2}>
-              <Grid item xs={12}>
+          <Grid item component={Paper} elevation={6} square>
+            <div className={classes.paper} >
+                <Avatar className={classes.avatar}>
+                </Avatar>
+                <Typography component="span" variant="h5">
+                Sign up
+                </Typography>
+                <form className={classes.form} noValidate onSubmit={this.onSubmit}>
                   <TextField
                       variant="outlined"
+                      margin="normal"
                       required
                       fullWidth
                       id="name"
@@ -102,12 +164,12 @@ class SignUp extends Component {
                       name="name"
                       autoComplete="name"
                       value={this.state.name}
-                      onChange={this.handleChange}
+                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
                   />
-                  </Grid>            
-                  <Grid item xs={12}>
+                  <div className="input-feedback">{this.state.formErrors.name}</div>
                   <TextField
                       variant="outlined"
+                      margin="normal"
                       required
                       fullWidth
                       id="username"
@@ -115,56 +177,56 @@ class SignUp extends Component {
                       name="username"
                       autoComplete="username"
                       value={this.state.username}
-                      onChange={this.handleChange}
+                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
                   />
-                  </Grid>
-                  <Grid item xs={12}>
+                  <div className="input-feedback">{this.state.formErrors.username}</div>
                   <TextField
                       variant="outlined"
+                      margin="normal"
                       required
                       fullWidth
-                      name="password"
+                      name="password1"
                       label="Password"
                       type="password"
-                      id="password"
+                      id="password1"
                       autoComplete="current-password"
-                      value={this.state.password}
-                      onChange={this.handleChange}
+                      value={this.state.password1}
+                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
                   />
-                  </Grid>
-                  <Grid item xs={12}>
+                  <div className="input-feedback">{this.state.formErrors.password1}</div>
                   <TextField
                       variant="outlined"
+                      margin="normal"
                       required
                       fullWidth
                       name="password2"
                       label="Confirm password"
                       type="password"
                       id="password2"
-                      autoComplete="current-password2"
+                      autoComplete="current-password"
                       value={this.state.password2}
-                      onChange={this.handleChange}
+                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
                   />
+                  <div className="input-feedback">{this.state.formErrors.password2}</div>
+                  <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.submit}
+                  >
+                      Sign Up
+                  </Button>
+                  <Grid container justify="flex-end">
+                      <Grid item>
+                      <Link href="/login" variant="body2">
+                          Already have an account? Sign in
+                      </Link>
+                      </Grid>
                   </Grid>
-              </Grid>
-              <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  className={classes.submit}
-              >
-                  Sign Up
-              </Button>
-              <Grid container justify="flex-end">
-                  <Grid item>
-                  <Link href="/login" variant="body2">
-                      Already have an account? Sign in
-                  </Link>
-                  </Grid>
-              </Grid>
-              </form>
-          </div>
+                </form>
+            </div>
+          </Grid>
         </Container>
       </Grid>
     );
@@ -195,7 +257,7 @@ const useStyles = theme => ({
   },
   form: {  
     width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(3),
+    marginTop: theme.spacing(1),
   },
   submit: {
     margin: theme.spacing(3, 0, 2),

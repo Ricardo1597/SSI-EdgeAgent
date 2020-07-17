@@ -9,8 +9,8 @@ import TabPanel, { a11yProps } from '../../TabPanel'
 import { connect } from 'react-redux';
 
 import SeeCredentials from './components/SeeCredentials'
-import ProposeCredential from './components/ProposeCredential'
-import OfferCredential from './components/OfferCredential'
+import ProposeCredential from './components/ProposeCredential/ProposeCredential'
+import OfferCredential from './components/OfferCredential/OfferCredential'
 import AllRecords from './components/AllRecords'
 import qs from 'qs'
 

@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import JSONPretty from 'react-json-pretty';
-
+import PresentationCard from './pages/Presentations/components/PresentationCard'
 import { connect } from 'react-redux';
 
 
 function RecordDetails(props) {
-    const { initiator, role, state, threadId, error, connectionId, recordId, proposal } = props.record;
+    const { initiator, role, state, threadId, error, connectionId, recordId, proposal, credential, presentation, verified } = props.record;
     
     return (
         <div>
@@ -53,6 +53,12 @@ function RecordDetails(props) {
                         <div style={{fontWeight: "bold"}}>Credential Proposal:</div>
                         <JSONPretty id="json-pretty" data={proposal}></JSONPretty>
                     </div>
+                    {presentation && (
+                        <PresentationCard 
+                            presentation={presentation}
+                            verified={verified}
+                        />
+                    )}
                 </Typography>
             </CardContent>
         </div>

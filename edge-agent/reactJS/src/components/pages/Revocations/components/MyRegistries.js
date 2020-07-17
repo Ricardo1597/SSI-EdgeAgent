@@ -12,31 +12,11 @@ import axios from 'axios'
 import config from '../../../../config'
 
 class GetRegistry extends Component {
-    state = {
-        registries: ''
-    }
-
     
     handleChange = e => {
         this.setState({
             [e.target.name]: e.target.value
         })
-    }
-
-    componentWillMount() {
-        const jwt = this.props.accessToken;
-
-        axios.get(`${config.endpoint}/api/revocation/registries/created`, {
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            console.log(res.data)
-            this.setState({registries: res.data.records})
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Error getting registries. Please try again.');
-        });
     }
 
 
@@ -65,7 +45,7 @@ class GetRegistry extends Component {
 
 
     render() {
-        const { classes } = this.props;
+        const { classes, registries } = this.props;
 
         return (
             <Grid container>

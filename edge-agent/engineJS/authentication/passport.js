@@ -25,7 +25,7 @@ passport.use('login', new localStrategy({
         if(error.indyCode === 206){ // WalletAlreadyOpenedError
             return done(null, {walletHandle: await indy.wallet.get(), username: username}, {message: 'you are now logged in.'});
         } 
-        if(error.indyCode === 207){
+        if(error.indyCode === 204 || error.indyCode === 207){ // WalletNotFoundError || WalletAccessFailed
             return done(null, false, {message: 'Invalid credentials.'});
         } 
         return done(error);

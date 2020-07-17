@@ -76,12 +76,32 @@ exports.getNym = async (did) => {
 
 exports.createNymDocument = async (did, verkey=null) => {
     if(!verkey) verkey = await sdk.keyForDid(poolHandle, await indy.wallet.get(), did);
-    const didDoc = await indy.didDoc.createDidDoc(did, verkey);
+    const didDoc = indy.didDoc.createDidDoc(did, verkey);
 
     // Set created did doc as an attribute of the ledger did
     return await this.setDidAttribute(did, did, null, {"did-document": didDoc}, null); 
 }
 
+
+exports.getTxn = async (did, type, seqNo) => {
+    let getTxnRequest = await sdk.buildGetTxnRequest(did, type, seqNo);
+    let getTxnResponse = await sdk.submitRequest(poolHandle, getTxnRequest);
+    return getTxnResponse.result.data;
+
+};
+
+exports.getSchemaBySeqNo = async (did, type, seqNo) => {
+    const txn = (await this.getTxn(did, type, seqNo))['txn'];
+    if(txn.type === '101'){ // schema txn type
+        const originDid = txn.metadata.from;
+        const name = txn.data.data.name;
+        const version = txn.data.data.version;
+        const schemaId = `${originDid}:2:${name}:${version}`;
+        return this.getSchema(null, schemaId);
+    } else {
+        throw new Error(`Unable to get schema with seqence number ${seqNo} from ledger`)
+    }
+};
 
 exports.getSchema = async (did, schemaId) => {
     let getSchemaRequest = await sdk.buildGetSchemaRequest(did, schemaId);

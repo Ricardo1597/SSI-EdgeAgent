@@ -26,7 +26,7 @@ export default {
             (response) => { 
                 return response 
             },
-            async (error) => {
+            (error) => {
                 return new Promise((resolve, reject) => {
                     const originalRequest = error.config
                     const status = error.response.status
@@ -35,13 +35,16 @@ export default {
                         (status === 401 || status === 403) &&
                         !originalRequest._retry &&
                         !originalRequest.url.includes('/users/refresh-token')
-                    ) {           
-                        console.log("vou dar refresh")             
+                    ) {       
+                        // Invalid credentials
+                        if(error.response.data.error === 'Invalid credentials'){
+                            return reject({status: 401, message: "Invalid credentials"})
+                        }
                         // Refresh access token
                         let res = refreshAccessToken(store)
                         .then(token => {
                             if(!token) {
-                                return Promise.reject(new Error("Unable to refresh token."));
+                                return Promise.reject({status: 401, message: "Unable to refresh token."});
                             }
                             originalRequest._retry = true
                             originalRequest.headers.Authorization = `Bearer ${token}`
@@ -50,13 +53,11 @@ export default {
                         })
                         .catch(error => {
                             console.log("Error resending request: ", error)
-                            return Promise.reject(error)
+                            return Promise.reject(error);
                         });
-                        console.log("antes do resolve")
                         resolve(res);
                     } 
-                        
-                    reject(error)
+                    reject(error);
                 })
             }
         );

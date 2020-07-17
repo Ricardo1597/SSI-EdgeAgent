@@ -50,7 +50,7 @@ class PendingConnections extends Component {
             <div className={classes.root} >
                 <Grid container>
                     <Grid item className={classes.card}>
-                        <Container style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
+                        <Container className='scrollBar' style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
                             {
                                 this.props.connections ? (
                                     this.props.connections.map(connection => (

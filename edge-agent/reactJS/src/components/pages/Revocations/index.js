@@ -11,9 +11,12 @@ import GetRegistry from './components/GetRegistry'
 import CreateRegistry from './components/CreateRegistry';
 import RevokeCredential from './components/RevokeCredential';
 
+import axios from 'axios'
+import config from '../../../config'
 
 class Revocations extends Component {
     state = {
+        registries: [],
         tab: 0,
     }
 
@@ -28,6 +31,23 @@ class Revocations extends Component {
         this.setState({tab: newValue})
     }
 
+    componentWillMount() {
+        const jwt = this.props.accessToken;
+
+        axios.get(`${config.endpoint}/api/revocation/registries/created`, {
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
+            this.setState({
+                registries: res.data.records || []
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error getting registries. Please try again.');
+        });
+    }
 
     render() {
         const { classes } = this.props;
@@ -48,7 +68,7 @@ class Revocations extends Component {
                     </Tabs>
                 </AppBar>
                 <TabPanel value={this.state.tab} index={0}>
-                    <MyRegistries/>
+                    <MyRegistries myRegistries = {this.state.registries}/>
                 </TabPanel>
                 <TabPanel value={this.state.tab} index={1}>
                     <GetRegistry/>
@@ -57,7 +77,7 @@ class Revocations extends Component {
                     <CreateRegistry/>
                 </TabPanel>
                 <TabPanel value={this.state.tab} index={3}>
-                    <RevokeCredential/>
+                    <RevokeCredential myRegistries = {this.state.registries}/>
                 </TabPanel>
             </div>
         )

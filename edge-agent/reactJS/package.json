@@ -17,6 +17,7 @@
     "js-cookie": "^2.2.1",
     "jwt-decode": "^2.2.0",
     "mdbreact": "^4.25.5",
+    "qrcode.react": "^1.0.0",
     "qs": "^6.9.4",
     "react": "^16.13.1",
     "react-bootstrap": "^1.0.1",

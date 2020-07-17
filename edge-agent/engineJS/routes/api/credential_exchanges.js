@@ -81,6 +81,7 @@ router.post('/send-offer', passport.authenticate('jwt', {session: false}), async
       req.body.connectionId,
       req.body.comment,
       req.body.credAttributes,
+      req.body.schemaId, 
       req.body.credDefId,
     );
     res.status(200).send({record, messageSent});

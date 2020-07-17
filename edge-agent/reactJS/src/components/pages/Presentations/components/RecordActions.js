@@ -82,8 +82,6 @@ function RecordActions(props) {
             )
         case 'presentation_received':
             return <Button size="small" color="primary" onClick={() => verifyPresentation(id)}>Verify Presentation</Button>
-        case 'done':
-            return <Button size="small" color="primary" onClick={() => verifyPresentation(id)}>Verify Presentation</Button>
         default:
             return null;
     }

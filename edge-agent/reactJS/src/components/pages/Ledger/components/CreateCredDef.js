@@ -40,7 +40,7 @@ class CreateCredDef extends Component {
         let formIsValid = true;
     
         // schemaId: schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3
-        if(this.state.schemaId.length < 1 ){
+        if(!this.state.schemaId.length){
             formIsValid = false;
             errors["schemaId"] = "Cannot be empty";
         } else if(!this.state.schemaId.match(/^[a-zA-Z0-9:\-._]+$/)){
@@ -49,7 +49,7 @@ class CreateCredDef extends Component {
         }
     
         // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
-        if(this.state.did.length > 0 ){
+        if(!this.state.did.length){
             formIsValid = false;
             errors["did"] = "Cannot be empty";
         } else if(!this.state.did.match(/^[a-zA-Z0-9:]+$/)){

@@ -66,10 +66,10 @@ class ActiveConnections extends Component {
         const { classes } = this.props;
 
         return (
-            <div className={classes.root}>
+            <div className={`${classes.root}`}>
                 <Grid container>
                     <Grid item className={classes.card}>
-                        <Container style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
+                        <Container className='scrollBar' style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
                             {
                                 this.props.connections ? (
                                     this.props.connections.map(connection => ( 
@@ -146,7 +146,7 @@ const useStyles = theme => ({
         flexGrow: 1,
         backgroundColor: '#F6F6F6',
         minWidth: 500,
-    }
+    },
 });
 
 

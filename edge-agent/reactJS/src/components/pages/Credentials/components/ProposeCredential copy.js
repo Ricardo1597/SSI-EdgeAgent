@@ -13,6 +13,7 @@ import AttributesTable from '../../../AttributesTable';
 
 import uuid from "uuid";
 import { connect } from 'react-redux';
+import { grey } from '@material-ui/core/colors';
 
 
 class ProposeCredential extends Component {
@@ -34,26 +35,17 @@ class ProposeCredential extends Component {
         })
     }
 
-    onAddAttribute = () => {
-        if (this.state.credAttrName.length < 3){
-            alert('Attribute name must be at least 3 characters long.') 
-        } else {
-            this.setState({
-                credAttributes: [...this.state.credAttributes, {id: uuid(), name: this.state.credAttrName, value: this.state.credAttrValue}],
-                credAttrName: '',
-                credAttrValue: '',
-            });
+    handleCredDefValidation = () => {
+        let formIsValid = true;
+
+        // credDefId: creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1
+        if(this.state.credDefId.length < 1 ){
+            formIsValid = false;
+        } else if(!this.state.credDefId.match(/^[a-zA-Z0-9:\-]+$/)){
+            formIsValid = false;
         }
-    }
 
-    onEditAttribute = () => {
-        alert("Edit is not yet working...")
-    }
-
-    onDeleteAttribute = (id) => {
-        this.setState({
-            credAttributes: this.state.credAttributes.filter(attr => attr.id !== id)
-        });
+       return formIsValid;
     }
 
     handleValidation = () => {
@@ -98,6 +90,27 @@ class ProposeCredential extends Component {
        return formIsValid;
    }
 
+    getCredDef = (e) => {
+        e.preventDefault()
+
+        if(!this.handleCredDefValidation()){
+            return;
+        }
+            
+        const jwt = this.props.accessToken;
+
+        axios.get(`${config.endpoint}/api/ledger/cred-def-with-schema`, {
+            headers: { Authorization: `Bearer ${jwt}`} 
+        })
+        .then(res => {
+            console.log(res.data)
+        })
+        .catch(err => {
+                console.error(err);
+                alert('Error sending credential proposal. Please try again.');
+        });
+    }
+
     onSubmit = (e) => {
         e.preventDefault()
 
@@ -118,14 +131,9 @@ class ProposeCredential extends Component {
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res.data)
-                alert("Proposal sent with success!")
-                this.setState({invitation: JSON.stringify(res.data.invitation)})
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            console.log(res.data)
+            this.setState({invitation: JSON.stringify(res.data.invitation)})
+            alert("Proposal sent with success!");
         })
         .catch(err => {
               console.error(err);
@@ -143,6 +151,32 @@ class ProposeCredential extends Component {
                     <Typography component="span" variant="h5">
                     Propose Credential
                     </Typography>
+                    <Grid container style={{width: 800}} className={`mt-2`} align='center' spacing={2}>
+                        <Grid item xs={12} md={8}>
+                            <TextField
+                                variant="outlined"
+                                required
+                                fullWidth
+                                id="credDefId"
+                                label="Credential Definition ID"
+                                name="credDefId"
+                                value={this.state.credDefId}
+                                onChange={this.handleChange}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <Button
+                                type="button"
+                                fullWidth
+                                variant="contained"
+                                color="primary"
+                                className={classes.add}
+                                onClick={this.onAddAttribute}
+                            >
+                                Get Credential Definition
+                            </Button>
+                        </Grid>
+                    </Grid>
                     <form noValidate className={classes.form} onSubmit={this.onSubmit2}>
                         <Grid container align='center' spacing={2}>
                             <Grid item xs={12} lg={6}>

@@ -71,8 +71,10 @@ class AllRecords extends Component {
                 exchanges: res.data.records
             })
             this.props.recordId 
-                ? this.changeExchange(this.props.recordId)
-                : this.setState({exchange: res.data.records[0]})
+            ? this.changeCredExchange(this.props.recordId)
+            : res.data.records && res.data.records.length
+                ? this.setState({exchange: res.data.records[0]})
+                : this.setState({exchange: null})
         })
         .catch(err => {
               console.error(err);
@@ -87,7 +89,7 @@ class AllRecords extends Component {
             <div className={classes.root}>
                 <Grid container>
                     <Grid item className={classes.card}>
-                        <Container style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
+                        <Container className='scrollBar' style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
                             {
                                 this.state.exchanges ? (
                                     this.state.exchanges.map(exchange => ( 
@@ -136,6 +138,8 @@ class AllRecords extends Component {
                                             threadId: this.state.exchange.threadId,
                                             connectionId: this.state.exchange.connectionId,
                                             proposal: this.state.exchange.presentationProposalDict,
+                                            presentation: this.state.exchange.presentation,
+                                            verified: this.state.exchange.verified,
                                             error: this.state.exchange.error
                                         }}
                                     />

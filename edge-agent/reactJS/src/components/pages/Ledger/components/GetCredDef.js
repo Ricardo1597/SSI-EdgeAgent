@@ -54,7 +54,7 @@ class GetCredDef extends Component {
 
         const jwt = this.props.accessToken;
 
-        axios.get(`${config.endpoint}/api/ledger/get-cred-def`, {
+        axios.get(`${config.endpoint}/api/ledger/cred-def`, {
             params: {
                 credDefId: this.state.credDefId
             },

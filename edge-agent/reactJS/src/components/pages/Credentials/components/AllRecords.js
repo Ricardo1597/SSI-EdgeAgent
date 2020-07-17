@@ -67,11 +67,13 @@ class AllRecords extends Component {
         .then(res => {
             console.log(res.data)
             this.setState({
-                exchanges: res.data.records
+                exchanges: res.data.records || []
             })
             this.props.recordId 
                 ? this.changeCredExchange(this.props.recordId)
-                : this.setState({exchange: res.data.records[0]})
+                : res.data.records && res.data.records.length
+                    ? this.setState({exchange: res.data.records[0]})
+                    : this.setState({exchange: null})
         })
         .catch(err => {
               console.error(err);
@@ -83,12 +85,12 @@ class AllRecords extends Component {
         const { classes } = this.props;
 
         return (
-            <div className={classes.root}>
+            <div className={`${classes.root}`}>
                 <Grid container>
                     <Grid item className={classes.card}>
-                        <Container style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
+                        <Container className='scrollBar' style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
                             {
-                                this.state.exchanges ? (
+                                this.state.exchanges.length ? (
                                     this.state.exchanges.filter(exchange => {
                                         return exchange.state !== 'mudar para done';
                                     }).map(exchange => ( 
@@ -182,6 +184,9 @@ const useStyles = theme => ({
         flexGrow: 1,
         width: '100%',
         height: '100%'
+    },
+    'root::-webkit-scrollbar': {
+        width: 50
     },
     card: {
         width: 430

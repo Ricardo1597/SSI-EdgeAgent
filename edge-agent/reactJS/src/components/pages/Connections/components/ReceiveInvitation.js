@@ -17,17 +17,78 @@ class ReceiveInvitation extends Component {
         alias: '',
         invitation: '',
         dids: JSON.parse(localStorage.getItem('dids')).map(did => did.did),
+        formErrors: {
+            alias: '',
+            invitation: '',
+        }
     }
 
 
     handleChange = e => {
+        const { name, value } = e.target;
+
         this.setState({
-            [e.target.name]: e.target.value
+            [name]: value
         })
+
+        // Handle errors
+        let errors = this.state.formErrors;
+        errors[name] = '';
+        switch(name) {
+            case 'alias': 
+                if(!value.match(/^[a-zA-Z0-9 ]*$/)){
+                    errors["alias"] = "Invalid characters";
+                } else if(value.length < 3){
+                    errors["alias"] = "Must be at least 3 characters long";
+                }
+                break;
+            case 'invitation': 
+                if(value.length) {
+                    try {
+                        const o = JSON.parse(value);
+                        if (!o && !(typeof o === "object")) {
+                            errors["invitation"] = "Invalid JSON";
+                        }
+                    } catch (e) { 
+                        errors["invitation"] = "Invalid JSON";
+                    }
+                } else {
+                    errors["invitation"] = "Required";
+                }
+                break;
+            default:
+                break;
+        }
+        this.setState({formErrors: errors});
+    }
+
+    isFormValid = () => {
+        let valid = true;
+        let errors = this.state.formErrors;
+
+        if(!this.state.alias.length){
+            valid = false
+            errors['alias'] = 'Required';
+        }
+        if(!this.state.invitation.length){
+            valid = false;
+            errors['invitation'] = 'Required';
+        }
+        Object.values(this.state.formErrors).forEach(val => {
+          val.length && (valid=false);
+        })
+        
+        this.setState({formErrors: errors});
+        return valid;
     }
 
     onSubmit = e => {
-        e.preventDefault()
+        e.preventDefault();
+
+        if(!this.isFormValid()){
+            return;
+        }
+
         const jwt = this.props.accessToken;
 
         axios.post(`${config.endpoint}/api/connections/receive-invitation`, {
@@ -37,12 +98,8 @@ class ReceiveInvitation extends Component {
             headers: { Authorization: `Bearer ${jwt}`} 
         })
         .then(res => {
-            if (res.status === 200) {
-                console.log(res)
-            } else {
-                const error = new Error(res.error);
-                throw error;
-            }
+            alert("New connection added to your pending connections!")
+            console.log(res)
         })
         .catch(err => {
               console.error(err);
@@ -54,57 +111,59 @@ class ReceiveInvitation extends Component {
         const { classes } = this.props;
 
         return (
-            <Grid item xs={12} lg={5}>
-                <Container maxWidth="xs" spacing={2}>
-                    <div className={classes.paper} >
-                        <Typography component="span" variant="h5">
-                        Receive invitation
-                        </Typography>
-                        <form className={classes.form} noValidate onSubmit={this.onSubmit2}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={12}>
-                                    <TextField
-                                        variant="outlined"
-                                        required
-                                        fullWidth
-                                        id="alias"
-                                        label="Alias"
-                                        name="alias"
-                                        value={this.state.alias}
-                                        onChange={this.handleChange}
-                                    />
-                                </Grid>  
-                                <Grid item xs={12}>
-                                    <TextField
-                                        variant="outlined"
-                                        fullWidth
-                                        multiline
-                                        required
-                                        rows={10}
-                                        label="Invitation Details"
-                                        name="invitation"
-                                        id="invitation"
-                                        value={this.state.invitation}
-                                        onChange={this.handleChange}
-                                        className={classes.jsonBox}
+            <Container spacing={2}>
+                <div className={classes.paper} >
+                    <Typography component="span" variant="h5">
+                    Receive invitation
+                    </Typography>
+                    <form className={classes.form} noValidate onSubmit={this.onSubmit}>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <TextField
+                                    variant="outlined"
+                                    required
+                                    fullWidth
+                                    id="alias"
+                                    label="Alias"
+                                    name="alias"
+                                    value={this.state.alias}
+                                    onChange={this.handleChange}
+                                    error={this.state.formErrors.alias}
+                                    helperText={this.state.formErrors.alias}
+                                />
+                            </Grid>  
+                            <Grid item xs={12}>
+                                <TextField
+                                    variant="outlined"
+                                    fullWidth
+                                    multiline
+                                    required
+                                    rows={10}
+                                    label="Invitation Details"
+                                    name="invitation"
+                                    id="invitation"
+                                    value={this.state.invitation}
+                                    onChange={this.handleChange}
+                                    className={classes.jsonBox}
+                                    error={this.state.formErrors.invitation}
+                                    helperText={this.state.formErrors.invitation}
 
-                                    />
-                                </Grid>  
-                            </Grid>
-                            <Button
-                                type="button"
-                                fullWidth
-                                variant="contained"
-                                color="primary"
-                                className={classes.add}
-                                onClick={this.onSubmit}
-                            >
-                                Receive Invitation
-                            </Button>
-                        </form>
-                    </div>
-                </Container>
-            </Grid>
+                                />
+                            </Grid>  
+                        </Grid>
+                        <Button
+                            type="button"
+                            fullWidth
+                            variant="contained"
+                            color="primary"
+                            className={classes.add}
+                            onClick={this.onSubmit}
+                        >
+                            Receive Invitation
+                        </Button>
+                    </form>
+                </div>
+            </Container>
         )
     }
 }
@@ -113,11 +172,6 @@ class ReceiveInvitation extends Component {
 
 // Styles
 const useStyles = theme => ({
-    root: {
-      flexGrow: 1,
-      width: '100%',
-      backgroundColor: theme.palette.background.paper,
-    },
     paper: {
         marginTop: 30,
         marginBottom: 30,
@@ -137,7 +191,7 @@ const useStyles = theme => ({
         }
     },
     form: {
-        width: '500px', 
+        maxWidth: '500px', 
         marginTop: theme.spacing(3),
     },
     submit: {

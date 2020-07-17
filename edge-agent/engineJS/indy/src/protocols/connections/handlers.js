@@ -60,6 +60,7 @@ exports.requestHandler = async (decryptedMessage, socket) => {
         // Just create a new did/verkey for each new connection
         connection = await connectionsIndex.createPeerDidConnection(
             generalTypes.Initiator.Self,
+            invitation.alias,
             message['@id']
         );
 

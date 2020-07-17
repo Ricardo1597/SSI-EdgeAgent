@@ -5,6 +5,7 @@ const uuid = require('uuid');
 const messages = require('./messages')
 const generalTypes = require('../generalTypes');
 const { connection } = require('mongoose');
+const QRCode = require('qrcode');
 
 exports.handlers = require('./handlers');
 
@@ -60,6 +61,9 @@ exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, is
     // }
 
     const invitationMessage = messages.createInvitationMessage(myDidDoc, isPublic);
+    const invitationURL = this.encodeInvitationToUrl(invitationMessage);
+    const qrCode = QRCode.create(invitationURL);
+    console.log(qrCode);
 
     const currentDate = indy.utils.getCurrentDate();
 
@@ -85,7 +89,7 @@ exports.createInvitation = async (myDid, myVerkey, myDidDoc, invitationAlias, is
         {}
     );
 
-    return invitationMessage;
+    return [invitationMessage, invitationURL, qrCode];
 }
 
 
@@ -276,11 +280,11 @@ exports.createAndSendAck = async (connectionId) => {
     return connection;
 }
 
-exports.createPeerDidConnection = async (initiator, threadId, state=null) => {
+exports.createPeerDidConnection = async (initiator, alias, threadId, state=null) => {
     if(!state) {
         state = ConnectionState.Init;
     }
-    const [did, verkey, didDoc] = await this.getDidAndDocument(false);
+    const [did, verkey, didDoc] = await this.getDidAndDocument(false, alias);
 
     const currentDate = indy.utils.getCurrentDate();
     
@@ -297,28 +301,28 @@ exports.createPeerDidConnection = async (initiator, threadId, state=null) => {
 }
 
 
-exports.createPublicDidConnection = async (did, initiator, threadId, state=null) => {
-    if(!state) {
-        state = ConnectionState.Init;
-    }
-    const [myDid, myVerkey, myDidDoc] = await this.getDidAndDocument(true, did);
+// exports.createPublicDidConnection = async (did, initiator, threadId, state=null) => {
+//     if(!state) {
+//         state = ConnectionState.Init;
+//     }
+//     const [myDid, myVerkey, myDidDoc] = await this.getDidAndDocument(true, did);
 
-    const currentDate = indy.utils.getCurrentDate();
+//     const currentDate = indy.utils.getCurrentDate();
 
-    return {
-        connectionId: uuid(),
-        myDid: myDid,
-        myVerkey: myVerkey,
-        state: state,
-        initiator: initiator,
-        threadId: threadId,
-        createdAt: currentDate,
-        updatedAt: currentDate,
-    }
-}
+//     return {
+//         connectionId: uuid(),
+//         myDid: myDid,
+//         myVerkey: myVerkey,
+//         state: state,
+//         initiator: initiator,
+//         threadId: threadId,
+//         createdAt: currentDate,
+//         updatedAt: currentDate,
+//     }
+// }
 
 
-exports.getDidAndDocument = async (isPublic, myDid=null) => {
+exports.getDidAndDocument = async (isPublic, alias, myDid=null) => {
     let myVerkey = null;
     let myDidDoc = {};
 
@@ -348,7 +352,7 @@ exports.getDidAndDocument = async (isPublic, myDid=null) => {
       } else {
         // Create local did and did document
         const options = {method_name: 'peer'};
-        [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc("Connection: " + connection.alias, options);
+        [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc("Connection: " + alias, options);
     
         // Save created did document in the wallet
         await indy.didDoc.addLocalDidDocument(myDidDoc);

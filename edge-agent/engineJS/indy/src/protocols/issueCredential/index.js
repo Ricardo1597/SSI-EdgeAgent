@@ -81,7 +81,7 @@ exports.holderCreateAndSendProposal = async (connectionId, comment, attributes, 
 
     // Add credential exchange record to the wallet
     await this.addCredentialExchangeRecord(
-        credentialExchangeId, 
+        credentialExchangeRecord.credentialExchangeId, 
         JSON.stringify(credentialExchangeRecord), 
         {'connectionId': connectionId, 'threadId': credentialExchangeRecord.threadId}
     );
@@ -115,14 +115,14 @@ exports.holderSendProposal = async (credentialExchangeRecord) => {
 
 
 // Issuer starts exchange at credential offer (jumpping credential proposal phase)
-exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDefId) => {
+exports.exchangeStartAtOffer = async (connectionId, comment, attributes, credDefId, schemaId) => {
     const credentialPreview = messages.createCredentialPreview(attributes);
 
     // Is there a way to get the schemaId from the credDefId?
 
     const credentialProposalMessage = messages.createCredentialProposal(
         comment, 
-        null, 
+        schemaId, 
         credentialPreview, 
         credDefId, 
         null

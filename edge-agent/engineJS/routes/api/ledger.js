@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport')
 const indy = require('../../indy/index.js');
+const sdk = require('indy-sdk');
 
 
 // Send did to the ledger with a specific role
@@ -50,10 +51,18 @@ router.post('/create-schema', passport.authenticate('jwt', {session: false}), as
   
   
 // Get schema from the ledger
-router.get('/get-schema', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/schema', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  const { schemaId } = req.query;
   try{
-    let [id, schema] = await indy.ledger.getSchema(null, req.query.schemaId)
-    res.status(200).send({id: id, schema: schema})
+    let id = null;
+    let schema = null;
+    if(isNaN(schemaId)){
+      [id, schema] = await indy.ledger.getSchema(null, req.query.schemaId);
+    } else {
+      [id, schema] = await indy.ledger.getSchemaBySeqNo(null, null, parseInt(schemaId));
+    }
+    res.status(200).send({id: id, schema: schema});
+
   } catch(error) {
     res.status(400).send({error})
   }
@@ -84,9 +93,8 @@ router.post('/create-cred-def', passport.authenticate('jwt', {session: false}), 
     }
 });
   
-  
 // Get credential definition from the ledger
-router.get('/get-cred-def', passport.authenticate('jwt', {session: false}), async (req, res) => {
+router.get('/cred-def', passport.authenticate('jwt', {session: false}), async (req, res) => {
     try{
       let [id, credDef] = await indy.ledger.getCredDef(null, req.query.credDefId)
       res.status(200).send({id: id, credDef: credDef})
@@ -94,5 +102,46 @@ router.get('/get-cred-def', passport.authenticate('jwt', {session: false}), asyn
       res.status(400).send({error})
     }
 });
+
+// Get credential definition from the ledger
+router.get('/cred-def-with-schema', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  try{
+    const credDefIdParts = req.query.credDefId.split(':');
+    const schemaTxnNo = parseInt(credDefIdParts[credDefIdParts.length - 2]);
+    const credDef = {
+      id: req.query.credDefId,
+      schema: (await indy.ledger.getSchemaBySeqNo(null, null, schemaTxnNo))[1]
+    }
+    res.status(200).send({credDef: credDef})
+  } catch(error) {
+    console.log(error)
+    res.status(400).send({error})
+  }
+});
+
+// Get all credential definitions from a issuer
+router.get('/cred-defs-for-cred-offer', passport.authenticate('jwt', {session: false}), async (req, res) => {
+  try{
+    let dids = await sdk.listMyDidsWithMeta(await indy.wallet.get());
+
+    let credDefs = (await Promise.all(dids.filter(did => !did.did.startsWith('did:peer')).map(async did => {    
+      let didCredDefs = JSON.parse(did.metadata).credential_definitions;
+      
+      return await Promise.all(didCredDefs.map(async (didCredDef) => {    
+        return {
+          id: didCredDef.id,
+          schema: (await indy.ledger.getSchemaBySeqNo(null, null, parseInt(didCredDef.schemaId)))[1]
+        }
+      }))  
+    }))).flat()
+    
+    res.status(200).send({credDefs})
+
+  } catch(error) {
+    console.log(error)
+    res.status(400).send({error})
+  }
+});
+  
 
 module.exports = router;

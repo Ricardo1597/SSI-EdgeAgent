@@ -20,6 +20,7 @@ function RecordActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert("Credential proposal sent with success!")
         })
         .catch(err => {
               console.error(err);
@@ -34,6 +35,7 @@ function RecordActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert("Credential offer sent with success!")
         })
         .catch(err => {
               console.error(err);
@@ -48,6 +50,7 @@ function RecordActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert("Credential request sent with success!")
         })
         .catch(err => {
               console.error(err);
@@ -62,6 +65,7 @@ function RecordActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert("Credential sent with success!")
         })
         .catch(err => {
               console.error(err);
@@ -76,6 +80,7 @@ function RecordActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert(`Credential ${messageType} rejected!`)
         })
         .catch(err => {
               console.error(err);

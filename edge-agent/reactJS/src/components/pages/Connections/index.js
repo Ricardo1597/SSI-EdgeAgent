@@ -37,10 +37,10 @@ class Connections extends Component {
         .then(res => {
             console.log(res.data)                
             this.setState({
-                activeConnections: res.data.connections.filter(connection => {
+                activeConnections: (res.data.connections || []).filter(connection => {
                     return connection.state === 'complete'
                 }),
-                pendingConnections: res.data.connections.filter(connection => {
+                pendingConnections: (res.data.connections || []).filter(connection => {
                     return connection.state !== 'complete'
                 })
             })            

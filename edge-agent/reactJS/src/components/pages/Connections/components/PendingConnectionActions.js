@@ -22,6 +22,7 @@ function PendingConnectionActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert("Connection invitation accepted with success!")
         })
         .catch(err => {
               console.error(err);
@@ -38,6 +39,7 @@ function PendingConnectionActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert('Connection invitation rejected!');
         })
         .catch(err => {
               console.error(err);
@@ -55,6 +57,7 @@ function PendingConnectionActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert("Connection request sent with success!")
         })
         .catch(err => {
               console.error(err);
@@ -72,6 +75,7 @@ function PendingConnectionActions(props) {
         })
         .then(res => {
             console.log(res.data)
+            alert("Connection request rejected!")
         })
         .catch(err => {
               console.error(err);

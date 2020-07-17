@@ -94,7 +94,7 @@ class RequestPresentation extends Component {
             .then(res => {
                 if (res.status === 200) {
                     console.log(res.data)
-                    alert("Request sent with success!")
+                    alert("Presentation request sent with success!")
                 } else {
                     const error = new Error(res.error);
                     throw error;

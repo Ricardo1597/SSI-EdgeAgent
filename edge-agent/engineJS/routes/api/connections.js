@@ -66,12 +66,12 @@ router.delete('/:id', passport.authenticate('jwt', {session: false}), async (req
 router.post('/create-invitation', passport.authenticate('jwt', {session: false}), async (req, res) => {
     const { did, alias, isPublic, isMultiuse } = req.body;
     try {
-        const [myDid, myVerkey, myDidDoc] = await indy.connections.getDidAndDocument(isPublic, did)
-        const invitation = await indy.connections.createInvitation(myDid, myVerkey, myDidDoc, alias, isPublic, isMultiuse);
+        const [myDid, myVerkey, myDidDoc] = await indy.connections.getDidAndDocument(isPublic, alias, did)
+        const [invitation, url, qrCode] = await indy.connections.createInvitation(myDid, myVerkey, myDidDoc, alias, isPublic, isMultiuse);
         if (!invitation) {
             throw new Error('Error while creating invitation.');
         }
-        res.status(200).send({invitation})
+        res.status(200).send({invitation, url, qrCode});
     } catch(error){
         console.log(error);
         res.status(400).send({error});

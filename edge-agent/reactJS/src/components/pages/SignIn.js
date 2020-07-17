@@ -17,6 +17,7 @@ import Cookies from 'js-cookie';
 import axios from 'axios'
 import config from '../../config'
 
+import '../../styles.css'
 
 class SignIn extends Component {
   state = {
@@ -24,13 +25,15 @@ class SignIn extends Component {
     password: '',
     loading: true,
     redirect: false,
+    invalidCredentials: false,
   }
 
 
   handleChange = e => {
-      this.setState({
-          [e.target.name]: e.target.value
-      })
+    this.setState({
+      [e.target.name]: e.target.value,
+      invalidCredentials: false
+    });
   }
 
   componentDidMount() {
@@ -52,6 +55,7 @@ class SignIn extends Component {
 
   onSubmit = (e) => {
     e.preventDefault();
+
     axios.post(`${config.endpoint}/users/login`, {
         username: this.state.username,
         password: this.state.password
@@ -59,22 +63,19 @@ class SignIn extends Component {
       withCredentials: true,
     })
     .then(res => {
-        if (res.status === 200) {
-            console.log(res.data)
-            this.props.updateAccessToken(res.data.accessToken)
-            localStorage.setItem('dids', JSON.stringify(res.data.dids))
-            //res.data.dids.map(did => this.props.addDid(did));
-            this.props.history.push('/');
-        } else if(res.status === 400) {
-            console.log(res.data)
-        } else {
-            const error = new Error(res.error);
-            throw error;
-        }
+        console.log(res.data)
+        this.props.updateAccessToken(res.data.accessToken)
+        localStorage.setItem('dids', JSON.stringify(res.data.dids))
+        //res.data.dids.map(did => this.props.addDid(did));
+        this.props.history.push('/');
     })
     .catch(err => {
-        console.error(err);
-        alert(err.message || 'Error logging in please try again');
+      console.log(err)
+      if(err.status === 401) {
+        this.setState({ invalidCredentials: true });
+      } else {
+        alert(err);
+      }
     });
   }
 
@@ -140,6 +141,9 @@ class SignIn extends Component {
               >
                 Sign In
               </Button>
+              {this.state.invalidCredentials && (
+                <div className="login-feedback">Invalid credentials</div>
+              )}
               <Grid container>
                 <Grid item xs>
                   <Link href="#" variant="body2">

@@ -112,16 +112,25 @@ class RevokeCredential extends Component {
                     <form noValidate className={classes.form} onSubmit={this.onSubmit2}>
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
-                                <TextField
-                                    variant="outlined"
-                                    required
-                                    fullWidth
-                                    id="revocRegId"
-                                    label="Revocation Registry ID"
-                                    name="revocRegId"
-                                    value={this.state.revocRegId}
-                                    onChange={this.handleChange}
-                                />
+                                <FormControl variant="outlined" className={classes.formControl}>
+                                    <InputLabel>Revocation Registry ID</InputLabel>
+                                    <Select
+                                        variant="outlined"
+                                        required
+                                        fullWidth
+                                        label="Revocation Registry ID"
+                                        value={this.state.revocRegId}
+                                        onChange={this.handleChange}
+                                        inputProps={{
+                                            name: 'revocRegId',
+                                            id: 'revocRegId',
+                                        }}
+                                    >
+                                        {this.props.myRegistries.map(registry => {
+                                            return (<MenuItem key={registry.recordId} value={registry.revocRegId}>{registry.revocRegId}</MenuItem>)
+                                        })}
+                                    </Select>
+                                </FormControl>
                             </Grid>  
                             <Grid item xs={8}>
                                 <TextField

@@ -464,33 +464,29 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
     console.log("verified: ", verified)
     if(verified) {
         console.log("Passed at presentation verification!")
-
-        // Create ack message
-        const ackMessage = messages.createPresentationAckMessage(
-            presentationExchangeRecord.threadId
-        );
-    
-        // Prepare and send message to prover
-        const [message, endpoint] = await indy.messages.prepareMessage(ackMessage, connection);
-        indy.messages.sendMessage(message, endpoint);
-    
-        // Update presentation exchange record
-        presentationExchangeRecord.verified = JSON.stringify(verified);
-        presentationExchangeRecord.state = PresentationExchangeState.Done;
-        presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
-        await indy.wallet.updateWalletRecordValue(
-            indy.recordTypes.RecordType.PresentationExchange, 
-            presentationExchangeRecord.presentationExchangeId, 
-            JSON.stringify(presentationExchangeRecord)
-        );
-        return [verified, presentationExchangeRecord, ackMessage];
-
     } else {
         console.log("Failed at presentation verification!")
-        return [verified, presentationExchangeRecord, null];
     }
 
-    
+    // Create ack message
+    const ackMessage = messages.createPresentationAckMessage(
+        presentationExchangeRecord.threadId
+    );
+
+    // Prepare and send message to prover
+    const [message, endpoint] = await indy.messages.prepareMessage(ackMessage, connection);
+    indy.messages.sendMessage(message, endpoint);
+
+    // Update presentation exchange record
+    presentationExchangeRecord.verified = JSON.stringify(verified);
+    presentationExchangeRecord.state = PresentationExchangeState.Done;
+    presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
+    await indy.wallet.updateWalletRecordValue(
+        indy.recordTypes.RecordType.PresentationExchange, 
+        presentationExchangeRecord.presentationExchangeId, 
+        JSON.stringify(presentationExchangeRecord)
+    );
+    return [verified, presentationExchangeRecord, ackMessage];    
 }
 
 

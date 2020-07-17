@@ -74,7 +74,7 @@ class Invitations extends Component {
             <div className={classes.root}>
                 <Grid container>
                     <Grid item className={classes.card}>
-                        <Container maxWidth="xs">
+                        <Container className='scrollBar' style={{height: '85vh', 'overflow-y': 'scroll'}} maxWidth="xs">
                             {
                                 this.state.invitations ? (
                                     this.state.invitations.map(invitation => ( 

@@ -52,7 +52,7 @@ class GetSchema extends Component {
 
         const jwt = this.props.accessToken;
 
-        axios.get(`${config.endpoint}/api/ledger/get-schema`, {
+        axios.get(`${config.endpoint}/api/ledger/schema`, {
             params: {
             schemaId: this.state.schemaId
             },
