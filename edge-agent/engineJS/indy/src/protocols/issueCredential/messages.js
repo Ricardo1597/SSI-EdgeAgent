@@ -1,6 +1,5 @@
 const uuid = require('uuid');
 
-
 const MessageType = {
   CredentialProposal: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/propose-credential',
   CredentialOffer: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/offer-credential',
@@ -25,10 +24,9 @@ const NewMessageType = {
 };
 exports.NewMessageType = NewMessageType;
 
-
 exports.createCredentialProposal = (comment, schemaId, credentialPreview, credDefId, thid) => {
   let messageId = uuid();
-  if(!thid) thid = messageId;
+  if (!thid) thid = messageId;
   return {
     '@type': MessageType.CredentialProposal,
     '@id': messageId,
@@ -40,68 +38,68 @@ exports.createCredentialProposal = (comment, schemaId, credentialPreview, credDe
     schema_id: schemaId,
     cred_def_id: credDefId,
   };
-}
+};
 
 exports.createCredentialOffer = (comment, credentialPreview, data, thid) => {
-  let messageId = uuid()
-  if(!thid) thid = messageId
+  let messageId = uuid();
+  if (!thid) thid = messageId;
   return {
-    "@type": MessageType.CredentialOffer,
-    "@id": messageId,
+    '@type': MessageType.CredentialOffer,
+    '@id': messageId,
     comment: comment,
     credential_preview: credentialPreview, // JSON-LD Object
     '~thread': {
       thid: thid,
     },
-    "offers~attach": [
+    'offers~attach': [
       {
-        "@id": "libindy-cred-offer-0",
-        "mime-type": "application/json",
+        '@id': 'libindy-cred-offer-0',
+        'mime-type': 'application/json',
         data: {
           base64: data, // bytes for base64
-        }
-      }
-    ]
+        },
+      },
+    ],
   };
-}
+};
 
 exports.createCredentialRequest = (data, thid) => {
   return {
-    "@type": MessageType.CredentialRequest,
-    "@id": uuid(),
+    '@type': MessageType.CredentialRequest,
+    '@id': uuid(),
     '~thread': {
       thid: thid,
     },
-    "requests~attach": [
+    'requests~attach': [
       {
-        "@id": "libindy-cred-req-0",
-        "mime-type": "application/json",
+        '@id': 'libindy-cred-req-0',
+        'mime-type': 'application/json',
         data: {
           base64: data, // bytes for base64
-        }
+        },
       },
-    ]
+    ],
   };
-}
+};
 
 exports.createCredentialResponse = (data, thid) => {
   return {
-    "@type": MessageType.CredentialIssuance,
-    "@id": uuid(),
+    '@type': MessageType.CredentialIssuance,
+    '@id': uuid(),
     '~thread': {
       thid: thid,
     },
-    "credentials~attach": [
+    'credentials~attach': [
       {
-        "@id": "libindy-cred-0",
-        "mime-type": "application/json",
+        '@id': 'libindy-cred-0',
+        'mime-type': 'application/json',
         data: {
           base64: data, // bytes for base64
-        }
+        },
       },
-    ]
+    ],
   };
-}
+};
 
 exports.createCredentialAckMessage = (thid) => {
   return {
@@ -112,7 +110,7 @@ exports.createCredentialAckMessage = (thid) => {
       thid: thid,
     },
   };
-}
+};
 
 exports.createCredentialRevokedMessage = (thid, comment) => {
   return {
@@ -121,22 +119,21 @@ exports.createCredentialRevokedMessage = (thid, comment) => {
     '~thread': {
       thid: thid,
     },
-    comment: comment
+    comment: comment,
   };
-}
-
+};
 
 exports.createCredentialPreview = (attributes) => {
-  let res = {}
+  let res = {};
   res['@type'] = MessageType.CredentialPreview;
-  res['attributes'] = [] 
-  
-  attributes.forEach(attribute => {
+  res['attributes'] = [];
+
+  attributes.forEach((attribute) => {
     res['attributes'].push({
-      "name": attribute['name'],
-      "mime-type": attribute['mime-type']? attribute['mime-type'] : null,
-      "value": attribute['value']
-    })
+      name: attribute['name'],
+      'mime-type': attribute['mime-type'] ? attribute['mime-type'] : null,
+      value: attribute['value'],
+    });
   });
 
   return res;

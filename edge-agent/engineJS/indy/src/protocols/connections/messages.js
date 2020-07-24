@@ -20,24 +20,22 @@ const NewMessageType = {
 };
 exports.NewMessageType = NewMessageType;
 
-
-exports.createInvitationMessage = (myDidDoc, isPublic=false) => {
-  return isPublic 
+exports.createInvitationMessage = (myDidDoc, isPublic = false) => {
+  return isPublic
     ? {
-      '@type': MessageType.ConnectionInvitation,
-      '@id': uuid(),
-      did: myDidDoc.id,
-    } 
+        '@type': MessageType.ConnectionInvitation,
+        '@id': uuid(),
+        did: myDidDoc.id,
+      }
     : {
-      '@type': MessageType.ConnectionInvitation,
-      '@id': uuid(),
-      did: myDidDoc.id,
-      recipientKeys: myDidDoc.service[0].recipientKeys,
-      serviceEndpoint: myDidDoc.service[0].serviceEndpoint,
-      routingKeys: myDidDoc.service[0].routingKeys,
-    }
-}
-
+        '@type': MessageType.ConnectionInvitation,
+        '@id': uuid(),
+        did: myDidDoc.id,
+        recipientKeys: myDidDoc.service[0].recipientKeys,
+        serviceEndpoint: myDidDoc.service[0].serviceEndpoint,
+        routingKeys: myDidDoc.service[0].routingKeys,
+      };
+};
 
 exports.createConnectionRequestMessage = (did, didDoc, pthid) => {
   return {
@@ -51,7 +49,7 @@ exports.createConnectionRequestMessage = (did, didDoc, pthid) => {
       did_doc: didDoc,
     },
   };
-}
+};
 
 exports.createConnectionResponseMessage = (threadId, did, didDoc) => {
   return {
@@ -65,7 +63,7 @@ exports.createConnectionResponseMessage = (threadId, did, didDoc) => {
       did_doc: didDoc,
     },
   };
-}
+};
 
 exports.createAckMessage = (thid) => {
   return {
@@ -76,12 +74,12 @@ exports.createAckMessage = (thid) => {
       thid: thid,
     },
   };
-}
+};
 
 exports.createForwardMessage = (to, msg) => {
   return {
-      '@type': MessageType.ForwardMessage,
-      to,
-      msg,
+    '@type': MessageType.ForwardMessage,
+    to,
+    msg,
   };
-}
+};

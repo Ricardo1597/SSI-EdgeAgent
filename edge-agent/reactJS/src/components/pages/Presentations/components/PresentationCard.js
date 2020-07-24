@@ -31,7 +31,7 @@ export default function PresentationCard(props) {
           Word of the Day
         </Typography>
         <Typography variant="h5" component="h2">
-            Text
+          Text
         </Typography>
         <Typography className={classes.pos} color="textSecondary">
           adjective
@@ -42,10 +42,14 @@ export default function PresentationCard(props) {
           {'"a benevolent smile"'}
         </Typography>
         {props.verified === 'true' && (
-          <img src='http://localhost:3000/valid-stamp.jpg' width={80} alt="Invalid Presentation" />
+          <img src="http://localhost:3000/valid-stamp.jpg" width={80} alt="Invalid Presentation" />
         )}
         {props.verified === 'false' && (
-          <img src='http://localhost:3000/invalid-stamp.jpg' width={80} alt="Invalid Presentation" />
+          <img
+            src="http://localhost:3000/invalid-stamp.jpg"
+            width={80}
+            alt="Invalid Presentation"
+          />
         )}
       </CardContent>
       <CardActions>

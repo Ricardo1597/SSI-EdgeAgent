@@ -1,116 +1,140 @@
-import React from 'react'
+import React from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 
-import axios from 'axios'
-import config from '../../../../config'
+import axios from 'axios';
+import config from '../../../../config';
 
 import { connect } from 'react-redux';
 
-
 function RecordActions(props) {
-    const classes = useStyles();
+  const classes = useStyles();
 
+  const sendProposal = (recordId) => {
+    const jwt = props.accessToken;
+    axios
+      .post(
+        `${config.endpoint}/api/presentation-exchanges/${recordId}/send-proposal`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('Error sending proposal. Please try again.');
+      });
+  };
 
-    const sendProposal = recordId => {
-        const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/presentation-exchanges/${recordId}/send-proposal`, {}, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            console.log(res.data)
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error sending proposal. Please try again.');
-        });
-    }
+  const verifyPresentation = (recordId) => {
+    const jwt = props.accessToken;
+    axios
+      .post(
+        `${config.endpoint}/api/presentation-exchanges/${recordId}/verify-presentation`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('Error accepting connection. Please try again.');
+      });
+  };
 
-    const verifyPresentation = recordId => {
-        const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/presentation-exchanges/${recordId}/verify-presentation`, {}, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            console.log(res.data)
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error accepting connection. Please try again.');
-        });
-    }
+  const rejectExchange = (recordId, messageType) => {
+    const jwt = props.accessToken;
+    axios
+      .post(
+        `${config.endpoint}/api/presentation-exchanges/${recordId}/reject?messageType=${messageType}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert(`Error rejecting ${messageType}. Please try again.`);
+      });
+  };
 
-    const rejectExchange = (recordId, messageType) => {
-        const jwt = props.accessToken;
-        axios.post(`${config.endpoint}/api/presentation-exchanges/${recordId}/reject?messageType=${messageType}`, {}, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            console.log(res.data)
-        })
-        .catch(err => {
-              console.error(err);
-              alert(`Error rejecting ${messageType}. Please try again.`);
-        });
-    }
+  const { state, id, role } = props;
 
-    const { state, id, role } = props;
-
-    switch(state) {
-        case 'init' && role == 'prover':
-            return (
-                <Button size="small" color="primary" onClick={() => sendProposal(id)}>Send Proposal</Button>
-            )
-        case 'init' && role == 'verifier':
-            return (
-                <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>Send Request</Button>
-            )
-        case 'proposal_received':
-            return (
-                <div>
-                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>Accept Proposal</Button>
-                    <Button size="small" color="primary" onClick={() => rejectExchange(id, "proposal")}>Reject Proposal</Button>
-                </div>
-            )
-        case 'request_received':
-            return (
-                <div>
-                    <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 2, id)}>Accept Request</Button>
-                    <Button size="small" color="primary" onClick={() => rejectExchange(id, "request")}>Reject Request</Button>
-                </div>
-            )
-        case 'presentation_received':
-            return <Button size="small" color="primary" onClick={() => verifyPresentation(id)}>Verify Presentation</Button>
-        default:
-            return null;
-    }
+  switch (state) {
+    case 'init' && role == 'prover':
+      return (
+        <Button size="small" color="primary" onClick={() => sendProposal(id)}>
+          Send Proposal
+        </Button>
+      );
+    case 'init' && role == 'verifier':
+      return (
+        <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>
+          Send Request
+        </Button>
+      );
+    case 'proposal_received':
+      return (
+        <div>
+          <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>
+            Accept Proposal
+          </Button>
+          <Button size="small" color="primary" onClick={() => rejectExchange(id, 'proposal')}>
+            Reject Proposal
+          </Button>
+        </div>
+      );
+    case 'request_received':
+      return (
+        <div>
+          <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 2, id)}>
+            Accept Request
+          </Button>
+          <Button size="small" color="primary" onClick={() => rejectExchange(id, 'request')}>
+            Reject Request
+          </Button>
+        </div>
+      );
+    case 'presentation_received':
+      return (
+        <Button size="small" color="primary" onClick={() => verifyPresentation(id)}>
+          Verify Presentation
+        </Button>
+      );
+    default:
+      return null;
+  }
 }
 
 // Prop types
 RecordActions.propTypes = {
-    state: PropTypes.string.isRequired,
-    id: PropTypes.string.isRequired
-}
-
+  state: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
+};
 
 // Styles
 const useStyles = makeStyles((theme) => ({
-    button : {
-        "&:focus": {
-            outline:"none",
-        }
-    },    
+  button: {
+    '&:focus': {
+      outline: 'none',
+    },
+  },
 }));
 
-
 const mapStateToProps = (state) => {
-    return {
-        accessToken: state.accessToken
-    }
-}
-  
+  return {
+    accessToken: state.accessToken,
+  };
+};
+
 export default connect(mapStateToProps)(RecordActions);
-
-
-

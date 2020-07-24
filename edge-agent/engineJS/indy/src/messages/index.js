@@ -1,10 +1,12 @@
 'use strict';
-const axios = require('axios')
-const indy = require('../../index')
+const axios = require('axios');
+const indy = require('../../index');
 
-
-exports.prepareMessage = async (payload, connection, invitation=null) => {
-  let {endpoint, recipientKeys, routingKeys, senderVk} = await getMessageArgs(connection, invitation);
+exports.prepareMessage = async (payload, connection, invitation = null) => {
+  let { endpoint, recipientKeys, routingKeys, senderVk } = await getMessageArgs(
+    connection,
+    invitation
+  );
   let message = await indy.wallet.pack(payload, recipientKeys, senderVk);
 
   // Check for routing keys (not in use right now)
@@ -16,9 +18,7 @@ exports.prepareMessage = async (payload, connection, invitation=null) => {
     }
   }
   return [message, endpoint];
-}
-
-
+};
 
 exports.sendMessage = (payload, endpoint) => {
   if (!endpoint) {
@@ -28,25 +28,30 @@ exports.sendMessage = (payload, endpoint) => {
   console.log('Sending message...');
   console.log(payload);
 
-  axios.post(`${endpoint}`, payload)
-  .then((res) => {
-    if(res.status < 200 || res.status > 299){
-      console.log("Unexpected response status: ", res.status);
-    }
-  })
-  .catch((error) => {
-    console.error("Error status: ", error.response.status);
-    console.error("Error Description: ", error.response.data);
-  })
-}
+  axios
+    .post(`${endpoint}`, payload)
+    .then((res) => {
+      if (res.status < 200 || res.status > 299) {
+        console.log('Unexpected response status: ', res.status);
+      }
+    })
+    .catch((error) => {
+      console.error('Error status: ', error.response.status);
+      console.error('Error Description: ', error.response.data);
+    });
+};
 
-
-
-async function getMessageArgs(connection, invitation=null) {
+async function getMessageArgs(connection, invitation = null) {
   if (invitation) {
     // public invitation needs to get the document from the blockchain
-    if(invitation.did && invitation.did.split(':')[1] !== "peer"){
-      const didDoc = await indy.ledger.getDidAttribute(null, invitation.did, null, 'did-document', null);
+    if (invitation.did && invitation.did.split(':')[1] !== 'peer') {
+      const didDoc = await indy.ledger.getDidAttribute(
+        null,
+        invitation.did,
+        null,
+        'did-document',
+        null
+      );
       if (!didDoc) {
         throw new Error(`DidDoc for invitation with did ${invitation.did} not found!`);
       }

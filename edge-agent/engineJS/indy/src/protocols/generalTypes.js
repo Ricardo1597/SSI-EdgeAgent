@@ -1,12 +1,11 @@
 exports.Initiator = {
-    Self: "self",
-    External: "external",
-}
-
+  Self: 'self',
+  External: 'external',
+};
 
 exports.Roles = {
-    Issuer: "issuer",
-    Holder: "holder",
-    Prover: "prover",
-    Verifier: "verifier",
-}
+  Issuer: 'issuer',
+  Holder: 'holder',
+  Prover: 'prover',
+  Verifier: 'verifier',
+};

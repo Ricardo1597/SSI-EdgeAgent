@@ -14,10 +14,10 @@ import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
-import axios from 'axios'
-import config from '../../config'
+import axios from 'axios';
+import config from '../../config';
 
-import '../../styles.css'
+import '../../styles.css';
 
 class SignIn extends Component {
   state = {
@@ -26,28 +26,28 @@ class SignIn extends Component {
     loading: true,
     redirect: false,
     invalidCredentials: false,
-  }
+  };
 
-
-  handleChange = e => {
+  handleChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value,
-      invalidCredentials: false
+      invalidCredentials: false,
     });
-  }
+  };
 
   componentDidMount() {
     const jwt = this.props.accessToken;
-    if(jwt !== "" && Cookies.get('refreshToken' + process.env.REACT_APP_SERVER_PORT) !== "") {
-      axios.get(`${config.endpoint}/users/check-token`, { 
-        headers: { Authorization: `Bearer ${jwt}`}
-      })
-      .then(res => {
-        this.setState({ redirect: true });
-      })
-      .catch(err => {
-        this.props.updateAccessToken("");
-      });
+    if (jwt !== '' && Cookies.get('refreshToken' + process.env.REACT_APP_SERVER_PORT) !== '') {
+      axios
+        .get(`${config.endpoint}/users/check-token`, {
+          headers: { Authorization: `Bearer ${jwt}` },
+        })
+        .then((res) => {
+          this.setState({ redirect: true });
+        })
+        .catch((err) => {
+          this.props.updateAccessToken('');
+        });
     }
 
     this.setState({ loading: false });
@@ -56,28 +56,34 @@ class SignIn extends Component {
   onSubmit = (e) => {
     e.preventDefault();
 
-    axios.post(`${config.endpoint}/users/login`, {
-        username: this.state.username,
-        password: this.state.password
-    }, {
-      withCredentials: true,
-    })
-    .then(res => {
-        console.log(res.data)
-        this.props.updateAccessToken(res.data.accessToken)
-        localStorage.setItem('dids', JSON.stringify(res.data.dids))
+    axios
+      .post(
+        `${config.endpoint}/users/login`,
+        {
+          username: this.state.username,
+          password: this.state.password,
+        },
+        {
+          withCredentials: true,
+        }
+      )
+      .then((res) => {
+        console.log(res.data);
+        this.props.updateAccessToken(res.data.accessToken);
+        this.props.updateConnections(res.data.connections);
+        localStorage.setItem('dids', JSON.stringify(res.data.dids));
         //res.data.dids.map(did => this.props.addDid(did));
         this.props.history.push('/');
-    })
-    .catch(err => {
-      console.log(err)
-      if(err.status === 401) {
-        this.setState({ invalidCredentials: true });
-      } else {
-        alert(err);
-      }
-    });
-  }
+      })
+      .catch((err) => {
+        console.log(err);
+        if (err.status === 401) {
+          this.setState({ invalidCredentials: true });
+        } else {
+          alert(err);
+        }
+      });
+  };
 
   render() {
     const { classes } = this.props;
@@ -95,9 +101,8 @@ class SignIn extends Component {
         <CssBaseline />
         <Grid item xs={false} sm={5} md={8} className={classes.image} />
         <Grid item xs={12} sm={7} md={4} component={Paper} elevation={6} square>
-          <div style={{marginTop: 200}} className={classes.paper}>
-            <Avatar className={classes.avatar}>
-            </Avatar>
+          <div style={{ marginTop: 200 }} className={classes.paper}>
+            <Avatar className={classes.avatar}></Avatar>
             <Typography component="span" variant="h5">
               Sign in
             </Typography>
@@ -164,8 +169,7 @@ class SignIn extends Component {
   }
 }
 
-
-const useStyles = theme => ({
+const useStyles = (theme) => ({
   root: {
     height: '100vh',
   },
@@ -196,17 +200,21 @@ const useStyles = theme => ({
   },
 });
 
-
 const mapStateToProps = (state) => {
   return {
-      accessToken: state.accessToken
-  }
-}
+    accessToken: state.accessToken,
+  };
+};
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    updateAccessToken: (token) =>  { dispatch({type: 'UPDATE_ACCESSTOKEN', token: token}) },
-  }
-}
+    updateAccessToken: (token) => {
+      dispatch({ type: 'UPDATE_ACCESSTOKEN', token: token });
+    },
+    updateConnections: (connections) => {
+      dispatch({ type: 'INIT_CONNECTIONS', connections: connections });
+    },
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles)(SignIn))
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles)(SignIn));

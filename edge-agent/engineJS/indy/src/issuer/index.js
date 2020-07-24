@@ -3,10 +3,10 @@ const sdk = require('indy-sdk');
 const indy = require('../../index.js');
 
 exports.createSchema = async (did, name, version, attributes) => {
-    let [id, schema] = await sdk.issuerCreateSchema(did, name, version, attributes);
-    await indy.ledger.sendSchema(did, schema)
-    await indy.did.addValueToDidAttribute(did, 'schemas', id);
-    return [id, schema]
+  let [id, schema] = await sdk.issuerCreateSchema(did, name, version, attributes);
+  await indy.ledger.sendSchema(did, schema);
+  await indy.did.addValueToDidAttribute(did, 'schemas', id);
+  return [id, schema];
 };
 
 // exports.getSchemas = async function () {
@@ -19,26 +19,45 @@ exports.createSchema = async (did, name, version, attributes) => {
 //     return schemas;
 // };
 
-exports.createCredDef = async (did, schemaId, tag, supportRevocation=false) => {
-    const options = {
-        "support_revocation": supportRevocation
-    }
-    console.log(supportRevocation)
-    let [, schema] = await indy.ledger.getSchema(null, schemaId);
-    let [credDefId, credDefJson] = await sdk.issuerCreateAndStoreCredentialDef(await indy.wallet.get(), did, schema, tag, 'CL', JSON.stringify(options));
-    console.log(credDefJson)
-    await indy.ledger.sendCredDef(did, credDefJson)
-    credDefJson.schemaId_long = schemaId;
-    await indy.did.addValueToDidAttribute(did, 'credential_definitions', credDefJson);
-    return [credDefId, credDefJson]
+exports.createCredDef = async (did, schemaId, tag, supportRevocation = false) => {
+  const options = {
+    support_revocation: supportRevocation,
+  };
+  console.log(supportRevocation);
+  let [, schema] = await indy.ledger.getSchema(null, schemaId);
+  let [credDefId, credDefJson] = await sdk.issuerCreateAndStoreCredentialDef(
+    await indy.wallet.get(),
+    did,
+    schema,
+    tag,
+    'CL',
+    JSON.stringify(options)
+  );
+  console.log(credDefJson);
+  await indy.ledger.sendCredDef(did, credDefJson);
+  credDefJson.schemaId_long = schemaId;
+  await indy.did.addValueToDidAttribute(did, 'credential_definitions', credDefJson);
+  return [credDefId, credDefJson];
 };
 
 exports.createCredentialOffer = async (credDefId) => {
-    return await indy.wallet.createCredentialOffer(credDefId);
+  return await indy.wallet.createCredentialOffer(credDefId);
 };
 
-exports.createCredential = async (credOffer, credReq, credValues, revRegId, blobStorageReaderHandle) => {
-    return await indy.wallet.createCredential(credOffer, credReq, credValues, revRegId, blobStorageReaderHandle);
+exports.createCredential = async (
+  credOffer,
+  credReq,
+  credValues,
+  revRegId,
+  blobStorageReaderHandle
+) => {
+  return await indy.wallet.createCredential(
+    credOffer,
+    credReq,
+    credValues,
+    revRegId,
+    blobStorageReaderHandle
+  );
 };
 
 // exports.getCredDefByTag = async function(credDefTag) {

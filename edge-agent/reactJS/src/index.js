@@ -3,22 +3,19 @@ import ReactDOM from 'react-dom';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { createStore } from 'redux';
 import { Provider } from 'react-redux';
-import rootReducer from './reducers/rootReducer';
-import interceptors from './interceptors'
-
-const store = createStore(
-  rootReducer,
-  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-);
+import interceptors from './interceptors';
+import { store, persistor } from './store/config';
+import { PersistGate } from 'redux-persist/lib/integration/react';
 
 interceptors.setupInterceptors(store);
 
 ReactDOM.render(
   <React.Fragment>
     <Provider store={store}>
-      <App />
+      <PersistGate loading={null} persistor={persistor}>
+        <App />
+      </PersistGate>
     </Provider>
   </React.Fragment>,
   document.getElementById('root')

@@ -1,8 +1,8 @@
 const uuid = require('uuid');
 
-
 const MessageType = {
-  PresentationProposal: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/propose-presentation',
+  PresentationProposal:
+    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/propose-presentation',
   PresentationRequest: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/request-presentation',
   Presentation: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation',
   PresentationAck: 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/ack',
@@ -21,64 +21,60 @@ const NewMessageType = {
 };
 exports.NewMessageType = NewMessageType;
 
-
 exports.createPresentationProposal = (comment, presentationPreview) => {
-  const messageId = uuid()
+  const messageId = uuid();
   return {
-    "@type": MessageType.PresentationProposal,
-    "@id": messageId,
-    "comment": comment,
+    '@type': MessageType.PresentationProposal,
+    '@id': messageId,
+    comment: comment,
     '~thread': {
       thid: messageId,
     },
-    "presentation_proposal": presentationPreview
-  }
-}
-
+    presentation_proposal: presentationPreview,
+  };
+};
 
 exports.createPresentationRequest = (comment, base64, thid) => {
   let messageId = uuid();
-  if(!thid) thid = messageId;
+  if (!thid) thid = messageId;
   return {
-    "@type": MessageType.PresentationRequest,
-    "@id": messageId,
-    "comment": comment,
+    '@type': MessageType.PresentationRequest,
+    '@id': messageId,
+    comment: comment,
     '~thread': {
       thid: thid,
     },
-    "request_presentations~attach": [
+    'request_presentations~attach': [
       {
-        "@id": "libindy-request-presentation-0",
-        "mime-type": "application/json",
+        '@id': 'libindy-request-presentation-0',
+        'mime-type': 'application/json',
         data: {
-          "base64": base64 // bytes for base64
-        }
-      }
-    ]
-  }
-}
-
+          base64: base64, // bytes for base64
+        },
+      },
+    ],
+  };
+};
 
 exports.createPresentation = (comment, base64, thid) => {
   return {
-    "@type": MessageType.Presentation,
-    "@id": uuid(),
-    "comment": comment,
+    '@type': MessageType.Presentation,
+    '@id': uuid(),
+    comment: comment,
     '~thread': {
       thid: thid,
     },
-    "presentations~attach": [
+    'presentations~attach': [
       {
-        "@id": "libindy-presentation-0",
-        "mime-type": "application/json",
+        '@id': 'libindy-presentation-0',
+        'mime-type': 'application/json',
         data: {
-          "base64": base64 // bytes for base64
-        }
-      }
-    ]
-  }
-}
-
+          base64: base64, // bytes for base64
+        },
+      },
+    ],
+  };
+};
 
 exports.createPresentationAckMessage = (thid) => {
   return {
@@ -89,15 +85,14 @@ exports.createPresentationAckMessage = (thid) => {
       thid: thid,
     },
   };
-}
-  
+};
 
 // exports.createPresentationPreview = (attributes, predicates) => {
 //     let res = {}
 //     res['@type'] = MessageType.PresentationPreview;
 //     res['attributes'] = [];
 //     res['predicates'] = [];
-    
+
 //     attributes.forEach(attribute => {
 //         res['attributes'].push({
 //             "name": attribute['name'],
@@ -107,7 +102,7 @@ exports.createPresentationAckMessage = (thid) => {
 //             "referent": attribute['referent']? attribute['referent'] : null
 //         })
 //     });
-    
+
 //     predicates.forEach(predicate => {
 //         res['predicates'].push({
 //             "name": predicate['name'],
@@ -116,7 +111,6 @@ exports.createPresentationAckMessage = (thid) => {
 //             "treshold": predicate['treshold'],
 //         })
 //     });
-    
+
 //     return res;
 // };
-

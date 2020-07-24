@@ -4,7 +4,6 @@ const indy = require('../../index.js');
 const uuid = require('uuid');
 const base64url = require('base64url');
 
-
 exports.sign = async (wh, message, field, signer) => {
   const { [field]: data, ...originalMessage } = message;
 
@@ -24,19 +23,18 @@ exports.sign = async (wh, message, field, signer) => {
   };
 
   return signedMessage;
-}
+};
 
-
-exports.verify = async (message, field, keysToCompare=null) => {
+exports.verify = async (message, field, keysToCompare = null) => {
   const { [`${field}~sig`]: data, ...signedMessage } = message;
 
   const signerVerkey = data.signer;
-  if(keysToCompare && keysToCompare.indexOf(signerVerkey) == -1) {
+  if (keysToCompare && keysToCompare.indexOf(signerVerkey) == -1) {
     throw {
-      externalMessage: "Verkey used to sign field not recognized",
-      internalMessage: "Verkey used to sign field not recognized"
+      externalMessage: 'Verkey used to sign field not recognized',
+      internalMessage: 'Verkey used to sign field not recognized',
     };
-  } 
+  }
   // first 8 bytes are for 64 bit integer from unix epoch
   const signedData = base64url.toBuffer(data.sig_data);
   const signature = base64url.toBuffer(data.signature);
@@ -47,7 +45,7 @@ exports.verify = async (message, field, keysToCompare=null) => {
   if (!valid) {
     throw {
       externalMessage: 'Field signature not valid.',
-      internalMessage: 'Field signature not valid.'
+      internalMessage: 'Field signature not valid.',
     };
   }
 
@@ -60,18 +58,15 @@ exports.verify = async (message, field, keysToCompare=null) => {
   };
 
   return originalMessage;
-}
-  
-
+};
 
 exports.timestamp = () => {
-    let time = Date.now();
-    const bytes = [];
-    for (let i = 0; i < 8; i++) {
-      const byte = time & 0xff;
-      bytes.push(byte);
-      time = (time - byte) / 256; // Javascript right shift (>>>) only works on 32 bit integers
-    }
-    return Uint8Array.from(bytes).reverse();
-}
-  
+  let time = Date.now();
+  const bytes = [];
+  for (let i = 0; i < 8; i++) {
+    const byte = time & 0xff;
+    bytes.push(byte);
+    time = (time - byte) / 256; // Javascript right shift (>>>) only works on 32 bit integers
+  }
+  return Uint8Array.from(bytes).reverse();
+};

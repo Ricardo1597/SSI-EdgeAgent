@@ -27,41 +27,40 @@ export default function AttributesTable(props) {
 
   return (
     <Paper className={classes.root}>
-      <TableContainer style={{height: props.height}}>
+      <TableContainer style={{ height: props.height }}>
         <Table>
           <TableBody>
             {props.rows.map((row) => {
               return (
-                <TableRow style={{height: props.rowHeight}} hover key={row.id}>
+                <TableRow style={{ height: props.rowHeight }} hover key={row.id}>
                   {columns.map((column) => {
                     return (
-                      <TableCell style={{width: column.width}} key={column.id} align={column.align}>
+                      <TableCell
+                        style={{ width: column.width }}
+                        key={column.id}
+                        align={column.align}
+                      >
                         {row[column.id]}
                       </TableCell>
                     );
                   })}
-                  <TableCell
-                        key="edit"
-                        align='right'
-                        style={{padding:0}}
+                  <TableCell key="edit" align="right" style={{ padding: 0 }}>
+                    <Tooltip title="Edit">
+                      <IconButton aria-label="edit" onClick={() => props.onEditAttribute()}>
+                        <EditOutlinedIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell key="delete" align="right" style={{ padding: 0 }}>
+                    <Tooltip title="Delete">
+                      <IconButton
+                        aria-label="delete"
+                        onClick={() => props.onDeleteAttribute(row.id)}
                       >
-                        <Tooltip title="Edit">
-                          <IconButton aria-label="edit" onClick={() => props.onEditAttribute()}>
-                            <EditOutlinedIcon/>
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell
-                        key="delete"
-                        align='right'
-                        style={{padding:0}}
-                      >
-                        <Tooltip title="Delete">
-                          <IconButton aria-label="delete" onClick={() => props.onDeleteAttribute(row.id)}>
-                            <DeleteOutlinedIcon/>
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
+                        <DeleteOutlinedIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               );
             })}

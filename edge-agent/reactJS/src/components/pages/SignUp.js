@@ -14,9 +14,9 @@ import Cookies from 'js-cookie';
 import Paper from '@material-ui/core/Paper';
 
 import axios from 'axios';
-import config from '../../config'
+import config from '../../config';
 
-import '../../styles.css'
+import '../../styles.css';
 
 class SignUp extends Component {
   state = {
@@ -32,23 +32,22 @@ class SignUp extends Component {
       password1: '',
       password2: '',
     },
-  }
+  };
 
-  handleChange = e => {
-      this.setState({
-          [e.target.name]: e.target.value
-      })
-  }
+  handleChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
 
   isFormValid = () => {
     let valid = true;
-    Object.values(this.state.formErrors).forEach(val => {
-      val.length && (valid=false);
-    })
+    Object.values(this.state.formErrors).forEach((val) => {
+      val.length && (valid = false);
+    });
 
     return valid;
-  }
-
+  };
 
   handleValidation = (e) => {
     const { name, value } = e.target;
@@ -56,80 +55,80 @@ class SignUp extends Component {
     // clean previous error
     errors[name] = '';
 
-    switch(name){
+    switch (name) {
       case 'name':
-        if(value.length === 0){
-          errors.name = "Required";
-        } else if(!value.match(/^[a-zA-Z0-9\-_ ]+$/)){
-          errors.name = "Invalid characters";
+        if (value.length === 0) {
+          errors.name = 'Required';
+        } else if (!value.match(/^[a-zA-Z0-9\-_ ]+$/)) {
+          errors.name = 'Invalid characters';
         }
-        break; 
+        break;
       case 'username':
-        if(value.length === 0){
-          errors.username = "Required";
-        } else if(!value.match(/^[a-zA-Z0-9\-_]+$/)){
-          errors.username = "Invalid characters";
+        if (value.length === 0) {
+          errors.username = 'Required';
+        } else if (!value.match(/^[a-zA-Z0-9\-_]+$/)) {
+          errors.username = 'Invalid characters';
         }
-        break; 
+        break;
       case 'password1':
       case 'password2':
-        if(value.length === 0){
-          errors[name] = "Required";
-        } else if(value.length < 6 ){
-          errors[name] = "Must be at least 6 characters long";
-        } else if(!/(?=.*[0-9])/.test(value)){
-          errors[name] = "Must contain a number";
-        }  
+        if (value.length === 0) {
+          errors[name] = 'Required';
+        } else if (value.length < 6) {
+          errors[name] = 'Must be at least 6 characters long';
+        } else if (!/(?=.*[0-9])/.test(value)) {
+          errors[name] = 'Must contain a number';
+        }
         break;
       default:
         break;
     }
 
-    this.setState({formErrors: errors})
-}
+    this.setState({ formErrors: errors });
+  };
 
   componentDidMount() {
     const jwt = this.props.accessToken;
-    if(jwt !== "" && Cookies.get('refreshToken' + process.env.REACT_APP_SERVER_PORT) !== "") {
-      axios.get(`${config.endpoint}/users/check-token`, { 
-        headers: { Authorization: `Bearer ${jwt}`}
-      })
-      .then(res => {
-        this.setState({ redirect: true });
-      })
-      .catch(err => {
-        this.props.updateAccessToken("");
-      });
+    if (jwt !== '' && Cookies.get('refreshToken' + process.env.REACT_APP_SERVER_PORT) !== '') {
+      axios
+        .get(`${config.endpoint}/users/check-token`, {
+          headers: { Authorization: `Bearer ${jwt}` },
+        })
+        .then((res) => {
+          this.setState({ redirect: true });
+        })
+        .catch((err) => {
+          this.props.updateAccessToken('');
+        });
     }
 
     this.setState({ loading: false });
   }
 
-  
   onSubmit = (e) => {
     e.preventDefault();
 
     //check if all fields are valid
-    if(!this.isFormValid()){
+    if (!this.isFormValid()) {
       return;
     }
 
-    axios.post(`${config.endpoint}/users/register`, {
-      name: this.state.name,
-      username: this.state.username,
-      password1: this.state.password1,
-      password2: this.state.password2,
-    })
-    .then(res => {
-      console.log(res)
-      this.props.history.push('/login');
-    })
-    .catch(err => {
+    axios
+      .post(`${config.endpoint}/users/register`, {
+        name: this.state.name,
+        username: this.state.username,
+        password1: this.state.password1,
+        password2: this.state.password2,
+      })
+      .then((res) => {
+        console.log(res);
+        this.props.history.push('/login');
+      })
+      .catch((err) => {
         console.error(err);
         alert('Error signing up. Please try again.');
-    });
-  }
-
+      });
+  };
 
   render() {
     const { classes } = this.props;
@@ -147,84 +146,95 @@ class SignUp extends Component {
         <CssBaseline />
         <Container maxWidth="xs">
           <Grid item component={Paper} elevation={6} square>
-            <div className={classes.paper} >
-                <Avatar className={classes.avatar}>
-                </Avatar>
-                <Typography component="span" variant="h5">
+            <div className={classes.paper}>
+              <Avatar className={classes.avatar}></Avatar>
+              <Typography component="span" variant="h5">
                 Sign up
-                </Typography>
-                <form className={classes.form} noValidate onSubmit={this.onSubmit}>
-                  <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      fullWidth
-                      id="name"
-                      label="Name"
-                      name="name"
-                      autoComplete="name"
-                      value={this.state.name}
-                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
-                  />
-                  <div className="input-feedback">{this.state.formErrors.name}</div>
-                  <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      fullWidth
-                      id="username"
-                      label="Username"
-                      name="username"
-                      autoComplete="username"
-                      value={this.state.username}
-                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
-                  />
-                  <div className="input-feedback">{this.state.formErrors.username}</div>
-                  <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      fullWidth
-                      name="password1"
-                      label="Password"
-                      type="password"
-                      id="password1"
-                      autoComplete="current-password"
-                      value={this.state.password1}
-                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
-                  />
-                  <div className="input-feedback">{this.state.formErrors.password1}</div>
-                  <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      fullWidth
-                      name="password2"
-                      label="Confirm password"
-                      type="password"
-                      id="password2"
-                      autoComplete="current-password"
-                      value={this.state.password2}
-                      onChange={e => {this.handleChange(e); this.handleValidation(e)}}
-                  />
-                  <div className="input-feedback">{this.state.formErrors.password2}</div>
-                  <Button
-                      type="submit"
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      className={classes.submit}
-                  >
-                      Sign Up
-                  </Button>
-                  <Grid container justify="flex-end">
-                      <Grid item>
-                      <Link href="/login" variant="body2">
-                          Already have an account? Sign in
-                      </Link>
-                      </Grid>
+              </Typography>
+              <form className={classes.form} noValidate onSubmit={this.onSubmit}>
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="name"
+                  label="Name"
+                  name="name"
+                  autoComplete="name"
+                  value={this.state.name}
+                  onChange={(e) => {
+                    this.handleChange(e);
+                    this.handleValidation(e);
+                  }}
+                />
+                <div className="input-feedback">{this.state.formErrors.name}</div>
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="username"
+                  label="Username"
+                  name="username"
+                  autoComplete="username"
+                  value={this.state.username}
+                  onChange={(e) => {
+                    this.handleChange(e);
+                    this.handleValidation(e);
+                  }}
+                />
+                <div className="input-feedback">{this.state.formErrors.username}</div>
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="password1"
+                  label="Password"
+                  type="password"
+                  id="password1"
+                  autoComplete="current-password"
+                  value={this.state.password1}
+                  onChange={(e) => {
+                    this.handleChange(e);
+                    this.handleValidation(e);
+                  }}
+                />
+                <div className="input-feedback">{this.state.formErrors.password1}</div>
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  name="password2"
+                  label="Confirm password"
+                  type="password"
+                  id="password2"
+                  autoComplete="current-password"
+                  value={this.state.password2}
+                  onChange={(e) => {
+                    this.handleChange(e);
+                    this.handleValidation(e);
+                  }}
+                />
+                <div className="input-feedback">{this.state.formErrors.password2}</div>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={classes.submit}
+                >
+                  Sign Up
+                </Button>
+                <Grid container justify="flex-end">
+                  <Grid item>
+                    <Link href="/login" variant="body2">
+                      Already have an account? Sign in
+                    </Link>
                   </Grid>
-                </form>
+                </Grid>
+              </form>
             </div>
           </Grid>
         </Container>
@@ -233,8 +243,7 @@ class SignUp extends Component {
   }
 }
 
-
-const useStyles = theme => ({
+const useStyles = (theme) => ({
   root: {
     height: '100vh',
     width: '100vw !important',
@@ -255,7 +264,7 @@ const useStyles = theme => ({
     margin: theme.spacing(1),
     backgroundColor: theme.palette.primary.main,
   },
-  form: {  
+  form: {
     width: '100%', // Fix IE 11 issue.
     marginTop: theme.spacing(1),
   },
@@ -264,18 +273,18 @@ const useStyles = theme => ({
   },
 });
 
-
 const mapStateToProps = (state) => {
   return {
-      accessToken: state.accessToken
-  }
-}
+    accessToken: state.accessToken,
+  };
+};
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    updateAccessToken: (token) =>  { dispatch({type: 'UPDATE_ACCESSTOKEN', token: token}) },
-  }
-}
+    updateAccessToken: (token) => {
+      dispatch({ type: 'UPDATE_ACCESSTOKEN', token: token });
+    },
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles)(SignUp))
-
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles)(SignUp));

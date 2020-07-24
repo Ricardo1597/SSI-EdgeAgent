@@ -19,24 +19,9 @@ exports.messages = require('./src/messages');
 exports.pairwise = require('./src/pairwise');
 exports.ledger = require('./src/ledger');
 exports.recordTypes = require('./src/recordTypes');
-exports.utils = require('./src/utils')
+exports.utils = require('./src/utils');
 
 exports.setupPool = async function () {
-    await exports.ledger.setup();
-    return Promise.resolve();
+  await exports.ledger.setup();
+  return Promise.resolve();
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

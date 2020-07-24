@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
@@ -13,332 +13,332 @@ import Paper from '@material-ui/core/Paper';
 import AttributesTable from '../../../AttributesTable';
 import Container from '@material-ui/core/Container';
 
-import uuid from "uuid";
+import uuid from 'uuid';
 
 import { connect } from 'react-redux';
-import axios from 'axios'
-import config from '../../../../config'
+import axios from 'axios';
+import config from '../../../../config';
 
 class CreateSchema extends Component {
-    state = {
-        name: '',
-        version: '',
-        attribute: '',
-        attributes: [],
-        did: '',
-        dids: JSON.parse(localStorage.getItem('dids'))
-                  .filter(did => did.role !== 'no role' && did.role !== null)
-                  .map(did => did.did),
-        schema: '',
-        errors: []
+  state = {
+    name: '',
+    version: '',
+    attribute: '',
+    attributes: [],
+    did: '',
+    dids: JSON.parse(localStorage.getItem('dids'))
+      .filter((did) => did.role !== 'no role' && did.role !== null)
+      .map((did) => did.did),
+    schema: '',
+    errors: [],
+  };
+
+  handleChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  onAddAttribute = () => {
+    if (!this.handleAttributeValidation()) {
+      console.log(this.state.errors);
+      return;
+    }
+    this.setState({
+      attributes: [...this.state.attributes, { id: uuid(), name: this.state.attribute }],
+      attribute: '',
+    });
+  };
+
+  onEditAttribute = () => {
+    alert('Edit is not yet working...');
+  };
+
+  onDeleteAttribute = (id) => {
+    this.setState({
+      attributes: this.state.attributes.filter((attr) => attr.id !== id),
+    });
+  };
+
+  handleValidation = () => {
+    let errors = [];
+    let formIsValid = true;
+
+    // name
+    if (this.state.name.length === 0) {
+      formIsValid = false;
+      errors['name'] = 'Cannot be empty';
+    } else if (!this.state.name.match(/^[a-zA-Z0-9\-_]+$/)) {
+      formIsValid = false;
+      errors['name'] = 'Invalid characters';
     }
 
-
-    handleChange = e => {
-        this.setState({
-            [e.target.name]: e.target.value
-        })
+    // version
+    if (this.state.version.length === 0) {
+      formIsValid = false;
+      errors['version'] = 'Cannot be empty';
+    } else if (!this.state.version.match(/^[0-9\.]+$/)) {
+      formIsValid = false;
+      errors['version'] = 'Invalid characters';
     }
 
-    onAddAttribute = () => {
-        if(!this.handleAttributeValidation()){
-            console.log(this.state.errors)
-            return;
-        }
-        this.setState({
-            attributes: [...this.state.attributes, {id: uuid(), name: this.state.attribute}],
-            attribute: '',
-        });
+    // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
+    if (this.state.did.length === 0) {
+      formIsValid = false;
+      errors['did'] = 'Cannot be empty';
+    } else if (!this.state.did.match(/^[a-zA-Z0-9:]+$/)) {
+      formIsValid = false;
+      errors['did'] = 'Invalid characters';
+    } else if (this.state.did.split(':').length !== 3) {
+      formIsValid = false;
+      errors['did'] = 'Invalid DID';
     }
 
-    onEditAttribute = () => {
-        alert("Edit is not yet working...")
+    // attributes
+    if (this.state.attributes.length === 0) {
+      formIsValid = false;
+      errors['attributes'] = 'Cannot be empty';
     }
 
-    onDeleteAttribute = (id) => {
-        this.setState({
-            attributes: this.state.attributes.filter(attr => attr.id !== id)
-        });
+    console.log(errors);
+    this.setState({ errors: errors });
+    return formIsValid;
+  };
+
+  onSubmit = (e) => {
+    e.preventDefault();
+
+    if (!this.handleValidation()) {
+      console.log(this.state.errors);
+      return;
     }
 
-    handleValidation = () => {
-        let errors = [];
-        let formIsValid = true;
-    
-        // name
-        if(this.state.name.length === 0 ){
-            formIsValid = false;
-            errors["name"] = "Cannot be empty";
-        } else if(!this.state.name.match(/^[a-zA-Z0-9\-_]+$/)){
-            formIsValid = false;
-            errors["name"] = "Invalid characters";
-        }
-    
-        // version
-        if(this.state.version.length === 0 ){
-            formIsValid = false;
-            errors["version"] = "Cannot be empty";
-        } else if(!this.state.version.match(/^[0-9\.]+$/)){
-            formIsValid = false;
-            errors["version"] = "Invalid characters";
-        } 
-    
-        // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
-        if(this.state.did.length === 0 ){
-            formIsValid = false;
-            errors["did"] = "Cannot be empty";
-        } else if(!this.state.did.match(/^[a-zA-Z0-9:]+$/)){
-            formIsValid = false;
-            errors["did"] = "Invalid characters";
-        } else if(this.state.did.split(':').length !== 3){
-            formIsValid = false;
-            errors["did"] = "Invalid DID";
-        }        
-        
-        // attributes
-        if(this.state.attributes.length === 0 ){
-            formIsValid = false;
-            errors["attributes"] = "Cannot be empty";
-        }
-    
-        console.log(errors)
-        this.setState({errors: errors});
-        return formIsValid;
-    }
-    
-    
-    onSubmit = (e) => {
-        e.preventDefault();
-    
-        if(!this.handleValidation()){
-          console.log(this.state.errors)
-          return;
-        }
+    const jwt = this.props.accessToken;
 
-        const jwt = this.props.accessToken;
-
-        axios.post(`${config.endpoint}/api/ledger/create-schema`, {
-            name: this.state.name, 
-            version: this.state.version,
-            attributes: this.state.attributes.map(attr => attr.name),
-            did: this.state.did
-        }, { 
-            headers: { Authorization: `Bearer ${jwt}`} 
-        })
-        .then(res => {
-            console.log(res.data);
-        })
-        .catch(err => {
-              console.error(err);
-              alert('Error creating schema. Please try again.');
-        });
-    }
-
-
-    handleAttributeValidation = () => {
-        let errors = [];
-        let formIsValid = true;
-    
-        // attribute
-        if(this.state.attribute.length < 3 ){
-            formIsValid = false;
-            errors["attribute"] = "Must be at least 3 characters long";
-        } else if(!this.state.attribute.match(/^[a-zA-Z0-9_]+$/)){
-            formIsValid = false;
-            errors["attribute"] = "Invalid characters";
-        } else if(this.state.attributes.map(attr => attr.name)
-                                       .includes(this.state.attribute))
+    axios
+      .post(
+        `${config.endpoint}/api/ledger/create-schema`,
         {
-            formIsValid = false;
-            errors["attribute"] = "Attribute already added";
+          name: this.state.name,
+          version: this.state.version,
+          attributes: this.state.attributes.map((attr) => attr.name),
+          did: this.state.did,
+        },
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
         }
-    
-        console.log(errors)
-        this.setState({errors: errors});
-        return formIsValid;
+      )
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('Error creating schema. Please try again.');
+      });
+  };
+
+  handleAttributeValidation = () => {
+    let errors = [];
+    let formIsValid = true;
+
+    // attribute
+    if (this.state.attribute.length < 3) {
+      formIsValid = false;
+      errors['attribute'] = 'Must be at least 3 characters long';
+    } else if (!this.state.attribute.match(/^[a-zA-Z0-9_]+$/)) {
+      formIsValid = false;
+      errors['attribute'] = 'Invalid characters';
+    } else if (this.state.attributes.map((attr) => attr.name).includes(this.state.attribute)) {
+      formIsValid = false;
+      errors['attribute'] = 'Attribute already added';
     }
 
+    console.log(errors);
+    this.setState({ errors: errors });
+    return formIsValid;
+  };
 
-    render() {
-        const { classes } = this.props;
-        
-        return (
-            <Container spacing={2}>
-                <Grid item xs={12} lg={5}>
-                    <div className={classes.paper}>
-                        <Typography component="span" variant="h5">
-                        Create Schema
-                        </Typography>
-                        <form className={classes.form} onSubmit={this.onSubmit}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={12}>
-                                    <FormControl variant="outlined" className={classes.formControl}>
-                                        <InputLabel htmlFor='did'>DID</InputLabel>
-                                        <Select
-                                            variant="outlined"
-                                            required
-                                            label="DID"
-                                            name="did"
-                                            id="did"
-                                            value={this.state.did}
-                                            onChange={this.handleChange}
-                                        >
-                                            {this.state.dids.map(did => {
-                                                return (<MenuItem key={did} value={did}>{did}</MenuItem>)
-                                            })}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={12} sm={8}>
-                                    <TextField
-                                        variant="outlined"
-                                        required
-                                        fullWidth
-                                        id="name"
-                                        label="Name"
-                                        name="name"
-                                        value={this.state.name}
-                                        onChange={this.handleChange}
-                                    />
-                                </Grid>            
-                                <Grid item xs={12} sm={4}>
-                                    <TextField
-                                        variant="outlined"
-                                        required
-                                        fullWidth
-                                        id="version"
-                                        label="Version"
-                                        name="version"
-                                        value={this.state.version}
-                                        onChange={this.handleChange}
-                                    />
-                                </Grid>  
-                                <Typography style={{marginLeft: 10}} variant="subtitle1">
-                                Attributes *
-                                </Typography>                    
-                                <Grid style={{marginBottom: -15}} item xs={12}>
-                                    <Paper className={classes.root}>
-                                        <AttributesTable 
-                                            rows={this.state.attributes}
-                                            width={'100%'}
-                                            height={215}
-                                            rowHeight={45}
-                                            onDeleteAttribute={this.onDeleteAttribute}
-                                            onEditAttribute={this.onEditAttribute}
-                                        />
-                                    </Paper>
-                                </Grid>
-                                <Grid item xs={10}>
-                                    <TextField
-                                        variant="outlined"
-                                        fullWidth
-                                        id="attribute"
-                                        label="Attribute Name"
-                                        name="attribute"
-                                        value={this.state.attribute}
-                                        onChange={this.handleChange}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault()
-                                                this.onAddAttribute()
-                                            }
-                                        }}
-                                    />
-                                </Grid>                               
-                                <Grid item xs={2}>
-                                    <Button
-                                        type="button"
-                                        fullWidth
-                                        variant="contained"
-                                        color="primary"
-                                        className={classes.addAttr}
-                                        onClick={this.onAddAttribute}
-                                    >
-                                        Add
-                                    </Button>
-                                </Grid>  
-                            </Grid>
-                            <Button
-                                type="button"
-                                fullWidth
-                                variant="contained"
-                                color="primary"
-                                className={[classes.add, classes.button]}
-                                onClick={this.onSubmit}
-                            >
-                                Create
-                            </Button>
-                        </form>
-                    </div>
+  render() {
+    const { classes } = this.props;
+
+    return (
+      <Container spacing={2}>
+        <Grid item xs={12} lg={5}>
+          <div className={classes.paper}>
+            <Typography component="span" variant="h5">
+              Create Schema
+            </Typography>
+            <form className={classes.form} onSubmit={this.onSubmit}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControl variant="outlined" className={classes.formControl}>
+                    <InputLabel htmlFor="did">DID</InputLabel>
+                    <Select
+                      variant="outlined"
+                      required
+                      label="DID"
+                      name="did"
+                      id="did"
+                      value={this.state.did}
+                      onChange={this.handleChange}
+                    >
+                      {this.state.dids.map((did) => {
+                        return (
+                          <MenuItem key={did} value={did}>
+                            {did}
+                          </MenuItem>
+                        );
+                      })}
+                    </Select>
+                  </FormControl>
                 </Grid>
-                <Grid item xs={12} lg={7}>
-                    {
-                        this.state.schema !== "" ? (
-                            <Card className={classes.card}>
-                                <p>Name: {this.state.schema.name}</p>
-                                <p>Version: {this.state.schema.version}</p>                    
-                                Attributes:
-                                <ul>
-                                    {this.state.schema.attrNames.map(attr => {
-                                        return <li key={attr}>{attr}</li>
-                                    })}
-                                </ul>
-                            </Card>
-                        ) : null
-                            
-                    }
+                <Grid item xs={12} sm={8}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="name"
+                    label="Name"
+                    name="name"
+                    value={this.state.name}
+                    onChange={this.handleChange}
+                  />
                 </Grid>
-            </Container>
-        )
-    }
+                <Grid item xs={12} sm={4}>
+                  <TextField
+                    variant="outlined"
+                    required
+                    fullWidth
+                    id="version"
+                    label="Version"
+                    name="version"
+                    value={this.state.version}
+                    onChange={this.handleChange}
+                  />
+                </Grid>
+                <Typography style={{ marginLeft: 10 }} variant="subtitle1">
+                  Attributes *
+                </Typography>
+                <Grid style={{ marginBottom: -15 }} item xs={12}>
+                  <Paper className={classes.root}>
+                    <AttributesTable
+                      rows={this.state.attributes}
+                      width={'100%'}
+                      height={215}
+                      rowHeight={45}
+                      onDeleteAttribute={this.onDeleteAttribute}
+                      onEditAttribute={this.onEditAttribute}
+                    />
+                  </Paper>
+                </Grid>
+                <Grid item xs={10}>
+                  <TextField
+                    variant="outlined"
+                    fullWidth
+                    id="attribute"
+                    label="Attribute Name"
+                    name="attribute"
+                    value={this.state.attribute}
+                    onChange={this.handleChange}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.onAddAttribute();
+                      }
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={2}>
+                  <Button
+                    type="button"
+                    fullWidth
+                    variant="contained"
+                    color="primary"
+                    className={classes.addAttr}
+                    onClick={this.onAddAttribute}
+                  >
+                    Add
+                  </Button>
+                </Grid>
+              </Grid>
+              <Button
+                type="button"
+                fullWidth
+                variant="contained"
+                color="primary"
+                className={[classes.add, classes.button]}
+                onClick={this.onSubmit}
+              >
+                Create
+              </Button>
+            </form>
+          </div>
+        </Grid>
+        <Grid item xs={12} lg={7}>
+          {this.state.schema !== '' ? (
+            <Card className={classes.card}>
+              <p>Name: {this.state.schema.name}</p>
+              <p>Version: {this.state.schema.version}</p>
+              Attributes:
+              <ul>
+                {this.state.schema.attrNames.map((attr) => {
+                  return <li key={attr}>{attr}</li>;
+                })}
+              </ul>
+            </Card>
+          ) : null}
+        </Grid>
+      </Container>
+    );
+  }
 }
 
 // Styles
-const useStyles = theme => ({
-    paper: {
-        marginTop: 30,
-        marginBottom: 30,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+const useStyles = (theme) => ({
+  paper: {
+    marginTop: 30,
+    marginBottom: 30,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  result: {
+    margin: 30,
+    display: 'flex',
+    flexDirection: 'line',
+    alignItems: 'center',
+  },
+  button: {
+    '&:focus': {
+      outline: 'none',
     },
-    result: {
-        margin: 30,
-        display: 'flex',
-        flexDirection: 'line',
-        alignItems: 'center',
-    },
-    button : {
-        "&:focus": {
-            outline:"none",
-        }
-    },
-    add: {
-        height: '40px',
-        marginTop: 10
-    },
-    addAttr: {
-        height: 40,
-        width: '100%',
-    },
-    form: {
-        width: '500px', 
-        marginTop: theme.spacing(3),
-    },
-    formControl: {
-        width: '100%',
-    },
-    card: {
-        width: '200px',
-        padding: 20,
-        margin: 20
-    }
+  },
+  add: {
+    height: '40px',
+    marginTop: 10,
+  },
+  addAttr: {
+    height: 40,
+    width: '100%',
+  },
+  form: {
+    width: '500px',
+    marginTop: theme.spacing(3),
+  },
+  formControl: {
+    width: '100%',
+  },
+  card: {
+    width: '200px',
+    padding: 20,
+    margin: 20,
+  },
 });
 
 const mapStateToProps = (state) => {
-    return {
-        accessToken: state.accessToken
-    }
-}
-  
-export default connect(mapStateToProps)(withStyles(useStyles)(CreateSchema))
+  return {
+    accessToken: state.accessToken,
+  };
+};
+
+export default connect(mapStateToProps)(withStyles(useStyles)(CreateSchema));

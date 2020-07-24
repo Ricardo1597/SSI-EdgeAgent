@@ -1,227 +1,246 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
 
-import axios from 'axios'
-import config from '../../../../config'
+import axios from 'axios';
+import config from '../../../../config';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormHelperText from '@material-ui/core/FormHelperText';
 
 import { connect } from 'react-redux';
 
-
-
 class RequestPresentation extends Component {
-    state = {
-        connectionId: '',
-        comment: '',
-        presentationRequest: ''
+  state = {
+    connectionId: '',
+    connections: (JSON.parse(localStorage.getItem('connections')) || [])
+      .filter((connection) => connection.state === 'complete')
+      .map((connection) => {
+        return {
+          id: connection.connectionId,
+          alias: connection.alias,
+        };
+      }),
+    comment: '',
+    presentationRequest: '',
+    formErrors: {},
+  };
+
+  handleChange = (e) => {
+    this.setState({
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  handleValidation = () => {
+    let errors = [];
+    let formIsValid = true;
+
+    // connectionId: e0f748a8-f7b7-4970-9fa5-d2bd9872b7cd (uuid)
+    if (!this.props.recordId) {
+      if (this.state.connectionId.length < 1) {
+        formIsValid = false;
+        errors['connectionId'] = 'Cannot be empty';
+      } else if (!this.state.connectionId.match(/^[a-z0-9-]+$/)) {
+        formIsValid = false;
+        errors['connectionId'] = 'Invalid characters';
+      }
     }
 
-
-    handleChange = e => {
-        this.setState({
-            [e.target.name]: e.target.value
-        })
+    // presentationRequest
+    if (this.state.presentationRequest === '') {
+      formIsValid = false;
+      errors['presentationRequest'] = 'Cannot be empty';
     }
 
-    handleValidation = () => {
-        let errors = [];
-        let formIsValid = true;
+    console.log(errors);
+    this.setState({ errors: errors });
+    return formIsValid;
+  };
 
-        // connectionId: e0f748a8-f7b7-4970-9fa5-d2bd9872b7cd (uuid)
-        if(!this.props.recordId) {
-            if(this.state.connectionId.length < 1 ){
-                formIsValid = false;
-                errors["connectionId"] = "Cannot be empty";
-            } else if(!this.state.connectionId.match(/^[a-z0-9-]+$/)){
-                formIsValid = false;
-                errors["connectionId"] = "Invalid characters";
+  onSubmit = (e) => {
+    e.preventDefault();
+
+    if (!this.handleValidation()) {
+      console.log(this.state.errors);
+      return;
+    }
+
+    const jwt = this.props.accessToken;
+
+    !this.props.recordId
+      ? axios
+          .post(
+            `${config.endpoint}/api/presentation-exchanges/send-request`,
+            {
+              connectionId: this.state.connectionId,
+              comment: this.state.comment,
+              presentationRequest: JSON.parse(this.state.presentationRequest),
+            },
+            {
+              headers: { Authorization: `Bearer ${jwt}` },
             }
-        }
+          )
+          .then((res) => {
+            if (res.status === 200) {
+              console.log(res.data);
+              alert('Request sent with success!');
+            } else {
+              const error = new Error(res.error);
+              throw error;
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            alert('Error sending presentation request. Please try again.');
+          })
+      : axios
+          .post(
+            `${config.endpoint}/api/presentation-exchanges/${this.props.recordId}/send-request`,
+            {
+              comment: this.state.comment,
+              presentationRequest: JSON.parse(this.state.presentationRequest),
+            },
+            {
+              headers: { Authorization: `Bearer ${jwt}` },
+            }
+          )
+          .then((res) => {
+            if (res.status === 200) {
+              console.log(res.data);
+              alert('Presentation request sent with success!');
+            } else {
+              const error = new Error(res.error);
+              throw error;
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            alert('Error sending presentation request. Please try again.');
+          });
+  };
 
-        // presentationRequest
-        if(this.state.presentationRequest === '' ){
-            formIsValid = false;
-            errors["presentationRequest"] = "Cannot be empty";
-        } 
+  render() {
+    const { classes } = this.props;
+    console.log('recordId: ', this.props.recordId, typeof this.props.recordId);
 
-        console.log(errors)
-        this.setState({errors: errors});
-        return formIsValid;
-    }
-
-    onSubmit = (e) => {
-        e.preventDefault()
-
-        if(!this.handleValidation()){
-            console.log(this.state.errors)
-            return;
-        }
-            
-        const jwt = this.props.accessToken;
-
-        !this.props.recordId ? (
-            axios.post(`${config.endpoint}/api/presentation-exchanges/send-request`, {
-                connectionId: this.state.connectionId, 
-                comment: this.state.comment,
-                presentationRequest: JSON.parse(this.state.presentationRequest),
-            }, { 
-                headers: { Authorization: `Bearer ${jwt}`} 
-            })
-            .then(res => {
-                if (res.status === 200) {
-                    console.log(res.data)
-                    alert("Request sent with success!")
-                } else {
-                    const error = new Error(res.error);
-                    throw error;
-                }
-            })
-            .catch(err => {
-                  console.error(err);
-                  alert('Error sending presentation request. Please try again.');
-            })
-        ) : (
-            axios.post(`${config.endpoint}/api/presentation-exchanges/${this.props.recordId}/send-request`, {
-                comment: this.state.comment,
-                presentationRequest: JSON.parse(this.state.presentationRequest),
-            }, { 
-                headers: { Authorization: `Bearer ${jwt}`} 
-            })
-            .then(res => {
-                if (res.status === 200) {
-                    console.log(res.data)
-                    alert("Presentation request sent with success!")
-                } else {
-                    const error = new Error(res.error);
-                    throw error;
-                }
-            })
-            .catch(err => {
-                  console.error(err);
-                  alert('Error sending presentation request. Please try again.');
-            })
-        )
-    }
-
-
-
-    render() {
-        const { classes } = this.props;
-        console.log("recordId: ", this.props.recordId, typeof(this.props.recordId))
-
-        return (
-            <Container spacing={2}>
-                <div className={classes.paper} >
-                    <Typography component="span" variant="h5">
-                        Request Presentation
-                    </Typography>
-                    <form noValidate className={classes.form} onSubmit={this.onSubmit}>
-                        <Grid container align='left' className={classes.column} spacing={2}>
-                            { !this.props.recordId 
-                                ? (
-                                    <Grid item xs={12}>
-                                        <TextField
-                                            variant="outlined"
-                                            required
-                                            fullWidth
-                                            id="connectionId"
-                                            label="Connection ID"
-                                            name="connectionId"
-                                            value={this.state.connectionId}
-                                            onChange={this.handleChange}
-                                        />
-                                    </Grid>
-                                ) : null 
-                            }
-                            <Grid item xs={12}>
-                                <TextField
-                                    variant="outlined"
-                                    fullWidth
-                                    multiline
-                                    rows={2}
-                                    label="Comment"
-                                    name="comment"
-                                    id="comment"
-                                    value={this.state.comment}
-                                    onChange={this.handleChange}
-
-                                />
-                            </Grid>  
-                            <Grid item xs={12}>
-                                <TextField
-                                    variant="outlined"
-                                    required
-                                    fullWidth
-                                    multiline
-                                    rows={10}
-                                    id="presentationRequest"
-                                    label="Presentation Preview"
-                                    name="presentationRequest"
-                                    value={this.state.presentationRequest}
-                                    onChange={this.handleChange}
-                                />
-                            </Grid>    
-                        </Grid>
-                        <Button
-                            type="button"
-                            fullWidth
-                            variant="contained"
-                            color="primary"
-                            className={`${classes.add} ${classes.button}`}
-                            onClick={this.onSubmit}
-                        >
-                            Send Request
-                        </Button>
-                    </form>
-                </div>
-            </Container>
-        )
-    }
+    return (
+      <Container spacing={2}>
+        <div className={classes.paper}>
+          <Typography component="span" variant="h5">
+            Request Presentation
+          </Typography>
+          <form noValidate className={classes.form} onSubmit={this.onSubmit}>
+            <Grid container align="left" className={classes.column} spacing={2}>
+              {!this.props.recordId ? (
+                <Grid item xs={12}>
+                  <FormControl error={this.state.formErrors.connectionId} style={{ width: '100%' }}>
+                    <InputLabel>Connection *</InputLabel>
+                    <Select
+                      required
+                      label="Connection *"
+                      name="connectionId"
+                      id="connectionId"
+                      value={this.state.connectionId}
+                      onChange={this.handleChange}
+                    >
+                      {this.state.connections.map(({ id, alias }) => {
+                        return (
+                          <MenuItem key={id} value={id}>
+                            {id}
+                          </MenuItem>
+                        );
+                      })}
+                    </Select>
+                    <FormHelperText>{this.state.formErrors.connectionId}</FormHelperText>
+                  </FormControl>
+                </Grid>
+              ) : null}
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Comment"
+                  name="comment"
+                  id="comment"
+                  value={this.state.comment}
+                  onChange={this.handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  variant="outlined"
+                  required
+                  fullWidth
+                  multiline
+                  rows={10}
+                  id="presentationRequest"
+                  label="Presentation Preview"
+                  name="presentationRequest"
+                  value={this.state.presentationRequest}
+                  onChange={this.handleChange}
+                />
+              </Grid>
+            </Grid>
+            <Button
+              type="button"
+              fullWidth
+              variant="contained"
+              color="primary"
+              className={`${classes.add} ${classes.button}`}
+              onClick={this.onSubmit}
+            >
+              Send Request
+            </Button>
+          </form>
+        </div>
+      </Container>
+    );
+  }
 }
-
-
-
 
 // Styles
-const useStyles = theme => ({
-    paper: {
-        marginTop: 30,
-        marginBottom: 30,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+const useStyles = (theme) => ({
+  paper: {
+    marginTop: 30,
+    marginBottom: 30,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  button: {
+    '&:focus': {
+      outline: 'none',
     },
-    button : {
-        "&:focus": {
-            outline:"none",
-        }
-    },
-    add: {
-        height: '40px',
-        marginTop: 10
-    },
-    form: {
-        maxWidth: '500',
-        marginTop: theme.spacing(3),
-    },
-    column: {
-        width: '500px', 
-    },
-    formControl: {
-        width: '100%',
-    },
+  },
+  add: {
+    height: '40px',
+    marginTop: 10,
+  },
+  form: {
+    maxWidth: '500',
+    marginTop: theme.spacing(3),
+  },
+  column: {
+    width: '500px',
+  },
+  formControl: {
+    width: '100%',
+  },
 });
 
-
-
 const mapStateToProps = (state) => {
-    return {
-        accessToken: state.accessToken
-    }
-}
-  
-export default connect(mapStateToProps)(withStyles(useStyles)(RequestPresentation))
+  return {
+    accessToken: state.accessToken,
+  };
+};
+
+export default connect(mapStateToProps)(withStyles(useStyles)(RequestPresentation));
