@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -11,6 +11,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
 
@@ -25,6 +26,27 @@ class SendPresentation extends Component {
     credentials: {}, // credentials that match this proof request
     // comment: '', // If i want i can add the comment but for now it is not needed
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -63,7 +85,7 @@ class SendPresentation extends Component {
 
     axios
       .post(
-        `${config.endpoint}/api/presentation-exchanges/${this.props.recordId}/send-presentation`,
+        `${config.endpoint}/api/presentation-exchanges/${this.props.recordId}/create-presentation`,
         {
           comment: this.state.comment,
           requestedAttributes: this.state.dinamicInputs,
@@ -73,17 +95,35 @@ class SendPresentation extends Component {
         }
       )
       .then((res) => {
-        if (res.status === 200) {
-          console.log(res.data);
-          alert('Presentation sent with success!');
+        console.log(res.data);
+        const valid = res.data.valid;
+        if (valid) {
+          console.log('Sending presentation...');
+        } else if (
+          window.confirm(
+            'The proof you are trying to create is not valid. Are you sure you want to send it?'
+          )
+        ) {
+          console.log('Sending presentation...');
         } else {
-          const error = new Error(res.error);
-          throw error;
+          console.log('Presentation will not be sent');
         }
+        axios
+          .post(
+            `${config.endpoint}/api/presentation-exchanges/${this.props.recordId}/send-presentation`,
+            {},
+            {
+              headers: { Authorization: `Bearer ${jwt}` },
+            }
+          )
+          .then((res) => {
+            console.log(res.data);
+            this.showSnackbarVariant('Presentation sent', 'success');
+          });
       })
       .catch((err) => {
         console.error(err);
-        alert('Error sending presentation. Please try again.');
+        this.showSnackbarVariant('Error sending presentation. Please try again.', 'error');
       });
   };
 
@@ -123,7 +163,10 @@ class SendPresentation extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting presentation exchanges records. Please try again.');
+        this.showSnackbarVariant(
+          'Error getting credentials for proof request. Please try again.',
+          'error'
+        );
       });
   }
 
@@ -298,8 +341,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(SendPresentation));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(SendPresentation)));

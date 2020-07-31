@@ -8,6 +8,7 @@ import { withStyles } from '@material-ui/core/styles';
 import FirstStep from './FirstStep';
 import SecondStep from './SecondStep';
 import ConfirmationStep from './ConfirmationStep';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../../../config';
@@ -21,12 +22,12 @@ class StepForm extends Component {
   state = {
     step: 0,
     connectionId: '',
-    connections: (JSON.parse(localStorage.getItem('connections')) || [])
+    connections: this.props.connections
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
         return {
           id: connection.connectionId,
-          alias: connection.alias,
+          alias: connection.theirAlias,
         };
       }),
     credDefId: '',
@@ -56,7 +57,10 @@ class StepForm extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting information for credential offer. Please try again.');
+        this.showSnackbarVariant(
+          'Error getting information for credential offer. Please try again.',
+          'error'
+        );
       });
   }
 
@@ -175,11 +179,11 @@ class StepForm extends Component {
       )
       .then((res) => {
         console.log(res.data);
-        alert('Offer sent with success!');
+        this.showSnackbarVariant('Credential offer sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error sending credential proposal. Please try again.');
+        this.showSnackbarVariant('Error sending credential proposal. Please try again.', 'error');
       });
   };
 
@@ -265,8 +269,9 @@ const useStyles = (theme) => ({});
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
+    connections: state.app.connections,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(StepForm));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(StepForm)));

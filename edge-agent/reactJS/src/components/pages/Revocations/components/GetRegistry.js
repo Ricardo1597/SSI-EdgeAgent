@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
@@ -7,6 +7,7 @@ import Card from '@material-ui/core/Card';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import JSONPretty from 'react-json-pretty';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -16,6 +17,27 @@ class GetRegistry extends Component {
     revocRegId: '',
     registry: '',
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -60,7 +82,7 @@ class GetRegistry extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting registry. Please try again.');
+        this.showSnackbarVariant('Error getting registry. Please try again.', 'error');
       });
   };
 
@@ -153,8 +175,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(GetRegistry));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(GetRegistry)));

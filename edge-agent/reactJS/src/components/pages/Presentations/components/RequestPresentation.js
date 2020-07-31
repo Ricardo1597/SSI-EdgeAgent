@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -13,24 +13,46 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
+import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
 
 class RequestPresentation extends Component {
   state = {
     connectionId: '',
-    connections: (JSON.parse(localStorage.getItem('connections')) || [])
+    connections: this.props.connections
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
         return {
           id: connection.connectionId,
-          alias: connection.alias,
+          alias: connection.theirAlias,
         };
       }),
     comment: '',
     presentationRequest: '',
     formErrors: {},
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -87,18 +109,16 @@ class RequestPresentation extends Component {
               headers: { Authorization: `Bearer ${jwt}` },
             }
           )
-          .then((res) => {
-            if (res.status === 200) {
-              console.log(res.data);
-              alert('Request sent with success!');
-            } else {
-              const error = new Error(res.error);
-              throw error;
-            }
+          .then(({ data }) => {
+            console.log(data);
+            this.showSnackbarVariant('Presentation request sent.', 'success');
           })
           .catch((err) => {
             console.error(err);
-            alert('Error sending presentation request. Please try again.');
+            this.showSnackbarVariant(
+              'Error sending presentation request. Please try again.',
+              'error'
+            );
           })
       : axios
           .post(
@@ -111,24 +131,23 @@ class RequestPresentation extends Component {
               headers: { Authorization: `Bearer ${jwt}` },
             }
           )
-          .then((res) => {
-            if (res.status === 200) {
-              console.log(res.data);
-              alert('Presentation request sent with success!');
-            } else {
-              const error = new Error(res.error);
-              throw error;
-            }
+          .then(({ data }) => {
+            console.log(data);
+            this.showSnackbarVariant('Presentation request sent.', 'success');
           })
           .catch((err) => {
             console.error(err);
-            alert('Error sending presentation request. Please try again.');
+            this.showSnackbarVariant(
+              'Error sending presentation request. Please try again.',
+              'error'
+            );
           });
   };
 
   render() {
     const { classes } = this.props;
     console.log('recordId: ', this.props.recordId, typeof this.props.recordId);
+    console.log(this.state.connections);
 
     return (
       <Container spacing={2}>
@@ -151,9 +170,11 @@ class RequestPresentation extends Component {
                       onChange={this.handleChange}
                     >
                       {this.state.connections.map(({ id, alias }) => {
+                        console.log(id);
+                        console.log(alias);
                         return (
                           <MenuItem key={id} value={id}>
-                            {id}
+                            {alias || id}
                           </MenuItem>
                         );
                       })}
@@ -239,8 +260,9 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
+    connections: state.app.connections,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(RequestPresentation));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(RequestPresentation)));

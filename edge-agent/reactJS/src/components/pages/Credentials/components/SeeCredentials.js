@@ -1,9 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/core/styles';
+import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
 import CredentialItem from './CredentialItem';
@@ -12,6 +14,27 @@ class SeeCredential extends Component {
   state = {
     credentials: [],
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   componentWillMount() {
     const jwt = this.props.accessToken;
@@ -33,7 +56,7 @@ class SeeCredential extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting credentials. Please try again.');
+        this.showSnackbarVariant('Error getting credentials. Please try again.', 'error');
       });
   }
 
@@ -67,8 +90,8 @@ const useStyles = (theme) => ({});
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(SeeCredential));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(SeeCredential)));

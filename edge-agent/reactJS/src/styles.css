@@ -1,30 +1,34 @@
 .login-feedback {
-    color: rgb(235, 54, 54);
-    margin-top: -10px;
-    font-size: 16px;
-    margin-bottom: 20px;
+  color: rgb(235, 54, 54);
+  margin-top: -10px;
+  font-size: 16px;
+  margin-bottom: 20px;
 }
 
 .input-feedback {
-    color: rgb(235, 54, 54);
-    margin-top: -7px;
-    margin-left: 10px;
-    font-size: 14px;
+  color: rgb(235, 54, 54);
+  margin-top: -7px;
+  margin-left: 10px;
+  font-size: 14px;
 }
 
 input.error {
-    border-color: red;
+  border-color: red;
 }
 
-.scrollBar::-webkit-scrollbar{
-    width: 7px;
+.scrollBar::-webkit-scrollbar {
+  width: 7px;
 }
 
-.scrollBar::-webkit-scrollbar-thumb{
-    background: #414147;
-    border-radius: 50px;
+.scrollBar::-webkit-scrollbar-thumb {
+  background: #414147;
+  border-radius: 50px;
 }
 
-.scrollBar::-webkit-scrollbar-thumb:hover{
-    background: #63646B;
+.scrollBar::-webkit-scrollbar-thumb:hover {
+  background: #63646b;
+}
+
+*:focus {
+  outline: none !important;
 }

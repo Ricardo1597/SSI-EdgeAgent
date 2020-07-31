@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { withStyles } from '@material-ui/core/styles';
 
 import Button from '@material-ui/core/Button';
@@ -14,6 +14,7 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import { connect } from 'react-redux';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../config';
@@ -21,10 +22,31 @@ import config from '../../config';
 class Dashboard extends Component {
   state = {
     seed: '',
-    alias: '',
+    didAlias: '',
     dids: JSON.parse(localStorage.getItem('dids')),
     errors: [],
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -45,10 +67,10 @@ class Dashboard extends Component {
       errors['seed'] = 'Invalid characters';
     }
 
-    // alias
-    if (this.state.alias === '') {
+    // didAlias
+    if (this.state.didAlias === '') {
       formIsValid = false;
-      errors['alias'] = 'Cannot be empty';
+      errors['didAlias'] = 'Cannot be empty';
     }
 
     console.log(errors);
@@ -72,7 +94,7 @@ class Dashboard extends Component {
         `${config.endpoint}/api/wallet/create-did`,
         {
           seed: this.state.seed,
-          alias: this.state.alias,
+          alias: this.state.didAlias,
         },
         {
           headers: { Authorization: `Bearer ${jwt}` },
@@ -86,10 +108,11 @@ class Dashboard extends Component {
         this.setState({
           dids: dids,
         });
+        this.showSnackbarVariant('New DID added to your wallet.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error creating DID. Please try again.');
+        this.showSnackbarVariant('Error creating DID. Please try again.', 'error');
       });
   };
 
@@ -132,11 +155,11 @@ class Dashboard extends Component {
                         variant="outlined"
                         required
                         fullWidth
-                        id="alias"
+                        id="didAlias"
                         label="Alias"
-                        name="alias"
+                        name="didAlias"
                         placeholder="DID Label"
-                        value={this.state.alias}
+                        value={this.state.didAlias}
                         onChange={this.handleChange}
                       />
                     </Grid>
@@ -179,7 +202,7 @@ class Dashboard extends Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {this.state.dids.map((did) => (
+              {(this.state.dids || []).map((did) => (
                 <StyledTableRow key={did.did}>
                   <StyledTableCell align="center">{did.did}</StyledTableCell>
                   <StyledTableCell align="center">{did.metadata.alias}</StyledTableCell>
@@ -252,8 +275,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(Dashboard));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(Dashboard)));

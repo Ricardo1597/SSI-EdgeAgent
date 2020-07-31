@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import io from 'socket.io-client';
 import config from '../config';
 import ReactNotifications from 'react-notifications-component';
@@ -7,11 +7,30 @@ import 'react-notifications-component/dist/theme.css';
 import 'animate.css';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 import { connect } from 'react-redux';
+import { withSnackbar } from 'notistack';
 
 let socket;
 
-function Notifications({ connections, updateConnection }) {
+function Notifications({ updateConnection, enqueueSnackbar, closeSnackbar }) {
+  const showSnackbarVariant = (message, options) => {
+    enqueueSnackbar(message, options);
+  };
+
+  const action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
+
   useEffect(() => {
     socket = io(config.agentEndpoint);
     return () => {
@@ -39,8 +58,22 @@ function Notifications({ connections, updateConnection }) {
           break;
       }
     });
+
+    socket.on('toast', (message) => {
+      // Show notification on screen
+      showSnackbarVariant(message, {
+        variant: 'success',
+        autoHideDuration: 5000,
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        },
+        action,
+      });
+    });
   }, []);
 
+  // Notifications from server
   const showNotification = (notification) => {
     store.addNotification({
       content: MyNotification(notification), // 'default', 'success', 'info', 'warning'
@@ -91,25 +124,37 @@ function Notifications({ connections, updateConnection }) {
   return (
     <div style={styles.notifications}>
       <ReactNotifications />
-      {/* <button
-          onClick={() => {
-            store.addNotification({
-              content: MyNotification(),               // 'default', 'success', 'info', 'warning'
-              container: 'top-right',                  // where to position the notifications
-              insert: 'top',
-              animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
-              animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
-              dismiss: {
-                duration: 50000,
-                click: false,
-                showIcon: true
-              },
-              width: 420
-            })
-          }}
-        >
-          Add notification
-        </button> */}
+      <button
+        onClick={() => {
+          store.addNotification({
+            content: MyNotification(), // 'default', 'success', 'info', 'warning'
+            container: 'top-right', // where to position the notifications
+            insert: 'top',
+            animationIn: ['animated', 'fadeIn'], // animate.css classes that's applied
+            animationOut: ['animated', 'fadeOut'], // animate.css classes that's applied
+            dismiss: {
+              duration: 50000,
+              click: false,
+              showIcon: true,
+            },
+            width: 420,
+          });
+        }}
+      >
+        Add notification
+      </button>
+      <button
+        style={{ margin: 20 }}
+        onClick={() =>
+          showSnackbarVariant('This is a success test message.', {
+            variant: 'success',
+            autoHideDuration: 5000,
+            action,
+          })
+        }
+      >
+        Add Toast
+      </button>
     </div>
   );
 }
@@ -133,7 +178,7 @@ const styles = {
 
 const mapStateToProps = (state) => {
   return {
-    connections: state.connections,
+    connections: state.app.connections,
   };
 };
 
@@ -145,4 +190,4 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Notifications);
+export default connect(mapStateToProps, mapDispatchToProps)(withSnackbar(Notifications));

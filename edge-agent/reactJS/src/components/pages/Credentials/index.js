@@ -42,14 +42,10 @@ class Credentials extends Component {
           >
             <Tab className={classes.button} label="Credentials" {...a11yProps(0)} />
             <Tab className={classes.button} label="Credential Exchanges" {...a11yProps(1)} />
-            {!this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Propose Credential" {...a11yProps(2)} />
-            ) : (
+            <Tab className={classes.button} label="Propose Credential" {...a11yProps(2)} />
+            {this.getDIDPermissions() ? (
               <Tab className={classes.button} label="Offer Credential" {...a11yProps(2)} />
-            )}
-            {/* don't show this for now (probably won't be needed)
-                    <Tab className={classes.button} label="Request Credential" {...a11yProps(4)} />
-                    <Tab className={classes.button} label="Issue Credential" {...a11yProps(5)} />*/}
+            ) : null}
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
@@ -58,15 +54,14 @@ class Credentials extends Component {
         <TabPanel value={tab} index={1}>
           <AllRecords recordId={search.recordId} />
         </TabPanel>
-        {!this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={2}>
-            <ProposeCredential />
-          </TabPanel>
-        ) : (
+        <TabPanel value={tab} index={2}>
+          <ProposeCredential />
+        </TabPanel>
+        {this.getDIDPermissions() ? (
           <TabPanel value={tab} index={2}>
             <OfferCredential />
           </TabPanel>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -125,7 +120,7 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 

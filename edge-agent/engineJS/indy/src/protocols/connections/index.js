@@ -66,10 +66,8 @@ exports.createInvitation = async (
   //     throw new Error(`Invitation already created with DID ${myDid}. Please use another verkey.`);
   // }
 
-  const invitationMessage = messages.createInvitationMessage(myDidDoc, isPublic);
+  const invitationMessage = messages.createInvitationMessage(myDidDoc, invitationAlias, isPublic);
   const invitationURL = this.encodeInvitationToUrl(invitationMessage);
-  const qrCode = QRCode.create(invitationURL);
-  console.log(qrCode);
 
   const currentDate = indy.utils.getCurrentDate();
 
@@ -95,10 +93,10 @@ exports.createInvitation = async (
     {}
   );
 
-  return [invitationMessage, invitationURL, qrCode];
+  return [invitationMessage, invitationURL];
 };
 
-exports.receiveInvitation = async (connectionAlias, invitation, autoAccept = false) => {
+exports.receiveInvitation = async (myAlias, invitation, autoAccept = false) => {
   // This is not needed because now we get the recipient key directly from the blockchain.
   // // Validate id verkey in invitation is the same as in the did document agent service.
   // // (only if did document is in a blockchain)
@@ -112,7 +110,8 @@ exports.receiveInvitation = async (connectionAlias, invitation, autoAccept = fal
     connectionId: uuid(),
     state: ConnectionState.Invited,
     initiator: generalTypes.Initiator.External,
-    alias: connectionAlias,
+    myAlias: myAlias,
+    theirAlias: invitation.label,
     invitation: invitation,
     createdAt: currentDate,
     updatedAt: currentDate,
@@ -138,7 +137,7 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
   // Create did and did document for this specific connection
   const options = { method_name: 'peer' };
   const [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(
-    'Connection: ' + connection.alias,
+    'Connection: ' + connection.theirAlias,
     options
   );
 
@@ -151,7 +150,8 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
   const connectionRequest = messages.createConnectionRequestMessage(
     myDid,
     myDidDoc,
-    connection.invitation['@id']
+    connection.invitation['@id'],
+    connection.myAlias
   );
 
   // Prepare and send connection request
@@ -281,11 +281,17 @@ exports.createAndSendAck = async (connectionId) => {
   return connection;
 };
 
-exports.createPeerDidConnection = async (initiator, alias, threadId, state = null) => {
+exports.createPeerDidConnection = async (
+  initiator,
+  myAlias,
+  theirAlias,
+  threadId,
+  state = null
+) => {
   if (!state) {
     state = ConnectionState.Init;
   }
-  const [did, verkey, didDoc] = await this.getDidAndDocument(false, alias);
+  const [did, verkey, didDoc] = await this.getDidAndDocument(false, 'Connection: ' + theirAlias);
 
   const currentDate = indy.utils.getCurrentDate();
 
@@ -294,6 +300,8 @@ exports.createPeerDidConnection = async (initiator, alias, threadId, state = nul
     myDid: did,
     myVerkey: verkey,
     state: state,
+    myAlias: myAlias,
+    theirAlias: theirAlias,
     initiator: initiator,
     threadId: threadId,
     createdAt: currentDate,
@@ -351,10 +359,7 @@ exports.getDidAndDocument = async (isPublic, alias, myDid = null) => {
   } else {
     // Create local did and did document
     const options = { method_name: 'peer' };
-    [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(
-      'Connection: ' + alias,
-      options
-    );
+    [myDid, myVerkey, myDidDoc] = await indy.didDoc.createDidAndDidDoc(alias, options);
 
     // Save created did document in the wallet
     await indy.didDoc.addLocalDidDocument(myDidDoc);

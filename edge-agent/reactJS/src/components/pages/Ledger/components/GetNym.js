@@ -1,12 +1,14 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import JSONPretty from 'react-json-pretty';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -15,8 +17,30 @@ class GetNym extends Component {
   state = {
     did: '',
     didNym: null,
+    didDocument: null,
     errors: [],
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -80,12 +104,12 @@ class GetNym extends Component {
         headers: { Authorization: `Bearer ${jwt}` },
       })
       .then((res) => {
-        console.log(res.data.did);
-        this.setState({ didNym: res.data.did });
+        console.log(res.data);
+        this.setState({ didNym: res.data.did, didDocument: res.data.didDocument });
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting nym. Please try again.');
+        this.showSnackbarVariant('Error getting nym from the ledger. Please try again.', 'error');
       });
   };
 
@@ -127,24 +151,34 @@ class GetNym extends Component {
         </Grid>
         <Grid item xs={12} lg={7}>
           {this.state.didNym ? (
-            <Card className={classes.card}>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>DID:</div>
-                {this.state.didNym.dest}
-              </div>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>Verkey:</div>
-                {this.state.didNym.verkey}
-              </div>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>Role:</div>
-                {this.getRole(this.state.didNym.role)}
-              </div>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>Added by:</div>
-                {this.state.didNym.identifier}
-              </div>
-            </Card>
+            <div>
+              <Card className={classes.card}>
+                <CardContent>
+                  <div className={classes.marginBottom}>
+                    <div style={{ fontWeight: 'bold' }}>DID:</div>
+                    {this.state.didNym.dest}
+                  </div>
+                  <div className={classes.marginBottom}>
+                    <div style={{ fontWeight: 'bold' }}>Verkey:</div>
+                    {this.state.didNym.verkey}
+                  </div>
+                  <div className={classes.marginBottom}>
+                    <div style={{ fontWeight: 'bold' }}>Role:</div>
+                    {this.getRole(this.state.didNym.role)}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 'bold' }}>Added by:</div>
+                    {this.state.didNym.identifier}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className={classes.card} style={{ width: 'auto' }}>
+                <Typography style={{ marginBottom: 10 }} variant="h6">
+                  DID Document
+                </Typography>
+                <JSONPretty data={this.state.didDocument}></JSONPretty>
+              </Card>
+            </div>
           ) : null}
         </Grid>
       </Grid>
@@ -184,7 +218,7 @@ const useStyles = (theme) => ({
     width: '100%',
   },
   card: {
-    width: '400px',
+    width: '300px',
     padding: 20,
     margin: 20,
   },
@@ -195,8 +229,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(GetNym));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(GetNym)));

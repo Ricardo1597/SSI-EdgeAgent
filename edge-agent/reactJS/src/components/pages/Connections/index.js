@@ -148,8 +148,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
-    connections: state.connections,
+    accessToken: state.auth.accessToken,
+    connections: state.app.connections,
   };
 };
 

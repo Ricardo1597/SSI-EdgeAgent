@@ -1,18 +1,18 @@
 import { createStore } from 'redux';
-import { rootReducer } from './reducers';
+import allReducers from './reducers';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
 const persistConfig = {
   key: 'redux',
+  blacklist: ['auth'], // don't save token in local storage
   storage,
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+const persistedReducer = persistReducer(persistConfig, allReducers);
 
 const store = createStore(
   persistedReducer,
-  //state,
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 );
 

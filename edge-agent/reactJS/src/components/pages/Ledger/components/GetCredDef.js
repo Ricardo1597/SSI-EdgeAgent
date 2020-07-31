@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
@@ -7,6 +7,7 @@ import Card from '@material-ui/core/Card';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import JSONPretty from 'react-json-pretty';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -17,6 +18,27 @@ class GetCredDef extends Component {
     credDef: null,
     errors: [],
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -70,7 +92,10 @@ class GetCredDef extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting credential definition. Please try again.');
+        this.showSnackbarVariant(
+          'Error getting credential definition from the ledger. Please try again.',
+          'error'
+        );
       });
   };
 
@@ -114,7 +139,7 @@ class GetCredDef extends Component {
         <Grid item xs={12} lg={7}>
           {this.state.credDef ? (
             <Card className={classes.card}>
-              <JSONPretty id="json-pretty" data={this.state.credDef}></JSONPretty>
+              <JSONPretty data={this.state.credDef}></JSONPretty>
             </Card>
           ) : null}
         </Grid>
@@ -163,8 +188,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(GetCredDef));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(GetCredDef)));

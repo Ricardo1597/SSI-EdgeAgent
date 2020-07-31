@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 const ConfirmationStep = ({
   onSubmit,
   handleBack,
+  alias,
   connectionId,
   credDefId,
   schemaId,
@@ -18,11 +19,17 @@ const ConfirmationStep = ({
   return (
     <Fragment>
       <List disablePadding>
+        {alias ? (
+          <ListItem>
+            <ListItemText primary="Connection" secondary={alias} />
+          </ListItem>
+        ) : null}
+
+        <Divider />
+
         <ListItem>
           <ListItemText primary="Connection ID" secondary={connectionId} />
         </ListItem>
-
-        <Divider />
 
         <ListItem>
           <ListItemText primary="Credential Definition ID" secondary={credDefId} />

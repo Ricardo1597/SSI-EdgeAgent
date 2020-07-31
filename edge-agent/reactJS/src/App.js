@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 // Components
@@ -16,9 +16,9 @@ import { connect } from 'react-redux';
 
 import Notifications from './components/Notification';
 
-function App(props) {
+function App({ accessToken, updateAccessToken }) {
   const protectRoute = (component) => {
-    return withAuth(component, props.accessToken, props.updateAccessToken);
+    return withAuth(component, accessToken, updateAccessToken);
   };
 
   return (
@@ -54,7 +54,7 @@ const mapDispatchToProps = (dispatch) => {
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 

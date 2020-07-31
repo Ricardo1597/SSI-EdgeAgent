@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -11,6 +11,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { connect } from 'react-redux';
 import MenuItem from '@material-ui/core/MenuItem';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -25,6 +26,27 @@ class CreateCredDef extends Component {
     supportRevocation: false,
     errors: [],
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -86,10 +108,14 @@ class CreateCredDef extends Component {
       )
       .then((res) => {
         console.log(res.data);
+        this.showSnackbarVariant('Credential definition created.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error creating credential definition. Please try again.');
+        this.showSnackbarVariant(
+          'Error creating credential definition. Please try again.',
+          'error'
+        );
       });
   };
 
@@ -219,8 +245,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(CreateCredDef));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(CreateCredDef)));

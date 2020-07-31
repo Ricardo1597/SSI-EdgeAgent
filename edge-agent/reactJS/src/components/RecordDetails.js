@@ -16,6 +16,7 @@ function RecordDetails(props) {
     connectionId,
     recordId,
     proposal,
+    request,
     credential,
     presentation,
     verified,
@@ -23,8 +24,8 @@ function RecordDetails(props) {
 
   return (
     <div>
-      <CardContent>
-        <Typography gutterBottom variant="h6" component="h2">
+      <CardContent className="m-3">
+        <Typography variant="h6" component="h2">
           {/* Here i could get the connection alias and display that.*/}
         </Typography>
         <Typography variant="body2" color="textSecondary" component="div">
@@ -60,9 +61,20 @@ function RecordDetails(props) {
           ) : null}
           <div style={styles.marginBottom}>
             <div style={{ fontWeight: 'bold' }}>Credential Proposal:</div>
-            <JSONPretty id="json-pretty" data={proposal}></JSONPretty>
+            <JSONPretty data={proposal}></JSONPretty>
           </div>
-          {presentation && <PresentationCard presentation={presentation} verified={verified} />}
+          <div style={styles.marginBottom}>
+            <div style={{ fontWeight: 'bold' }}>Credential Request:</div>
+            <JSONPretty data={request}></JSONPretty>
+          </div>
+          {presentation && (
+            <PresentationCard
+              id={recordId}
+              presentation={presentation}
+              request={request}
+              verified={verified}
+            />
+          )}
         </Typography>
       </CardContent>
     </div>

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -12,6 +12,7 @@ import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import Cookies from 'js-cookie';
 import Paper from '@material-ui/core/Paper';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../config';
@@ -26,6 +27,7 @@ class SignUp extends Component {
     password2: '',
     loading: true,
     redirect: false,
+    invalidCredentials: false,
     formErrors: {
       name: '',
       username: '',
@@ -34,9 +36,31 @@ class SignUp extends Component {
     },
   };
 
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
+
   handleChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value,
+      invalidCredentials: false,
     });
   };
 
@@ -125,8 +149,12 @@ class SignUp extends Component {
         this.props.history.push('/login');
       })
       .catch((err) => {
-        console.error(err);
-        alert('Error signing up. Please try again.');
+        console.log(err);
+        if (err.status === 401) {
+          this.setState({ invalidCredentials: true });
+        } else {
+          this.showSnackbarVariant('Error signing up. Please try again.', 'error');
+        }
       });
   };
 
@@ -227,6 +255,9 @@ class SignUp extends Component {
                 >
                   Sign Up
                 </Button>
+                {this.state.invalidCredentials && (
+                  <div className="login-feedback">Invalid credentials</div>
+                )}
                 <Grid container justify="flex-end">
                   <Grid item>
                     <Link href="/login" variant="body2">
@@ -275,7 +306,7 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
@@ -287,4 +318,7 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles)(SignUp));
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withStyles(useStyles)(withSnackbar(SignUp)));

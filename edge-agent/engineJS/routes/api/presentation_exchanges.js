@@ -133,9 +133,9 @@ router.post(
   }
 );
 
-// Holder send presentation exchange proposal
+// Holder create presentation
 router.post(
-  '/:id/send-presentation',
+  '/:id/create-presentation',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     const { requestedAttributes } = req.body;
@@ -173,9 +173,38 @@ router.post(
 
       console.log('Requested attributes: ', reqAttributes);
 
-      const [record, messageSent] = await indy.presentationExchange.proverCreateAndSendPresentation(
+      const record = await indy.presentationExchange.proverCreatePresentation(
         presentationExchangeRecord,
         reqAttributes
+      );
+
+      const valid = await indy.presentationExchange.verifyPresentation(
+        record.presentationRequest,
+        record.presentation
+      );
+      res.status(200).send({ record, valid });
+    } catch (error) {
+      console.log(error);
+      res.status(400).send({ error });
+    }
+  }
+);
+
+// Holder send presentation exchange proposal
+router.post(
+  '/:id/send-presentation',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    try {
+      // Get presentation exchange record
+      let presentationExchangeRecord = await indy.wallet.getWalletRecord(
+        indy.recordTypes.RecordType.PresentationExchange,
+        req.params.id,
+        {}
+      );
+
+      const [record, messageSent] = await indy.presentationExchange.proverSendPresentation(
+        presentationExchangeRecord
       );
       res.status(200).send({ record, messageSent });
     } catch (error) {

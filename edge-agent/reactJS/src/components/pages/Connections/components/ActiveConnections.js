@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -12,6 +12,7 @@ import Container from '@material-ui/core/Container';
 import ConnectionItem from './ConnectionItem';
 import ConnectionDetails from './ConnectionDetails';
 import ActiveConnectionActions from './ActiveConnectionActions';
+import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
 
@@ -19,6 +20,27 @@ class ActiveConnections extends Component {
   state = {
     connection: null,
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   changeConnection = (id) => {
     const connection = this.props.connections.find((connection) => {
@@ -55,10 +77,11 @@ class ActiveConnections extends Component {
       .then(({ data: { id } }) => {
         console.log(id);
         this.props.removeConnection(id);
+        this.showSnackbarVariant('Connection deleted.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error deleting connection. Please try again.');
+        this.showSnackbarVariant('Error deleting connection. Please try again.', 'error');
       });
   };
 
@@ -147,8 +170,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(ActiveConnections));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(ActiveConnections)));

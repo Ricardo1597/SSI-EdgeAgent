@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
+import Button from '@material-ui/core/Button';
 import Tab from '@material-ui/core/Tab';
 import TabPanel, { a11yProps } from '../../TabPanel';
 import { withStyles } from '@material-ui/core/styles';
@@ -10,6 +11,7 @@ import MyRegistries from './components/MyRegistries';
 import GetRegistry from './components/GetRegistry';
 import CreateRegistry from './components/CreateRegistry';
 import RevokeCredential from './components/RevokeCredential';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../config';
@@ -19,6 +21,27 @@ class Revocations extends Component {
     registries: [],
     tab: 0,
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -45,7 +68,7 @@ class Revocations extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting registries. Please try again.');
+        this.showSnackbarVariant('Error getting registries. Please try again.', 'error');
       });
   }
 
@@ -98,4 +121,4 @@ const useStyles = (theme) => ({
   },
 });
 
-export default withStyles(useStyles)(Revocations);
+export default withStyles(useStyles)(withSnackbar(Revocations));

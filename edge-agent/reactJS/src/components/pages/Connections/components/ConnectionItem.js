@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 
 function ConnectionItem(props) {
   const classes = useStyles();
-  const { state, alias } = props.connection;
+  const { state, theirAlias, connectionId, createdAt, updatedAt } = props.connection;
 
   return (
     <Card
@@ -17,12 +17,18 @@ function ConnectionItem(props) {
     >
       <CardContent>
         <Typography style={{ marginBottom: '-15px' }} variant="h6">
-          <p>{alias}</p>
+          <p>{theirAlias}</p>
+        </Typography>
+        <Typography style={{ marginBottom: '-10px' }} variant="body2">
+          <p>{connectionId}</p>
         </Typography>
         <Typography variant="subtitle2" color="textSecondary">
-          Hardcoded for created_at
+          Created at: {createdAt}
           <br />
-          Hardcoded for updated_at
+          Updated at: {updatedAt}
+        </Typography>
+        <Typography style={{ marginTop: '5px' }} variant="body2">
+          Current state: {state}
         </Typography>
       </CardContent>
     </Card>
@@ -47,7 +53,7 @@ const useStyles = makeStyles((theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 

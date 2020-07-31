@@ -9,20 +9,13 @@ import { connect } from 'react-redux';
 
 function ConnectionDetails(props) {
   const classes = useStyles();
-  const { state, alias, connectionId, myDid, myVerkey, error } = props.connection;
+  const { state, theirAlias, connectionId, myDid, myVerkey, error } = props.connection;
 
   return (
     <div>
-      <CardMedia
-        component="img"
-        alt="Contemplative Reptile"
-        height="140"
-        image="/static/images/cards/contemplative-reptile.jpg"
-        title="Contemplative Reptile"
-      />
       <CardContent>
         <Typography gutterBottom variant="h6" component="h2">
-          {alias}
+          {theirAlias}
         </Typography>
         <Typography variant="body2" color="textSecondary" component="div">
           <div style={{ marginBottom: 8 }}>
@@ -74,7 +67,7 @@ const useStyles = makeStyles((theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 

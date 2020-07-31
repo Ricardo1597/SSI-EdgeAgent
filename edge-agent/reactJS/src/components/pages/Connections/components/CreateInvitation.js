@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -16,6 +16,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import JSONPretty from 'react-json-pretty';
 import QRCode from 'qrcode.react';
 import { connect } from 'react-redux';
+import { withSnackbar } from 'notistack';
 
 class CreateInvitation extends Component {
   state = {
@@ -33,6 +34,27 @@ class CreateInvitation extends Component {
       did: '',
     },
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     const { name, value } = e.target;
@@ -115,7 +137,7 @@ class CreateInvitation extends Component {
             invitationJson: JSON.stringify(res.data.invitation),
             invitationUrl: JSON.stringify(res.data.url),
           });
-          alert('Invitation created with success!');
+          this.showSnackbarVariant('New invitation created.', 'success');
         } else {
           const error = new Error(res.error);
           throw error;
@@ -123,7 +145,7 @@ class CreateInvitation extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error creating DID. Please try again.');
+        this.showSnackbarVariant('Error creating invitation. Please try again.', 'error');
       });
   };
 
@@ -236,7 +258,7 @@ class CreateInvitation extends Component {
                 <Grid container align="left" className={classes.result}>
                   <Grid item xs={12}>
                     <Typography variant="h6">Invitation Details</Typography>
-                    <JSONPretty id="json-pretty" data={this.state.invitationJson}></JSONPretty>
+                    <JSONPretty data={this.state.invitationJson}></JSONPretty>
                   </Grid>
                   <Grid item xs={12}>
                     <Typography variant="h6">Invitation QRCode</Typography>
@@ -300,8 +322,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(CreateInvitation));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(CreateInvitation)));

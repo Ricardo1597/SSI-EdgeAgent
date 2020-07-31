@@ -2,12 +2,14 @@ import React, { Component, Fragment } from 'react';
 
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
+import Button from '@material-ui/core/Button';
 import StepLabel from '@material-ui/core/StepLabel';
 import { withStyles } from '@material-ui/core/styles';
 
 import FirstStep from './FirstStep';
 import SecondStep from './SecondStep';
 import ConfirmationStep from './ConfirmationStep';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../../../config';
@@ -21,12 +23,12 @@ class StepForm extends Component {
   state = {
     step: 0,
     connectionId: '',
-    connections: (JSON.parse(localStorage.getItem('connections')) || [])
+    connections: this.props.connections
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
         return {
           id: connection.connectionId,
-          alias: connection.alias,
+          alias: connection.theirAlias,
         };
       }),
     credDefId: '',
@@ -40,6 +42,27 @@ class StepForm extends Component {
       credAttributes: {},
     },
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   // Proceed to next step
   handleNext = () => this.setState({ step: this.state.step + 1 });
@@ -155,11 +178,11 @@ class StepForm extends Component {
       )
       .then((res) => {
         console.log(res.data);
-        alert('Proposal sent with success!');
+        this.showSnackbarVariant('Proposal sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error sending credential proposal. Please try again.');
+        this.showSnackbarVariant('Error sending credential proposal. Please try again.', 'error');
       });
   };
 
@@ -199,6 +222,13 @@ class StepForm extends Component {
             handleBack={this.handleBack}
             onSubmit={this.onSubmit}
             connectionId={this.state.connectionId}
+            alias={
+              (
+                this.state.connections.find(
+                  (con) => (con.connectionId = this.state.connectionId)
+                ) || {}
+              ).alias
+            }
             credDefId={this.state.credDefId}
             schemaId={this.state.schemaId}
             comment={this.state.comment}
@@ -237,8 +267,9 @@ const useStyles = (theme) => ({});
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
+    connections: state.app.connections,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(StepForm));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(StepForm)));

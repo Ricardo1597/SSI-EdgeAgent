@@ -64,6 +64,7 @@ exports.requestHandler = async (decryptedMessage, socket) => {
     connection = await connectionsIndex.createPeerDidConnection(
       generalTypes.Initiator.Self,
       invitation.alias,
+      message.label,
       message['@id']
     );
 
@@ -71,7 +72,6 @@ exports.requestHandler = async (decryptedMessage, socket) => {
     await indy.didDoc.addLocalDidDocument(message.connection.did_doc);
 
     // Add connection record
-    connection.alias = invitation.alias;
     connection.invitation = invitation;
     connection.theirDid = message.connection.did;
     connection.state = connectionsIndex.ConnectionState.Requested;

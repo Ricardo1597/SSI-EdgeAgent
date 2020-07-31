@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -12,6 +12,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import { withSnackbar } from 'notistack';
 
 import uuid from 'uuid';
 import { connect } from 'react-redux';
@@ -24,6 +25,27 @@ class RevokeCredential extends Component {
     loading: false,
     errors: [],
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -88,11 +110,11 @@ class RevokeCredential extends Component {
       )
       .then((res) => {
         console.log(res.data);
-        alert('Credential revoked with success!');
+        this.showSnackbarVariant('Credential revoked.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error revoking credential. Please try again.');
+        this.showSnackbarVariant('Error revoking credential. Please try again.', 'error');
       })
       .finally(() => {
         this.setState({ loading: false });
@@ -227,8 +249,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(RevokeCredential));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(RevokeCredential)));

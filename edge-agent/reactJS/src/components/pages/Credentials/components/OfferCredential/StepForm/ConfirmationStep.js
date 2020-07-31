@@ -19,9 +19,11 @@ const ConfirmationStep = ({
   return (
     <Fragment>
       <List disablePadding>
-        <ListItem>
-          <ListItemText primary="Connection" secondary={alias} />
-        </ListItem>
+        {alias ? (
+          <ListItem>
+            <ListItemText primary="Connection" secondary={alias} />
+          </ListItem>
+        ) : null}
 
         <Divider />
 

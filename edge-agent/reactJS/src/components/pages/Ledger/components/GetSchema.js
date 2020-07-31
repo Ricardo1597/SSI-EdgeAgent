@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
@@ -6,6 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -15,6 +16,27 @@ class GetSchema extends Component {
     schemaId: '',
     schema: '',
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -68,7 +90,10 @@ class GetSchema extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting schema. Please try again.');
+        this.showSnackbarVariant(
+          'Error getting schema from the ledger. Please try again.',
+          'error'
+        );
       });
   };
 
@@ -168,8 +193,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(GetSchema));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(GetSchema)));

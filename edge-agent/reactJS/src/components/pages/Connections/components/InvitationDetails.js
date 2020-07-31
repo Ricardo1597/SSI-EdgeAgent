@@ -25,7 +25,7 @@ function InvitationDetails(props) {
     <div>
       <CardContent>
         <Typography gutterBottom variant="h6" component="h2">
-          {alias}
+          {alias || invitationId}
         </Typography>
         <Typography variant="body2" color="textSecondary" component="div">
           <div style={{ marginBottom: 8 }}>
@@ -58,7 +58,7 @@ function InvitationDetails(props) {
           </div>
           <div style={{ marginBottom: 8 }}>
             <div style={{ fontWeight: 'bold' }}>Invitation:</div>
-            <JSONPretty id="json-pretty" data={invitation}></JSONPretty>
+            <JSONPretty data={invitation}></JSONPretty>
           </div>
         </Typography>
       </CardContent>
@@ -82,7 +82,7 @@ const useStyles = makeStyles((theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 

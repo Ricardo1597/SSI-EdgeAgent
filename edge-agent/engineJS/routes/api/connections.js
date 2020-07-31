@@ -80,10 +80,10 @@ router.post(
     try {
       const [myDid, myVerkey, myDidDoc] = await indy.connections.getDidAndDocument(
         isPublic,
-        alias,
+        'Invitation: ' + alias,
         did
       );
-      const [invitation, url, qrCode] = await indy.connections.createInvitation(
+      const [invitation, url] = await indy.connections.createInvitation(
         myDid,
         myVerkey,
         myDidDoc,
@@ -94,7 +94,7 @@ router.post(
       if (!invitation) {
         throw new Error('Error while creating invitation.');
       }
-      res.status(200).send({ invitation, url, qrCode });
+      res.status(200).send({ invitation, url });
     } catch (error) {
       console.log(error);
       res.status(400).send({ error });
@@ -174,8 +174,9 @@ router.post(
   '/accept-invitation',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
+    const { id, myLabel } = req.body;
     try {
-      const connection = await indy.connections.acceptInvitationAndSendRequest(req.body.id);
+      const connection = await indy.connections.acceptInvitationAndSendRequest(id, myLabel);
       res.status(200).send({ connection });
     } catch (error) {
       console.log(error);

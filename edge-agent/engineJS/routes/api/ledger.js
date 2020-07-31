@@ -19,9 +19,22 @@ router.post('/send-nym', passport.authenticate('jwt', { session: false }), async
 
 // Get did from the ledger
 router.get('/get-nym', passport.authenticate('jwt', { session: false }), async (req, res) => {
-  let getDidResponse = await indy.ledger.getNym(req.query.did);
+  try {
+    const getDidResponse = await indy.ledger.getNym(req.query.did);
+    const did = JSON.parse(getDidResponse.result.data);
 
-  res.status(200).send({ did: JSON.parse(getDidResponse.result.data) });
+    const didDocument = await indy.ledger.getDidAttribute(
+      null,
+      req.query.did,
+      null,
+      'did-document',
+      null
+    );
+
+    res.status(200).send({ did, didDocument });
+  } catch (error) {
+    res.status(400).send({ error });
+  }
 });
 
 // Create schema, store it and send it to the ledger

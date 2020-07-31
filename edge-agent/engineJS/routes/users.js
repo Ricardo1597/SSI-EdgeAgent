@@ -8,8 +8,6 @@ const indy = require('../indy/index.js');
 const config = require('../config');
 require('dotenv/config');
 
-const UserModel = require('../models/users');
-
 const {
   getRefreshTokenVersion,
   incrementRefreshTokenVersion,

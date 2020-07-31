@@ -49,7 +49,7 @@ const FirstStep = ({
               {connections.map(({ id, alias }) => {
                 return (
                   <MenuItem key={id} value={id}>
-                    {id}
+                    {alias || id}
                   </MenuItem>
                 );
               })}

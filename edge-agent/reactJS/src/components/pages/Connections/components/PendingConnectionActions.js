@@ -1,18 +1,46 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
 
 import { connect } from 'react-redux';
 
-function PendingConnectionActions(props) {
+function PendingConnectionActions({
+  accessToken,
+  updateConnection,
+  connection,
+  enqueueSnackbar,
+  closeSnackbar,
+}) {
   const classes = useStyles();
 
+  const showSnackbarVariant = (message, variant) => {
+    enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action,
+    });
+  };
+
+  const action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
+
   const acceptInvitation = (connectionId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/connections/accept-invitation`,
@@ -24,17 +52,18 @@ function PendingConnectionActions(props) {
         }
       )
       .then(({ data: { connection } }) => {
-        props.updateConnection(connection);
-        alert('Connection invitation accepted with success!');
+        console.log(connection);
+        updateConnection(connection);
+        showSnackbarVariant('Connection invitation accepted.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error accepting connection. Please try again.');
+        showSnackbarVariant('Error accepting connection invitation. Please try again.', 'error');
       });
   };
 
   const rejectInvitation = (connectionId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/connections/reject-invitation`,
@@ -46,17 +75,18 @@ function PendingConnectionActions(props) {
         }
       )
       .then(({ data: { connection } }) => {
-        props.updateConnection(connection);
-        alert('Connection invitation rejected!');
+        console.log(connection);
+        updateConnection(connection);
+        showSnackbarVariant('Connection invitation rejected!', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error rejecting connection. Please try again.');
+        showSnackbarVariant('Error rejecting connection invitation. Please try again.', 'error');
       });
   };
 
   const acceptRequest = (connectionId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/connections/accept-request`,
@@ -68,17 +98,19 @@ function PendingConnectionActions(props) {
         }
       )
       .then(({ data: { connection } }) => {
-        props.updateConnection(connection);
-        //alert("Connection request sent with success!");
+        console.log(connection);
+        updateConnection(connection);
+        showSnackbarVariant('Connection request sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error accepting connection. Please try again.');
+        updateConnection(connection);
+        showSnackbarVariant('Error sending connection request. Please try again.', 'error');
       });
   };
 
   const rejectRequest = (connectionId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/connections/reject-request`,
@@ -90,33 +122,35 @@ function PendingConnectionActions(props) {
         }
       )
       .then(({ data: { connection } }) => {
-        props.updateConnection(connection);
-        alert('Connection request rejected!');
+        console.log(connection);
+        updateConnection(connection);
+        showSnackbarVariant('Connection request rejected.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error rejection connection request. Please try again.');
+        showSnackbarVariant('Error rejecting connection request. Please try again.', 'error');
       });
   };
 
   const deleteConnection = (id) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
 
     axios
       .delete(`${config.endpoint}/api/connections/${id}`, {
         headers: { Authorization: `Bearer ${jwt}` },
       })
-      .then(({ data: { id } }) => {
-        console.log(id);
-        props.removeConnection(id);
+      .then(({ data: { connection } }) => {
+        console.log(connection);
+        updateConnection(connection);
+        showSnackbarVariant('Connection deleted.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error deleting connection. Please try again.');
+        showSnackbarVariant('Error deleting connection. Please try again.', 'error');
       });
   };
 
-  const { state, initiator, connectionId } = props.connection;
+  const { state, initiator, connectionId } = connection;
 
   if (state === 'error') {
     return (
@@ -137,10 +171,6 @@ function PendingConnectionActions(props) {
             </Button>
           </div>
         );
-        {
-          /*case 'responded':
-                return <Button size="small" color="primary" onClick={() => acceptResponse(connectionId)}>Accept Response</Button>;*/
-        }
       default:
         return null;
     }
@@ -179,8 +209,8 @@ const useStyles = makeStyles((theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(PendingConnectionActions);
+export default connect(mapStateToProps)(withSnackbar(PendingConnectionActions));

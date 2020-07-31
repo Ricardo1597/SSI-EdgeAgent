@@ -127,6 +127,8 @@ exports.verifierCreateAndSendRequest = async (
     throw new Error(`Invalid state trasition.`);
   }
 
+  presentationRequest.date = parseInt(new Date().getTime() / 1000);
+
   console.log('Cheguei 3');
   // Get connection to send message (presentation request)
   const connection = await indy.connections.getConnection(presentationExchangeRecord.connectionId);
@@ -300,13 +302,10 @@ const getRevocationStates = async (revocRegs, revocRegDeltas) => {
   return revocationStates;
 };
 
-exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, reqCredentials) => {
+exports.proverCreatePresentation = async (presentationExchangeRecord, reqCredentials) => {
   if (presentationExchangeRecord.state != PresentationExchangeState.RequestReceived) {
     throw new Error(`Invalid state trasition.`);
   }
-
-  // Get connection to send message (presentation response)
-  const connection = await indy.connections.getConnection(presentationExchangeRecord.connectionId);
 
   const presentationRequest = presentationExchangeRecord.presentationRequest;
 
@@ -366,21 +365,14 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
     console.log('Cheguei 4.13');
     console.log('Presentation: ', presentation);
 
-    const data = Buffer.from(JSON.stringify(presentation)).toString('base64');
-    // Create request message
-    let presentationMessage = messages.createPresentation(
-      null,
-      data,
-      presentationExchangeRecord.threadId
+    // Test if the presentation created is valid
+    const valid = await this.verifyPresentation(
+      presentationExchangeRecord.presentationRequest,
+      presentation
     );
-
-    // Prepare and send presentation message to prover
-    const [message, endpoint] = await indy.messages.prepareMessage(presentationMessage, connection);
-    indy.messages.sendMessage(message, endpoint);
 
     // Update presentation exchange record
     presentationExchangeRecord.presentation = presentation;
-    presentationExchangeRecord.state = PresentationExchangeState.PresentationSent;
     presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
     await indy.wallet.updateWalletRecordValue(
       indy.recordTypes.RecordType.PresentationExchange,
@@ -388,30 +380,45 @@ exports.proverCreateAndSendPresentation = async (presentationExchangeRecord, req
       JSON.stringify(presentationExchangeRecord)
     );
 
-    return [presentationExchangeRecord, presentationMessage];
+    return presentationExchangeRecord;
   } catch (error) {
-    console.log('aqui: ', error);
-    throw new Error(
-      'Error in requested credentials. Some attributes may not respect what you are trying to prove.'
-    );
+    console.log(error);
+    throw error;
   }
 };
 
-exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
-  if (
-    presentationExchangeRecord.state != PresentationExchangeState.PresentationReceived &&
-    presentationExchangeRecord.state != PresentationExchangeState.Done
-  ) {
-    throw new Error(`Invalid state trasition.`);
-  }
-
-  // Get connection to send message (presentation ack)
+exports.proverSendPresentation = async (presentationExchangeRecord) => {
+  // Get connection to send message (presentation response)
   const connection = await indy.connections.getConnection(presentationExchangeRecord.connectionId);
 
-  // Verify presentation
-  const indyProofRequest = presentationExchangeRecord.presentationRequest;
-  const indyProof = presentationExchangeRecord.presentation;
+  const data = Buffer.from(JSON.stringify(presentationExchangeRecord.presentation)).toString(
+    'base64'
+  );
 
+  // Create request message
+  let presentationMessage = messages.createPresentation(
+    null,
+    data,
+    presentationExchangeRecord.threadId
+  );
+
+  // Prepare and send presentation message to prover
+  const [message, endpoint] = await indy.messages.prepareMessage(presentationMessage, connection);
+  indy.messages.sendMessage(message, endpoint);
+
+  // Update presentation exchange record
+  presentationExchangeRecord.state = PresentationExchangeState.PresentationSent;
+  presentationExchangeRecord.updatedAt = indy.utils.getCurrentDate();
+  await indy.wallet.updateWalletRecordValue(
+    indy.recordTypes.RecordType.PresentationExchange,
+    presentationExchangeRecord.presentationExchangeId,
+    JSON.stringify(presentationExchangeRecord)
+  );
+
+  return [presentationExchangeRecord, presentationMessage];
+};
+
+exports.verifyPresentation = async (proofReq, indyProof) => {
   let schemas = {};
   let credDefs = {};
   let revRegDefs = {};
@@ -463,8 +470,8 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
   // console.log(JSON.stringify(revRegDefs))
   // console.log(JSON.stringify(revRegEntries))
 
-  let verified = await indy.verifier.verifyPresentation(
-    indyProofRequest,
+  const verified = await indy.verifier.verifyPresentation(
+    proofReq,
     indyProof,
     schemas,
     credDefs,
@@ -477,6 +484,26 @@ exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
   } else {
     console.log('Failed at presentation verification!');
   }
+
+  return verified;
+};
+
+exports.verifierVerifyPresentation = async (presentationExchangeRecord) => {
+  if (
+    presentationExchangeRecord.state != PresentationExchangeState.PresentationReceived &&
+    presentationExchangeRecord.state != PresentationExchangeState.Done
+  ) {
+    throw new Error(`Invalid state trasition.`);
+  }
+
+  // Get connection to send message (presentation ack)
+  const connection = await indy.connections.getConnection(presentationExchangeRecord.connectionId);
+
+  // Verify presentation
+  const verified = await this.verifyPresentation(
+    presentationExchangeRecord.presentationRequest,
+    presentationExchangeRecord.presentation
+  );
 
   // Create ack message
   const ackMessage = messages.createPresentationAckMessage(presentationExchangeRecord.threadId);

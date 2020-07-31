@@ -7,6 +7,7 @@ import { Provider } from 'react-redux';
 import interceptors from './interceptors';
 import { store, persistor } from './store/config';
 import { PersistGate } from 'redux-persist/lib/integration/react';
+import { SnackbarProvider } from 'notistack';
 
 interceptors.setupInterceptors(store);
 
@@ -14,7 +15,9 @@ ReactDOM.render(
   <React.Fragment>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <App />
+        <SnackbarProvider maxSnack={4}>
+          <App />
+        </SnackbarProvider>
       </PersistGate>
     </Provider>
   </React.Fragment>,

@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 
 function InvitationItem(props) {
   const classes = useStyles();
-  const { isPublic, alias } = props.invitation;
+  const { isPublic, alias, invitationId, createdAt, updatedAt } = props.invitation;
 
   return (
     <Card className={classes.root}>
@@ -17,13 +17,16 @@ function InvitationItem(props) {
         <Typography style={{ marginBottom: '-15px' }} variant="h6">
           <p>{alias}</p>
         </Typography>
+        <Typography style={{ marginBottom: '-10px' }} variant="body2">
+          <p>{invitationId}</p>
+        </Typography>
         <Typography variant="subtitle2" color="textSecondary">
-          Hardcoded for created_at
+          Created at: {createdAt}
           <br />
-          Hardcoded for updated_at
+          Updated at: {updatedAt}
         </Typography>
         <Typography variant="body2" color="textPrimary">
-          {isPublic ? 'public' : 'private'}
+          Type: {isPublic ? 'public' : 'private'}
         </Typography>
       </CardContent>
     </Card>
@@ -48,7 +51,7 @@ const useStyles = makeStyles((theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 

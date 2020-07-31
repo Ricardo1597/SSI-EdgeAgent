@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -13,6 +13,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../config';
@@ -27,6 +28,27 @@ class SignIn extends Component {
     redirect: false,
     invalidCredentials: false,
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -72,7 +94,6 @@ class SignIn extends Component {
         this.props.updateAccessToken(res.data.accessToken);
         this.props.updateConnections(res.data.connections);
         localStorage.setItem('dids', JSON.stringify(res.data.dids));
-        //res.data.dids.map(did => this.props.addDid(did));
         this.props.history.push('/');
       })
       .catch((err) => {
@@ -80,7 +101,7 @@ class SignIn extends Component {
         if (err.status === 401) {
           this.setState({ invalidCredentials: true });
         } else {
-          alert(err);
+          this.showSnackbarVariant('Error signing in. Please try again.', 'error');
         }
       });
   };
@@ -202,7 +223,7 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
@@ -217,4 +238,7 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(useStyles)(SignIn));
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withStyles(useStyles)(withSnackbar(SignIn)));

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -10,6 +11,27 @@ import { connect } from 'react-redux';
 
 function RecordActions(props) {
   const classes = useStyles();
+
+  const showSnackbarVariant = (message, variant) => {
+    props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action,
+    });
+  };
+
+  const action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   const sendProposal = (recordId) => {
     const jwt = props.accessToken;
@@ -21,13 +43,13 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
-        alert('Credential proposal sent with success!');
+      .then(({ data }) => {
+        console.log(data);
+        showSnackbarVariant('Credential proposal sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error sending proposal. Please try again.');
+        showSnackbarVariant('Error sending proposal. Please try again.', 'error');
       });
   };
 
@@ -41,13 +63,13 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
-        alert('Credential offer sent with success!');
+      .then(({ data }) => {
+        console.log(data);
+        showSnackbarVariant('Credential offer sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error accepting proposal. Please try again.');
+        showSnackbarVariant('Error accepting proposal. Please try again.', 'error');
       });
   };
 
@@ -61,13 +83,13 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
-        alert('Credential request sent with success!');
+      .then(({ data }) => {
+        console.log(data);
+        showSnackbarVariant('Credential request sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error accepting offer. Please try again.');
+        showSnackbarVariant('Error accepting offer. Please try again.', 'error');
       });
   };
 
@@ -81,13 +103,13 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
-        alert('Credential sent with success!');
+      .then(({ data }) => {
+        console.log(data);
+        showSnackbarVariant('Credential sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error accepting request. Please try again.');
+        showSnackbarVariant('Error accepting. Please try again.', 'error');
       });
   };
 
@@ -101,13 +123,13 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
-        alert(`Credential ${messageType} rejected!`);
+      .then(({ data }) => {
+        console.log(data);
+        showSnackbarVariant(`Credential ${messageType} rejected!`, 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert(`Error rejecting ${messageType}. Please try again.`);
+        showSnackbarVariant(`Error rejecting ${messageType}. Please try again.`, 'error');
       });
   };
 
@@ -181,8 +203,8 @@ const useStyles = makeStyles((theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(RecordActions);
+export default connect(mapStateToProps)(withSnackbar(RecordActions));

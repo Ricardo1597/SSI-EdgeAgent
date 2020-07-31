@@ -7,6 +7,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../../../config';
@@ -52,7 +53,10 @@ const FirstStep = ({
       })
       .catch((err) => {
         console.error(err);
-        alert('Error finding credential definition. Please check if you have entered a valid one.');
+        this.showSnackbarVariant(
+          'Error finding credential definition. Please check if you have entered a valid one.',
+          'error'
+        );
       });
   };
 
@@ -73,7 +77,7 @@ const FirstStep = ({
               {connections.map(({ id, alias }) => {
                 return (
                   <MenuItem key={id} value={id}>
-                    {id}
+                    {alias || id}
                   </MenuItem>
                 );
               })}
@@ -125,8 +129,8 @@ const FirstStep = ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(FirstStep);
+export default connect(mapStateToProps)(withSnackbar(FirstStep));

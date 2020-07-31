@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -13,6 +13,7 @@ import Typography from '@material-ui/core/Typography';
 import RecordSummary from '../../../RecordSummary';
 import RecordDetails from '../../../RecordDetails';
 import RecordActions from './RecordActions';
+import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
 
@@ -21,6 +22,27 @@ class AllRecords extends Component {
     exchanges: [],
     exchange: null,
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   changeExchange = (id) => {
     const exchange = this.state.exchanges.find((exchange) => {
@@ -38,10 +60,17 @@ class AllRecords extends Component {
       })
       .then((res) => {
         console.log(res.data.id);
+        this.showSnackbarVariant(
+          'Presentation exchange record deleted from your wallet.',
+          'success'
+        );
       })
       .catch((err) => {
         console.error(err);
-        alert('Error deleting presentation exchange. Please try again.');
+        this.showSnackbarVariant(
+          'Error deleting presentation exchange record. Please try again.',
+          'error'
+        );
       });
   };
 
@@ -76,7 +105,10 @@ class AllRecords extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting presentation exchanges records. Please try again.');
+        this.showSnackbarVariant(
+          'Error getting presentation exchanges records. Please refresh the page.',
+          'error'
+        );
       });
   }
 
@@ -100,29 +132,19 @@ class AllRecords extends Component {
                       key={exchange.presentationExchangeId}
                       onClick={this.changeExchange.bind(this, exchange.presentationExchangeId)}
                     >
-                      {this.state.exchange &&
-                      exchange.presentationExchangeId ===
-                        this.state.exchange.presentationExchangeId ? (
-                        <RecordSummary
-                          record={{
-                            id: exchange.presentationExchangeId,
-                            createdAt: exchange.createdAt,
-                            updatedAt: exchange.updatedAt,
-                            // other attributes
-                          }}
-                          selected={true}
-                        />
-                      ) : (
-                        <RecordSummary
-                          record={{
-                            id: exchange.presentationExchangeId,
-                            createdAt: exchange.createdAt,
-                            updatedAt: exchange.updatedAt,
-                            // other attributes
-                          }}
-                          selected={false}
-                        />
-                      )}
+                      <RecordSummary
+                        record={{
+                          id: exchange.presentationExchangeId,
+                          createdAt: exchange.createdAt,
+                          updatedAt: exchange.updatedAt,
+                          // other attributes
+                        }}
+                        selected={
+                          this.state.exchange &&
+                          exchange.presentationExchangeId ===
+                            this.state.exchange.presentationExchangeId
+                        }
+                      />
                     </Grid>
                   ))
                 : null}
@@ -140,6 +162,7 @@ class AllRecords extends Component {
                     threadId: this.state.exchange.threadId,
                     connectionId: this.state.exchange.connectionId,
                     proposal: this.state.exchange.presentationProposalDict,
+                    request: this.state.exchange.presentationRequest,
                     presentation: this.state.exchange.presentation,
                     verified: this.state.exchange.verified,
                     error: this.state.exchange.error,
@@ -200,8 +223,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(AllRecords));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(AllRecords)));

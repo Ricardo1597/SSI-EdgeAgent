@@ -1,18 +1,40 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
+import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
 import config from '../../../../config';
 
 import { connect } from 'react-redux';
 
-function InvitationActions(props) {
+function InvitationActions({ accessToken, invitation, enqueueSnackbar, closeSnackbar }) {
   const classes = useStyles();
 
+  const showSnackbarVariant = (message, variant) => {
+    enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action,
+    });
+  };
+
+  const action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
+
   const activateInvitation = (invitationId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/connections/activate-invitation/${invitationId}`,
@@ -23,15 +45,16 @@ function InvitationActions(props) {
       )
       .then((res) => {
         console.log(res);
+        showSnackbarVariant('Invitation activated.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error activating invitation. Please try again.');
+        showSnackbarVariant('Error activating invitation. Please try again.', 'error');
       });
   };
 
   const deactivateInvitation = (invitationId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/connections/deactivate-invitation/${invitationId}`,
@@ -42,14 +65,15 @@ function InvitationActions(props) {
       )
       .then((res) => {
         console.log(res);
+        showSnackbarVariant('Invitation deactivated.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error deactivating invitation. Please try again.');
+        showSnackbarVariant('Error deactivating invitation. Please try again.', 'error');
       });
   };
 
-  const { invitationId, isActive } = props.invitation;
+  const { invitationId, isActive } = invitation;
 
   return isActive ? (
     <Button size="small" color="primary" onClick={() => deactivateInvitation(invitationId)}>
@@ -78,8 +102,8 @@ const useStyles = makeStyles((theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(InvitationActions);
+export default connect(mapStateToProps)(withSnackbar(InvitationActions));

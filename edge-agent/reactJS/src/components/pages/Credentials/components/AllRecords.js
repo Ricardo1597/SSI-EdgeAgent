@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -9,6 +9,7 @@ import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
+import { withSnackbar } from 'notistack';
 
 import RecordSummary from '../../../RecordSummary';
 import RecordDetails from '../../../RecordDetails';
@@ -21,6 +22,27 @@ class AllRecords extends Component {
     exchanges: [],
     exchange: null,
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   changeCredExchange = (id) => {
     const exchange = this.state.exchanges.find((exchange) => {
@@ -38,10 +60,14 @@ class AllRecords extends Component {
       })
       .then((res) => {
         console.log(res.data.id);
+        this.showSnackbarVariant('Credential exchange record deleted.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error deleting credential exchange. Please try again.');
+        this.showSnackbarVariant(
+          'Error deleting credential exchange record. Please try again.',
+          'error'
+        );
       });
   };
 
@@ -76,7 +102,10 @@ class AllRecords extends Component {
       })
       .catch((err) => {
         console.error(err);
-        alert('Error getting credentials exchanges records. Please try again.');
+        this.showSnackbarVariant(
+          'Error getting credentials exchanges records. Please try again.',
+          'error'
+        );
       });
   }
 
@@ -104,29 +133,19 @@ class AllRecords extends Component {
                         key={exchange.credentialExchangeId}
                         onClick={this.changeCredExchange.bind(this, exchange.credentialExchangeId)}
                       >
-                        {this.state.exchange &&
-                        exchange.credentialExchangeId ===
-                          this.state.exchange.credentialExchangeId ? (
-                          <RecordSummary
-                            record={{
-                              id: exchange.credentialExchangeId,
-                              createdAt: exchange.createdAt,
-                              updatedAt: exchange.updatedAt,
-                              // other attributes
-                            }}
-                            selected={true}
-                          />
-                        ) : (
-                          <RecordSummary
-                            record={{
-                              id: exchange.credentialExchangeId,
-                              createdAt: exchange.createdAt,
-                              updatedAt: exchange.updatedAt,
-                              // other attributes
-                            }}
-                            selected={false}
-                          />
-                        )}
+                        <RecordSummary
+                          record={{
+                            id: exchange.credentialExchangeId,
+                            createdAt: exchange.createdAt,
+                            updatedAt: exchange.updatedAt,
+                            // other attributes
+                          }}
+                          selected={
+                            this.state.exchange &&
+                            exchange.credentialExchangeId ===
+                              this.state.exchange.credentialExchangeId
+                          }
+                        />
                       </Grid>
                     ))
                 : null}
@@ -201,8 +220,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(AllRecords));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(AllRecords)));

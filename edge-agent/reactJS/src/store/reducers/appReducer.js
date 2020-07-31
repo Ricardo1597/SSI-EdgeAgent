@@ -1,16 +1,10 @@
 const initState = {
-  accessToken: '',
   connections: [],
 };
 
-export const rootReducer = (state = initState, action) => {
+export default (state = initState, action) => {
   console.log(action);
   switch (action.type) {
-    case 'UPDATE_ACCESSTOKEN':
-      return {
-        ...state,
-        accessToken: action.token,
-      };
     case 'INIT_CONNECTIONS':
       return {
         ...state,
@@ -48,7 +42,7 @@ export const rootReducer = (state = initState, action) => {
     case 'REMOVE_CONNECTION':
       return {
         ...state,
-        connections: state.connections.filter(
+        connections: state.app.connections.filter(
           (connection) => (connection.connectionId = action.connectionId)
         ),
       };

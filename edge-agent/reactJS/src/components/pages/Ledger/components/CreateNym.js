@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
@@ -10,6 +10,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Container from '@material-ui/core/Container';
+import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
 import axios from 'axios';
@@ -27,6 +28,27 @@ class CreateNym extends Component {
     nym: '',
     errors: [],
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     this.setState({
@@ -107,10 +129,11 @@ class CreateNym extends Component {
       )
       .then((res) => {
         console.log(res.data);
+        this.showSnackbarVariant('Nym created.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error creating schema. Please try again.');
+        this.showSnackbarVariant('Error creating nym. Please try again.', 'error');
       });
   };
 
@@ -287,8 +310,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(CreateNym));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(CreateNym)));

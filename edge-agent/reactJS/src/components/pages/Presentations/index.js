@@ -46,26 +46,24 @@ class Presentations extends Component {
             textColor="primary"
           >
             <Tab className={classes.button} label="Presentation Exchanges" {...a11yProps(0)} />
-            {!this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Propose Presentation" {...a11yProps(1)} />
-            ) : (
+            <Tab className={classes.button} label="Propose Presentation" {...a11yProps(1)} />
+            {this.getDIDPermissions() ? (
               <Tab className={classes.button} label="Request Presentation" {...a11yProps(1)} />
-            )}
+            ) : null}
             <Tab style={{ visibility: 'hidden' }} />
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
           <AllRecords changeTabs={this.handleChangeTabs} recordId={recordId} />
         </TabPanel>
-        {!this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={1}>
-            <ProposePresentation />
-          </TabPanel>
-        ) : (
+        <TabPanel value={tab} index={1}>
+          <ProposePresentation />
+        </TabPanel>
+        {this.getDIDPermissions() ? (
           <TabPanel value={tab} index={1}>
             <RequestPresentation recordId={recordId} />
           </TabPanel>
-        )}
+        ) : null}
         <TabPanel value={tab} index={2}>
           <SendPresentation recordId={recordId} />
         </TabPanel>
@@ -127,7 +125,7 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 

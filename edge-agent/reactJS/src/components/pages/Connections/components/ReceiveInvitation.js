@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 
 import axios from 'axios';
 import config from '../../../../config';
@@ -8,6 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
 
@@ -21,6 +22,27 @@ class ReceiveInvitation extends Component {
       invitation: '',
     },
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   handleChange = (e) => {
     const { name, value } = e.target;
@@ -102,11 +124,11 @@ class ReceiveInvitation extends Component {
       )
       .then(({ data: { connection } }) => {
         this.props.addConnection(connection);
-        alert('New connection added to your pending connections!');
+        this.showSnackbarVariant('New connection added to your pending connections!', 'info');
       })
       .catch((err) => {
         console.error(err);
-        alert('Error creating invitation. Please try again.');
+        this.showSnackbarVariant('Error while processing invitation. Please try again.', 'error');
       });
   };
 
@@ -218,8 +240,8 @@ const useStyles = (theme) => ({
 
 const mapStateToProps = (state) => {
   return {
-    accessToken: state.accessToken,
+    accessToken: state.auth.accessToken,
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(ReceiveInvitation));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(ReceiveInvitation)));
