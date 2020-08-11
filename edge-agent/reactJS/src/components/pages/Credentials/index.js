@@ -44,7 +44,7 @@ class Credentials extends Component {
             <Tab className={classes.button} label="Credential Exchanges" {...a11yProps(1)} />
             <Tab className={classes.button} label="Propose Credential" {...a11yProps(2)} />
             {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Offer Credential" {...a11yProps(2)} />
+              <Tab className={classes.button} label="Offer Credential" {...a11yProps(3)} />
             ) : null}
           </Tabs>
         </AppBar>
@@ -58,7 +58,7 @@ class Credentials extends Component {
           <ProposeCredential />
         </TabPanel>
         {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={2}>
+          <TabPanel value={tab} index={3}>
             <OfferCredential />
           </TabPanel>
         ) : null}
@@ -81,40 +81,12 @@ const useStyles = (theme) => ({
     flexDirection: 'column',
     alignItems: 'center',
   },
-  result: {
-    margin: 30,
-    display: 'flex',
-    flexDirection: 'line',
-    alignItems: 'center',
-  },
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
   form: {
     width: '500px',
     marginTop: theme.spacing(3),
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
-  },
-  add: {
-    height: '40px',
-    marginTop: 10,
-  },
-  jsonBox: {
-    marginTop: -10,
-  },
-  leftMargin: {
-    marginLeft: 10,
-    marginBottom: -10,
-  },
-  formControl: {
-    width: '100%',
-  },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
   },
 });
 

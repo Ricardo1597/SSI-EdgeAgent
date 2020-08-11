@@ -117,7 +117,7 @@ class AllRecords extends Component {
         <Grid container>
           <Grid item className={classes.card}>
             <Container
-              className="scrollBar"
+              className="scrollBar p-0 m-0"
               style={{ height: '85vh', overflowY: 'scroll' }}
               maxWidth="xs"
             >
@@ -202,14 +202,11 @@ const useStyles = (theme) => ({
     width: '100%',
     height: '100%',
   },
-  'root::-webkit-scrollbar': {
-    width: 50,
-  },
   card: {
-    width: 430,
+    width: 380,
   },
   details: {
-    margin: 20,
+    marginLeft: 30,
     padding: 20,
     borderRadius: 10,
     flexGrow: 1,

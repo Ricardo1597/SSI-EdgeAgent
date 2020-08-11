@@ -13,6 +13,7 @@ import Ledger from './components/pages/Ledger';
 import Revocations from './components/pages/Revocations';
 import withAuth from './components/withAuth';
 import { connect } from 'react-redux';
+import './App.css';
 
 import Notifications from './components/Notification';
 

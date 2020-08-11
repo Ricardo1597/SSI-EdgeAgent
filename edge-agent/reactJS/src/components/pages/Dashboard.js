@@ -15,6 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import { connect } from 'react-redux';
 import { withSnackbar } from 'notistack';
+import CustomPaginationTable from '../DidTable';
 
 import axios from 'axios';
 import config from '../../config';
@@ -135,22 +136,28 @@ class Dashboard extends Component {
     const { classes } = this.props;
 
     return (
-      <div className={classes.pageMargin}>
+      <div className={`p-4 root-background`} style={{ minHeight: 'calc(100vh - 50px)' }}>
         <div>
           <h2>Welcome to SSI! :)</h2>
           <p>This is a self-sovereign identity app where you control your own identity!</p>
         </div>
 
         <Grid container>
-          <Grid item xs={12} lg={5}>
+          <Grid item xs={12} lg={8}>
+            <div className={`${classes.table}`} style={{ alignContent: 'center' }}>
+              <h3>My DIDs:</h3>
+              <CustomPaginationTable dids={this.state.dids} getRole={this.getRole} />
+            </div>
+          </Grid>
+          <Grid item xs={12} lg={4}>
             <Container maxWidth="xs" spacing={2}>
               <div className={classes.paper}>
                 <Typography component="span" variant="h5">
-                  Create a DID
+                  Create a blockchain rooted DID
                 </Typography>
                 <form className={classes.form} onSubmit={this.onSubmit}>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12}>
                       <TextField
                         variant="outlined"
                         required
@@ -163,7 +170,7 @@ class Dashboard extends Component {
                         onChange={this.handleChange}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={8}>
+                    <Grid item xs={12}>
                       <TextField
                         variant="outlined"
                         fullWidth
@@ -175,45 +182,21 @@ class Dashboard extends Component {
                         onChange={this.handleChange}
                       />
                     </Grid>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      className={classes.btn}
-                    >
-                      Create
-                    </Button>
                   </Grid>
+                  <Button
+                    fullWidth
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    className={classes.btn}
+                  >
+                    Create
+                  </Button>
                 </form>
               </div>
             </Container>
           </Grid>
         </Grid>
-
-        <TableContainer className={classes.table} component={Paper}>
-          <h3>Your DIDs:</h3>
-
-          <Table size="small" aria-label="customized table">
-            <TableHead>
-              <TableRow height="40px">
-                <StyledTableCell align="center">DID</StyledTableCell>
-                <StyledTableCell align="center">Alias</StyledTableCell>
-                <StyledTableCell align="center">Role</StyledTableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(this.state.dids || []).map((did) => (
-                <StyledTableRow key={did.did}>
-                  <StyledTableCell align="center">{did.did}</StyledTableCell>
-                  <StyledTableCell align="center">{did.metadata.alias}</StyledTableCell>
-                  <StyledTableCell align="center">
-                    {did.did.includes('peer') ? 'Peer did' : this.getRole(did.role)}
-                  </StyledTableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
       </div>
     );
   }
@@ -242,21 +225,18 @@ const StyledTableRow = withStyles((theme) => ({
 const useStyles = (theme) => ({
   btn: {
     height: 40,
-    margin: 22,
+    marginTop: 20,
   },
   table: {
     margin: 30,
-    width: '800px',
-  },
-  pageMargin: {
-    margin: 30,
   },
   paper: {
-    marginTop: 30,
-    marginBottom: 30,
+    marginTop: 40,
+    padding: 20,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    width: '100%',
   },
   button: {
     '&:focus': {
@@ -268,8 +248,8 @@ const useStyles = (theme) => ({
     marginTop: 10,
   },
   form: {
-    width: '500px',
     marginTop: theme.spacing(2),
+    width: '100%',
   },
 });
 

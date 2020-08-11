@@ -24,6 +24,7 @@ const FirstStep = ({
   comment,
   formErrors,
   accessToken,
+  showSnackbarVariant,
 }) => {
   const isFormValid = () => {
     let valid = true;
@@ -53,7 +54,7 @@ const FirstStep = ({
       })
       .catch((err) => {
         console.error(err);
-        this.showSnackbarVariant(
+        showSnackbarVariant(
           'Error finding credential definition. Please check if you have entered a valid one.',
           'error'
         );

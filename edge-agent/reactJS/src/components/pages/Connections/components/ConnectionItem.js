@@ -27,7 +27,7 @@ function ConnectionItem(props) {
           <br />
           Updated at: {updatedAt}
         </Typography>
-        <Typography style={{ marginTop: '5px' }} variant="body2">
+        <Typography style={{ marginTop: '5px', marginBottom: '-5px' }} variant="body2">
           Current state: {state}
         </Typography>
       </CardContent>
@@ -42,12 +42,9 @@ ConnectionItem.propTypes = {
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    maxWidth: 400,
+    maxWidth: 320,
     borderRadius: 20,
     margin: 20,
-  },
-  content: {
-    padding: 24,
   },
 }));
 

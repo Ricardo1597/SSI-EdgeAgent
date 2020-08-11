@@ -45,7 +45,7 @@ class Connections extends Component {
     const tab = parseInt(search.tab) || 0;
 
     return (
-      <div className={classes.root}>
+      <div className={`${classes.root} root-background`} style={{ height: 'calc(100vh - 50px)' }}>
         <AppBar position="static" color="default">
           <Tabs
             value={tab}
@@ -123,6 +123,9 @@ const useStyles = (theme) => ({
   form: {
     width: '500px',
     marginTop: theme.spacing(3),
+  },
+  tabHeight: {
+    height: '100%',
   },
   submit: {
     margin: theme.spacing(3, 0, 2),

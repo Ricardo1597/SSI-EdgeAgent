@@ -39,11 +39,8 @@ RecordSummary.propTypes = {
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    maxWidth: 400,
+    maxWidth: 320,
     borderRadius: 20,
     margin: 20,
-  },
-  content: {
-    padding: 24,
   },
 }));

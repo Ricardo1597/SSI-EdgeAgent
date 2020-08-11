@@ -124,7 +124,7 @@ function Notifications({ updateConnection, enqueueSnackbar, closeSnackbar }) {
   return (
     <div style={styles.notifications}>
       <ReactNotifications />
-      <button
+      {/* <button
         onClick={() => {
           store.addNotification({
             content: MyNotification(), // 'default', 'success', 'info', 'warning'
@@ -154,7 +154,7 @@ function Notifications({ updateConnection, enqueueSnackbar, closeSnackbar }) {
         }
       >
         Add Toast
-      </button>
+      </button> */}
     </div>
   );
 }

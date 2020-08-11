@@ -20,7 +20,7 @@ import { connect } from 'react-redux';
 class ProposePresentation extends Component {
   state = {
     connectionId: '',
-    connections: this.props.connections
+    connections: (this.props.connections || [])
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
         return {

@@ -194,6 +194,7 @@ class StepForm extends Component {
             handleNext={this.handleNext}
             handleChange={this.handleChange}
             handleChangeSchema={this.handleChangeSchema}
+            showSnackbarVariant={this.showSnackbarVariant}
             connectionId={this.state.connectionId}
             connections={this.state.connections}
             credDefId={this.state.credDefId}

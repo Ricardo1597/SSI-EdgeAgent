@@ -137,56 +137,60 @@ class ReceiveInvitation extends Component {
 
     return (
       <Container spacing={2}>
-        <div className={classes.paper}>
-          <Typography component="span" variant="h5">
-            Receive invitation
-          </Typography>
-          <form className={classes.form} noValidate onSubmit={this.onSubmit}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  variant="outlined"
-                  required
+        <Grid container align="center">
+          <Grid item xs={12}>
+            <div className={`${classes.paper} p-4`}>
+              <Typography component="span" variant="h5">
+                Receive invitation
+              </Typography>
+              <form className={classes.form} onSubmit={this.onSubmit}>
+                <Grid container align="left" spacing={3}>
+                  <Grid item xs={12}>
+                    <TextField
+                      variant="outlined"
+                      required
+                      fullWidth
+                      id="alias"
+                      label="Alias"
+                      name="alias"
+                      value={this.state.alias}
+                      onChange={this.handleChange}
+                      error={this.state.formErrors.alias}
+                      helperText={this.state.formErrors.alias}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      variant="outlined"
+                      fullWidth
+                      multiline
+                      required
+                      rows={10}
+                      label="Invitation Details"
+                      name="invitation"
+                      id="invitation"
+                      value={this.state.invitation}
+                      onChange={this.handleChange}
+                      className={classes.jsonBox}
+                      error={this.state.formErrors.invitation}
+                      helperText={this.state.formErrors.invitation}
+                    />
+                  </Grid>
+                </Grid>
+                <Button
+                  type="button"
                   fullWidth
-                  id="alias"
-                  label="Alias"
-                  name="alias"
-                  value={this.state.alias}
-                  onChange={this.handleChange}
-                  error={this.state.formErrors.alias}
-                  helperText={this.state.formErrors.alias}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  variant="outlined"
-                  fullWidth
-                  multiline
-                  required
-                  rows={10}
-                  label="Invitation Details"
-                  name="invitation"
-                  id="invitation"
-                  value={this.state.invitation}
-                  onChange={this.handleChange}
-                  className={classes.jsonBox}
-                  error={this.state.formErrors.invitation}
-                  helperText={this.state.formErrors.invitation}
-                />
-              </Grid>
-            </Grid>
-            <Button
-              type="button"
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.add}
-              onClick={this.onSubmit}
-            >
-              Receive Invitation
-            </Button>
-          </form>
-        </div>
+                  variant="contained"
+                  color="primary"
+                  className={classes.add}
+                  onClick={this.onSubmit}
+                >
+                  Receive Invitation
+                </Button>
+              </form>
+            </div>
+          </Grid>
+        </Grid>
       </Container>
     );
   }
@@ -200,17 +204,9 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-  },
-  result: {
-    margin: 30,
-    display: 'flex',
-    flexDirection: 'line',
-    alignItems: 'center',
-  },
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
+    maxWidth: 500,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   form: {
     maxWidth: '500px',
@@ -226,15 +222,8 @@ const useStyles = (theme) => ({
   jsonBox: {
     marginTop: -10,
   },
-  leftMargin: {
-    marginLeft: 10,
-    marginBottom: -10,
-  },
   formControl: {
     width: '100%',
-  },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
   },
 });
 

@@ -48,7 +48,7 @@ class Presentations extends Component {
             <Tab className={classes.button} label="Presentation Exchanges" {...a11yProps(0)} />
             <Tab className={classes.button} label="Propose Presentation" {...a11yProps(1)} />
             {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Request Presentation" {...a11yProps(1)} />
+              <Tab className={classes.button} label="Request Presentation" {...a11yProps(2)} />
             ) : null}
             <Tab style={{ visibility: 'hidden' }} />
           </Tabs>
@@ -60,11 +60,11 @@ class Presentations extends Component {
           <ProposePresentation />
         </TabPanel>
         {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={1}>
+          <TabPanel value={tab} index={2}>
             <RequestPresentation recordId={recordId} />
           </TabPanel>
         ) : null}
-        <TabPanel value={tab} index={2}>
+        <TabPanel value={tab} index={3}>
           <SendPresentation recordId={recordId} />
         </TabPanel>
       </div>

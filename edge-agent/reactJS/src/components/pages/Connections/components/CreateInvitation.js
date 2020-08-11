@@ -154,10 +154,10 @@ class CreateInvitation extends Component {
     console.log(this.state);
 
     return (
-      <Container>
-        <div className={classes.paper}>
-          <Grid container align="center">
-            <Grid item xs={12} lg={5}>
+      <Container spacing={2}>
+        <Grid container align="center">
+          <Grid item xs={12} lg={5}>
+            <div className={`${classes.paper} p-4`}>
               <Typography component="span" variant="h5">
                 Create Invitation
               </Typography>
@@ -252,23 +252,23 @@ class CreateInvitation extends Component {
                   Create Invitation
                 </Button>
               </form>
-            </Grid>
-            {this.state.invitationJson ? (
-              <Grid item xs={12} lg={7}>
-                <Grid container align="left" className={classes.result}>
-                  <Grid item xs={12}>
-                    <Typography variant="h6">Invitation Details</Typography>
-                    <JSONPretty data={this.state.invitationJson}></JSONPretty>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="h6">Invitation QRCode</Typography>
-                    <QRCode value={this.state.invitationUrl} size={200} />
-                  </Grid>
+            </div>
+          </Grid>
+          {this.state.invitationJson ? (
+            <Grid item xs={12} lg={7}>
+              <Grid container align="left" className={classes.result}>
+                <Grid item xs={12}>
+                  <Typography variant="h6">Invitation Details</Typography>
+                  <JSONPretty data={this.state.invitationJson}></JSONPretty>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="h6">Invitation QRCode</Typography>
+                  <QRCode value={this.state.invitationUrl} size={200} />
                 </Grid>
               </Grid>
-            ) : null}
-          </Grid>
-        </div>
+            </Grid>
+          ) : null}
+        </Grid>
       </Container>
     );
   }
@@ -282,17 +282,15 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    maxWidth: 500,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   result: {
     margin: 30,
     display: 'flex',
     flexDirection: 'line',
     alignItems: 'center',
-  },
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
   },
   form: {
     maxWidth: '500px',
@@ -305,18 +303,8 @@ const useStyles = (theme) => ({
     height: '40px',
     marginTop: 10,
   },
-  jsonBox: {
-    marginTop: -10,
-  },
-  leftMargin: {
-    marginLeft: 10,
-    marginBottom: -10,
-  },
   formControl: {
     width: '100%',
-  },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
   },
 });
 
