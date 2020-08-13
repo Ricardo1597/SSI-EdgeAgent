@@ -6,12 +6,10 @@ import Tab from '@material-ui/core/Tab';
 import TabPanel, { a11yProps } from '../../TabPanel';
 import { withStyles } from '@material-ui/core/styles';
 
-import GetSchema from './components/GetSchema';
+import GetTransaction from './components/GetTransaction';
 import CreateSchema from './components/CreateSchema';
 import CreateCredDef from './components/CreateCredDef';
-import GetCredDef from './components/GetCredDef';
 import qs from 'qs';
-import GetNym from './components/GetNym';
 import CreateNym from './components/CreateNym';
 
 class Schema extends Component {
@@ -32,7 +30,10 @@ class Schema extends Component {
     const tab = parseInt(search.tab) || 0;
 
     return (
-      <div className={classes.root}>
+      <div
+        className={`${classes.root} root-background`}
+        style={{ minHeight: 'calc(100vh - 50px)' }}
+      >
         <AppBar position="static" color="default">
           <Tabs
             value={tab}
@@ -40,41 +41,33 @@ class Schema extends Component {
             indicatorColor="primary"
             textColor="primary"
           >
-            <Tab className={classes.button} label="Get Schema" {...a11yProps(0)} />
-            <Tab className={classes.button} label="Get Credential Definition" {...a11yProps(1)} />
-            <Tab className={classes.button} label="Get Nym" {...a11yProps(2)} />
+            <Tab className={classes.button} label="Get Transaction" {...a11yProps(0)} />
             {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Create Schema" {...a11yProps(3)} />
+              <Tab className={classes.button} label="Create Schema" {...a11yProps(1)} />
             ) : null}
             {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Create Cred Def" {...a11yProps(4)} />
+              <Tab className={classes.button} label="Create Cred Def" {...a11yProps(2)} />
             ) : null}
             {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Create Nym" {...a11yProps(5)} />
+              <Tab className={classes.button} label="Create Nym" {...a11yProps(3)} />
             ) : null}
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
-          <GetSchema />
-        </TabPanel>
-        <TabPanel value={tab} index={1}>
-          <GetCredDef />
-        </TabPanel>
-        <TabPanel value={tab} index={2}>
-          <GetNym />
+          <GetTransaction />
         </TabPanel>
         {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={3}>
+          <TabPanel value={tab} index={1}>
             <CreateSchema />
           </TabPanel>
         ) : null}
         {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={4}>
+          <TabPanel value={tab} index={2}>
             <CreateCredDef />
           </TabPanel>
         ) : null}
         {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={5}>
+          <TabPanel value={tab} index={3}>
             <CreateNym />
           </TabPanel>
         ) : null}

@@ -12,6 +12,7 @@ import GetRegistry from './components/GetRegistry';
 import CreateRegistry from './components/CreateRegistry';
 import RevokeCredential from './components/RevokeCredential';
 import { withSnackbar } from 'notistack';
+import { connect } from 'react-redux';
 
 import axios from 'axios';
 import config from '../../../config';
@@ -76,7 +77,10 @@ class Revocations extends Component {
     const { classes } = this.props;
 
     return (
-      <div className={classes.root}>
+      <div
+        className={`${classes.root} root-background`}
+        style={{ minHeight: 'calc(100vh - 50px)' }}
+      >
         <AppBar position="static" color="default">
           <Tabs
             value={this.state.tab}
@@ -121,4 +125,10 @@ const useStyles = (theme) => ({
   },
 });
 
-export default withStyles(useStyles)(withSnackbar(Revocations));
+const mapStateToProps = (state) => {
+  return {
+    accessToken: state.auth.accessToken,
+  };
+};
+
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(Revocations)));

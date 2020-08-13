@@ -145,7 +145,7 @@ const useStyles = (theme) => ({
     width: 380,
   },
   details: {
-    margin: 20,
+    marginLeft: 30,
     padding: 20,
     borderRadius: 10,
     flexGrow: 1,

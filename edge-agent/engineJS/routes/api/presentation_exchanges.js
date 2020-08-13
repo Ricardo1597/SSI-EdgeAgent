@@ -46,11 +46,14 @@ router.post(
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     try {
+      let { connectionId, comment, presentationPreview } = req.body;
+      presentationPreview['@type'] =
+        'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview';
       console.log(req.body);
       const [record, messageSent] = await indy.presentationExchange.proverCreateAndSendProposal(
-        req.body.connectionId,
-        req.body.comment,
-        req.body.presentationPreview
+        connectionId,
+        comment,
+        presentationPreview
       );
       res.status(200).send({ record, messageSent });
     } catch (error) {
@@ -60,7 +63,7 @@ router.post(
   }
 );
 
-// Issuer send presentation exchange request
+// Holder send presentation exchange proposal
 router.post(
   '/:id/send-proposal',
   passport.authenticate('jwt', { session: false }),

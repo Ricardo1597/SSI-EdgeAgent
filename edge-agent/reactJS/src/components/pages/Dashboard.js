@@ -153,7 +153,7 @@ class Dashboard extends Component {
             <Container maxWidth="xs" spacing={2}>
               <div className={classes.paper}>
                 <Typography component="span" variant="h5">
-                  Create a blockchain rooted DID
+                  Create a new DID
                 </Typography>
                 <form className={classes.form} onSubmit={this.onSubmit}>
                   <Grid container spacing={2}>

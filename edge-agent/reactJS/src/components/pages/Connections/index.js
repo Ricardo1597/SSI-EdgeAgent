@@ -45,7 +45,10 @@ class Connections extends Component {
     const tab = parseInt(search.tab) || 0;
 
     return (
-      <div className={`${classes.root} root-background`} style={{ height: 'calc(100vh - 50px)' }}>
+      <div
+        className={`${classes.root} root-background`}
+        style={{ minHeight: 'calc(100vh - 50px)' }}
+      >
         <AppBar position="static" color="default">
           <Tabs
             value={tab}

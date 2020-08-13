@@ -58,7 +58,7 @@ exports.proverCreateAndSendProposal = async (connectionId, comment, presentation
 
   // Save created presentation exchange record in the wallet
   await this.addPresentationExchangeRecord(
-    presentationExchangeId,
+    presentationExchangeRecord.presentationExchangeId,
     JSON.stringify(presentationExchangeRecord),
     {
       connectionId: connectionId,
@@ -541,7 +541,7 @@ exports.createPresentationExchangeRecord = (
     initiator: initiator,
     role: role,
     state: state,
-    presentationProposalDict: JSON.stringify(message),
+    presentationProposalDict: JSON.stringify(message.presentation_proposal),
     createdAt: currentDate,
     updatedAt: currentDate,
   };

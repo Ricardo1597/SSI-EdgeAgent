@@ -37,7 +37,10 @@ class Presentations extends Component {
     const recordId = search.recordId;
 
     return (
-      <div className={classes.root}>
+      <div
+        className={`${classes.root} root-background`}
+        style={{ minHeight: 'calc(100vh - 50px)' }}
+      >
         <AppBar position="static" color="default">
           <Tabs
             value={tab}

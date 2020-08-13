@@ -42,11 +42,9 @@ nav {
 }
 
 .root-background {
-  background: linear-gradient(90deg, rgba(151, 150, 240, 0.575), rgba(188, 234, 248, 0.5));
+  background: linear-gradient(135deg, #ced6ee, #e2e2e2bb);
 }
 
-input[type='text'],
-textarea,
-label {
-  background-color: white;
+.root-background1 {
+  background: linear-gradient(90deg, rgba(151, 150, 240, 0.575), rgba(188, 234, 248, 0.5));
 }

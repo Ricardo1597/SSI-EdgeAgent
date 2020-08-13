@@ -32,7 +32,10 @@ class Credentials extends Component {
     const tab = parseInt(search.tab) || 0;
 
     return (
-      <div className={classes.root}>
+      <div
+        className={`${classes.root} root-background`}
+        style={{ minHeight: 'calc(100vh - 50px)' }}
+      >
         <AppBar position="static" color="default">
           <Tabs
             value={tab}
