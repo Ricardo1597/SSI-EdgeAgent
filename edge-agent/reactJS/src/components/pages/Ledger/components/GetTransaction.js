@@ -4,19 +4,21 @@ import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
+import JSONPretty from 'react-json-pretty';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
 import { withSnackbar } from 'notistack';
 import Container from '@material-ui/core/Container';
-import JSONPretty from 'react-json-pretty';
 
 import axios from 'axios';
 import config from '../../../../config';
+import SchemaCard from './SchemaCard';
+import NymCard from './NymCard';
 
 class GetTransaction extends Component {
   state = {
     schemaId: '',
-    schema: '',
+    schema: null,
     credDefId: '',
     credDef: null,
     did: '',
@@ -91,23 +93,6 @@ class GetTransaction extends Component {
         break;
     }
     this.setState({ formErrors: errors });
-  };
-
-  getRole = (role) => {
-    switch (role) {
-      case null:
-        return 'Common user';
-      case '0':
-        return 'Trustee user';
-      case '2':
-        return 'Steward user';
-      case '101':
-        return 'Trust anchor user';
-      case '201':
-        return 'Network monitor user';
-      default:
-        return 'Peer did';
-    }
   };
 
   onSubmitGetSchema = (e) => {
@@ -209,15 +194,15 @@ class GetTransaction extends Component {
 
     return (
       <Container spacing={2} maxWidth="100%">
-        <Grid container align="center" width="100%">
-          <Grid item xs={12} lg={5}>
+        <Grid container align="center">
+          <Grid item xs={12} lg={5} xl={4}>
             <div style={{ marginBottom: -10 }}>
               <Typography component="span" variant="h5">
                 <strong>Get Transaction</strong>
               </Typography>
             </div>
             <div className={`${classes.paper} pt-3 pb-4 px-4`}>
-              <form className={classes.form} onSubmit={this.onSubmit}>
+              <form className={classes.form} onSubmit={this.onSubmitGetSchema}>
                 <Grid container align="left" spacing={2}>
                   <Grid item xs={12}>
                     <TextField
@@ -255,7 +240,7 @@ class GetTransaction extends Component {
               </form>
             </div>
             <div className={`${classes.paper} pt-3 pb-4 px-4`}>
-              <form className={classes.form} onSubmit={this.onSubmit}>
+              <form className={classes.form} onSubmit={this.onSubmitGetCredDef}>
                 <Grid container align="left" spacing={2}>
                   <Grid item xs={12}>
                     <TextField
@@ -293,7 +278,7 @@ class GetTransaction extends Component {
               </form>
             </div>
             <div className={`${classes.paper} pt-3 pb-4 px-4`}>
-              <form className={classes.form} onSubmit={this.onSubmit}>
+              <form className={classes.form} onSubmit={this.onSubmitGetNym}>
                 <Grid container align="left" spacing={2}>
                   <Grid item xs={12}>
                     <TextField
@@ -331,35 +316,9 @@ class GetTransaction extends Component {
               </form>
             </div>
           </Grid>
-          <Grid item xs={12} lg={7}>
+          <Grid item xs={12} lg={7} xl={8}>
             <div align="center" style={{ paddingLeft: 50 }}>
-              {this.state.schema !== '' ? (
-                <div>
-                  <Card className={classes.card} style={{ width: 350 }} align="left">
-                    <div align="center">
-                      <Typography component="span" variant="h6">
-                        <strong>Schema</strong>
-                      </Typography>
-                    </div>
-                    <Grid container spacing={1} style={{ marginTop: 5 }}>
-                      <Grid item xs={12}>
-                        <strong>Name:</strong> {this.state.schema.name}
-                      </Grid>
-                      <Grid item xs={12}>
-                        <strong>Version:</strong> {this.state.schema.version}
-                      </Grid>
-                      <Grid item xs={12}>
-                        <strong>Attributes:</strong>
-                        <ul>
-                          {this.state.schema.attrNames.map((attr) => {
-                            return <li key={attr}>{attr}</li>;
-                          })}
-                        </ul>
-                      </Grid>
-                    </Grid>
-                  </Card>
-                </div>
-              ) : null}
+              {this.state.schema ? <SchemaCard schema={this.state.schema} /> : null}
               {this.state.credDef ? (
                 <Card className={classes.card} align="left">
                   <div align="center">
@@ -371,47 +330,7 @@ class GetTransaction extends Component {
                 </Card>
               ) : null}
               {this.state.didNym ? (
-                <div>
-                  <Card className={classes.card} align="left">
-                    <div style={{ fontSize: 16 }}>
-                      <div align="center">
-                        <Typography component="span" variant="h6">
-                          <strong>DID</strong>
-                        </Typography>
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 'bold', marginTop: 7, marginBottom: -3 }}>
-                          DID:
-                        </div>
-                        <div style={{ fontSize: 15 }}>{this.state.didNym.dest}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 'bold', marginTop: 7, marginBottom: -3 }}>
-                          Verkey:
-                        </div>
-                        <div style={{ fontSize: 15 }}>{this.state.didNym.verkey}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 'bold', marginTop: 7, marginBottom: -3 }}>
-                          Role:
-                        </div>
-                        <div style={{ fontSize: 15 }}>{this.getRole(this.state.didNym.role)}</div>
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 'bold', marginTop: 7 }}>Added by:</div>
-                        <div style={{ fontSize: 15 }}>{this.state.didNym.identifier}</div>
-                      </div>
-                    </div>
-                    <div style={{ marginTop: 25 }}>
-                      <div align="center">
-                        <Typography style={{ marginBottom: 3, fontSize: 19 }}>
-                          DID Document
-                        </Typography>
-                      </div>
-                      <JSONPretty data={this.state.didDocument}></JSONPretty>
-                    </div>
-                  </Card>
-                </div>
+                <NymCard nym={this.state.didNym} didDocument={this.state.didDocument} />
               ) : null}
             </div>
           </Grid>

@@ -16,6 +16,8 @@ import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import TableHead from '@material-ui/core/TableHead';
 
+import styles from './DidTable.css';
+
 const useStyles1 = makeStyles((theme) => ({
   root: {
     flexShrink: 0,
@@ -99,10 +101,6 @@ TablePaginationActions.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
 };
 
-function createData(name, calories, fat) {
-  return { name, calories, fat };
-}
-
 const useStyles2 = makeStyles({
   table: {
     minWidth: 500,
@@ -127,16 +125,19 @@ export default function CustomPaginationTable({ dids, getRole }) {
 
   return (
     <TableContainer component={Paper}>
-      <Table size="small" aria-label="customized table">
+      <Table size="small" aria-label="customized table" style={{ tableLayout: 'auto' }}>
         <TableHead>
           <TableRow height="40px">
-            <StyledTableCell align="center" style={{ width: '40%' }}>
-              <strong>DID</strong>
-            </StyledTableCell>
-            <StyledTableCell align="center" style={{ width: '40%' }}>
+            <StyledTableCell align="center">
               <strong>Alias</strong>
             </StyledTableCell>
-            <StyledTableCell align="center" style={{ width: '20%' }}>
+            <StyledTableCell align="center" hidden={window.innerWidth < 850}>
+              <strong>DID</strong>
+            </StyledTableCell>
+            <StyledTableCell align="center" hidden={window.innerWidth < 1300}>
+              <strong>Verkey</strong>
+            </StyledTableCell>
+            <StyledTableCell align="center">
               <strong>Role</strong>
             </StyledTableCell>
           </TableRow>
@@ -147,8 +148,13 @@ export default function CustomPaginationTable({ dids, getRole }) {
             : dids || []
           ).map((row) => (
             <StyledTableRow key={row.did} style={{ height: 40 }}>
-              <StyledTableCell align="center">{row.did}</StyledTableCell>
               <StyledTableCell align="center">{row.metadata.alias}</StyledTableCell>
+              <StyledTableCell align="center" hidden={window.innerWidth < 850}>
+                {row.did}
+              </StyledTableCell>
+              <StyledTableCell align="center" hidden={window.innerWidth < 1300}>
+                {row.verkey}
+              </StyledTableCell>
               <StyledTableCell align="center">
                 {row.did.includes('peer') ? 'Peer did' : getRole(row.role)}
               </StyledTableCell>

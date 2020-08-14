@@ -15,6 +15,7 @@ import { withSnackbar } from 'notistack';
 import { connect } from 'react-redux';
 import axios from 'axios';
 import config from '../../../../config';
+import NymCard from './NymCard';
 
 class CreateNym extends Component {
   state = {
@@ -25,7 +26,9 @@ class CreateNym extends Component {
     newDid: '',
     newVerKey: '',
     role: '',
-    nym: '',
+    isMyDid: true,
+    nym: null,
+    nymDocument: null,
     errors: [],
   };
 
@@ -76,7 +79,7 @@ class CreateNym extends Component {
     if (this.state.newDid.length === 0) {
       formIsValid = false;
       errors['newDid'] = 'Cannot be empty';
-    } else if (!this.state.newDid.match(/^[a-zA-Z0-9]+$/)) {
+    } else if (!this.state.newDid.match(/^[a-zA-Z0-9:]+$/)) {
       formIsValid = false;
       errors['newDid'] = 'Invalid characters';
     }
@@ -122,13 +125,14 @@ class CreateNym extends Component {
           newDid: this.state.newDid,
           newVerKey: this.state.newVerKey,
           role: this.state.role,
+          isMyDid: this.state.isMyDid,
         },
         {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
+      .then(({ did, role, didDocument }) => {
+        this.setState({ nym: did, nymDocument: didDocument });
         this.showSnackbarVariant('Nym created.', 'success');
       })
       .catch((err) => {
@@ -141,125 +145,131 @@ class CreateNym extends Component {
     const { classes } = this.props;
 
     return (
-      <Container spacing={2}>
-        <Grid item xs={12} lg={5}>
-          <div className={classes.paper}>
-            <Typography component="span" variant="h5">
-              Create Nym
-            </Typography>
-            <form className={classes.form} onSubmit={this.onSubmit}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControl variant="outlined" className={classes.formControl}>
-                    <InputLabel htmlFor="did">DID</InputLabel>
-                    <Select
+      <Container spacing={2} maxWidth="100%">
+        <Grid container align="center">
+          <Grid item xs={12} lg={5} xl={4}>
+            <div className={`${classes.paper} p-5`}>
+              <Typography component="span" variant="h5">
+                Create Nym
+              </Typography>
+              <form className={classes.form} onSubmit={this.onSubmit}>
+                <Grid container align="left" spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControl variant="outlined" className={classes.formControl}>
+                      <InputLabel htmlFor="did">Supervisor DID</InputLabel>
+                      <Select
+                        variant="outlined"
+                        required
+                        label="Supervisor DID"
+                        name="did"
+                        id="did"
+                        value={this.state.did}
+                        onChange={this.handleChange}
+                      >
+                        {this.state.dids.map((did) => {
+                          return (
+                            <MenuItem key={did} value={did}>
+                              {did}
+                            </MenuItem>
+                          );
+                        })}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
                       variant="outlined"
                       required
-                      label="DID"
-                      name="did"
-                      id="did"
-                      value={this.state.did}
+                      fullWidth
+                      id="newDid"
+                      label="New DID"
+                      name="newDid"
+                      value={this.state.newDid}
                       onChange={this.handleChange}
-                    >
-                      {this.state.dids.map((did) => {
-                        return (
-                          <MenuItem key={did} value={did}>
-                            {did}
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    id="newDid"
-                    label="New DID"
-                    name="newDid"
-                    value={this.state.newDid}
-                    onChange={this.handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    id="newVerKey"
-                    label="New VerKey"
-                    name="newVerKey"
-                    value={this.state.newVerKey}
-                    onChange={this.handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControl variant="outlined" className={classes.formControl}>
-                    <InputLabel>Role</InputLabel>
-                    <Select
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
                       variant="outlined"
                       required
-                      label="Role"
-                      name="role"
-                      id="role"
-                      value={this.state.role}
+                      fullWidth
+                      id="newVerKey"
+                      label="New VerKey"
+                      name="newVerKey"
+                      value={this.state.newVerKey}
                       onChange={this.handleChange}
-                    >
-                      <MenuItem key={0} value="COMMON_USER">
-                        Common User
-                      </MenuItem>
-                      <MenuItem key={1} value="NETWORK_MONITOR">
-                        Network Monitor
-                      </MenuItem>
-                      <MenuItem key={2} value="TRUST_ANCHOR">
-                        Trust Anchor
-                      </MenuItem>
-                      <MenuItem key={3} value="STEWARD">
-                        Steward
-                      </MenuItem>
-                      <MenuItem key={4} value="TRUSTEE">
-                        Trustee
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControl variant="outlined" className={classes.formControl}>
+                      <InputLabel>Role</InputLabel>
+                      <Select
+                        variant="outlined"
+                        required
+                        label="Role"
+                        name="role"
+                        id="role"
+                        value={this.state.role}
+                        onChange={this.handleChange}
+                      >
+                        <MenuItem key={0} value="COMMON_USER">
+                          Common User
+                        </MenuItem>
+                        <MenuItem key={1} value="NETWORK_MONITOR">
+                          Network Monitor
+                        </MenuItem>
+                        <MenuItem key={2} value="TRUST_ANCHOR">
+                          Trust Anchor
+                        </MenuItem>
+                        <MenuItem key={3} value="STEWARD">
+                          Steward
+                        </MenuItem>
+                        <MenuItem key={4} value="TRUSTEE">
+                          Trustee
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControl variant="outlined" className={classes.formControl}>
+                      <InputLabel>Is In My Wallet?</InputLabel>
+                      <Select
+                        variant="outlined"
+                        required
+                        label="Is In My Wallet?"
+                        name="isMyDid"
+                        id="isMyDid"
+                        value={this.state.isMyDid}
+                        onChange={this.handleChange}
+                      >
+                        <MenuItem key={0} value={true}>
+                          Yes
+                        </MenuItem>
+                        <MenuItem key={1} value={false}>
+                          No
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
                 </Grid>
-              </Grid>
-              <Button
-                type="button"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={[classes.add, classes.button]}
-                onClick={this.onSubmit}
-              >
-                Create
-              </Button>
-            </form>
-          </div>
-        </Grid>
-        <Grid item xs={12} lg={7}>
-          {this.state.nym ? (
-            <Card className={classes.card}>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>DID:</div>
-                {this.state.nym.dest}
-              </div>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>Verkey:</div>
-                {this.state.nym.verkey}
-              </div>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>Role:</div>
-                {this.getRole(this.state.nym.role)}
-              </div>
-              <div className={classes.marginBottom}>
-                <div style={{ fontWeight: 'bold' }}>Added by:</div>
-                {this.state.nym.identifier}
-              </div>
-            </Card>
-          ) : null}
+                <Button
+                  type="button"
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={[classes.add, classes.button]}
+                  onClick={this.onSubmit}
+                >
+                  Create
+                </Button>
+              </form>
+            </div>
+          </Grid>
+          <Grid item xs={12} lg={7} xl={8}>
+            {this.state.nym ? (
+              <NymCard nym={this.state.nym} didDocument={this.state.nymDocument} />
+            ) : null}
+          </Grid>
         </Grid>
       </Container>
     );
@@ -274,17 +284,15 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    maxWidth: 550,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   result: {
     margin: 30,
     display: 'flex',
     flexDirection: 'line',
     alignItems: 'center',
-  },
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
   },
   add: {
     height: '40px',
@@ -295,7 +303,6 @@ const useStyles = (theme) => ({
     width: '100%',
   },
   form: {
-    width: '500px',
     marginTop: theme.spacing(3),
   },
   formControl: {

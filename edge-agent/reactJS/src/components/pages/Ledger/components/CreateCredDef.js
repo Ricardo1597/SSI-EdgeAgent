@@ -9,6 +9,8 @@ import Container from '@material-ui/core/Container';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
+import Card from '@material-ui/core/Card';
+import JSONPretty from 'react-json-pretty';
 import { connect } from 'react-redux';
 import MenuItem from '@material-ui/core/MenuItem';
 import { withSnackbar } from 'notistack';
@@ -24,6 +26,7 @@ class CreateCredDef extends Component {
     did: '',
     schemaId: '',
     supportRevocation: false,
+    credDef: null,
     errors: [],
   };
 
@@ -108,6 +111,7 @@ class CreateCredDef extends Component {
       )
       .then((res) => {
         console.log(res.data);
+        this.setState({ credDef: res.data.credDef });
         this.showSnackbarVariant('Credential definition created.', 'success');
       })
       .catch((err) => {
@@ -123,15 +127,15 @@ class CreateCredDef extends Component {
     const { classes } = this.props;
 
     return (
-      <Grid container>
-        <Grid item xs={12} lg={5}>
-          <Container maxWidth="xs" spacing={2}>
-            <div className={classes.paper}>
+      <Container spacing={2} maxWidth="100%">
+        <Grid container align="center">
+          <Grid item xs={12} lg={5} xl={4}>
+            <div className={`${classes.paper} p-5`}>
               <Typography component="span" variant="h5">
                 Create credential definition
               </Typography>
               <form className={classes.form} onSubmit={this.onSubmit}>
-                <Grid container spacing={2}>
+                <Grid container align="left" spacing={2}>
                   <Grid item xs={12}>
                     <TextField
                       variant="outlined"
@@ -144,7 +148,7 @@ class CreateCredDef extends Component {
                       onChange={this.handleChange}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={8}>
+                  <Grid item xs={12} md={8}>
                     <FormControl variant="outlined" className={classes.formControl}>
                       <InputLabel>DID</InputLabel>
                       <Select
@@ -166,7 +170,7 @@ class CreateCredDef extends Component {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={4}>
+                  <Grid item xs={12} md={4}>
                     <FormControl variant="outlined" className={classes.formControl}>
                       <InputLabel>Support Revocation</InputLabel>
                       <Select
@@ -198,9 +202,21 @@ class CreateCredDef extends Component {
                 </Button>
               </form>
             </div>
-          </Container>
+          </Grid>
+          <Grid item xs={12} lg={7} xl={8}>
+            {this.state.credDef ? (
+              <Card className={classes.card} align="left">
+                <div align="center">
+                  <Typography component="span" variant="h6">
+                    <strong>Credential Definition</strong>
+                  </Typography>
+                </div>
+                <JSONPretty data={this.state.credDef}></JSONPretty>
+              </Card>
+            ) : null}
+          </Grid>
         </Grid>
-      </Grid>
+      </Container>
     );
   }
 }
@@ -213,6 +229,9 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    maxWidth: 550,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   result: {
     margin: 30,
@@ -220,26 +239,21 @@ const useStyles = (theme) => ({
     flexDirection: 'line',
     alignItems: 'center',
   },
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
   add: {
     height: '40px',
     marginTop: 10,
   },
   form: {
-    width: '500px',
+    width: '100%',
     marginTop: theme.spacing(3),
   },
   formControl: {
     width: '100%',
   },
   card: {
-    width: '200px',
-    padding: 20,
-    margin: 20,
+    padding: 30,
+    marginTop: 30,
+    marginBottom: 15,
   },
 });
 

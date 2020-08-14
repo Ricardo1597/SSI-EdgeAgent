@@ -26,6 +26,7 @@ class Dashboard extends Component {
     didAlias: '',
     dids: JSON.parse(localStorage.getItem('dids')),
     errors: [],
+    width: window.innerWidth,
   };
 
   showSnackbarVariant = (message, variant) => {
@@ -35,6 +36,16 @@ class Dashboard extends Component {
       action: this.action,
     });
   };
+
+  updateDimensions = () => {
+    this.setState({ width: window.innerWidth });
+  };
+  componentDidMount() {
+    window.addEventListener('resize', this.updateDimensions);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateDimensions);
+  }
 
   action = (key) => (
     <Fragment>
@@ -143,13 +154,13 @@ class Dashboard extends Component {
         </div>
 
         <Grid container>
-          <Grid item xs={12} lg={8}>
+          <Grid item xs={12}>
             <div className={`${classes.table}`} style={{ alignContent: 'center' }}>
               <h3>My DIDs:</h3>
               <CustomPaginationTable dids={this.state.dids} getRole={this.getRole} />
             </div>
           </Grid>
-          <Grid item xs={12} lg={4}>
+          <Grid item xs={12}>
             <Container maxWidth="xs" spacing={2}>
               <div className={classes.paper}>
                 <Typography component="span" variant="h5">

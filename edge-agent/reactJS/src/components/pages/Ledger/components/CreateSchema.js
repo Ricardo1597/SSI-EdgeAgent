@@ -20,6 +20,8 @@ import { connect } from 'react-redux';
 import axios from 'axios';
 import config from '../../../../config';
 
+import SchemaCard from './SchemaCard';
+
 class CreateSchema extends Component {
   state = {
     name: '',
@@ -30,7 +32,7 @@ class CreateSchema extends Component {
     dids: JSON.parse(localStorage.getItem('dids'))
       .filter((did) => did.role !== 'no role' && did.role !== null)
       .map((did) => did.did),
-    schema: '',
+    schema: null,
     errors: [],
   };
 
@@ -152,6 +154,7 @@ class CreateSchema extends Component {
       )
       .then((res) => {
         console.log(res.data);
+        this.setState({ schema: res.data.schema });
         this.showSnackbarVariant('Schema created.', 'success');
       })
       .catch((err) => {
@@ -185,131 +188,122 @@ class CreateSchema extends Component {
     const { classes } = this.props;
 
     return (
-      <Container spacing={2}>
-        <Grid item xs={12} lg={5}>
-          <div className={classes.paper}>
-            <Typography component="span" variant="h5">
-              Create Schema
-            </Typography>
-            <form className={classes.form} onSubmit={this.onSubmit}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControl variant="outlined" className={classes.formControl}>
-                    <InputLabel htmlFor="did">DID</InputLabel>
-                    <Select
+      <Container spacing={2} maxWidth="100%">
+        <Grid container align="center">
+          <Grid item xs={12} lg={5} xl={4}>
+            <div className={`${classes.paper} p-5`}>
+              <Typography component="span" variant="h5">
+                Create Schema
+              </Typography>
+              <form className={classes.form} onSubmit={this.onSubmit}>
+                <Grid container align="left" spacing={2}>
+                  <Grid item xs={12}>
+                    <FormControl variant="outlined" className={classes.formControl}>
+                      <InputLabel htmlFor="did">DID</InputLabel>
+                      <Select
+                        variant="outlined"
+                        required
+                        label="DID"
+                        name="did"
+                        id="did"
+                        value={this.state.did}
+                        onChange={this.handleChange}
+                      >
+                        {this.state.dids.map((did) => {
+                          return (
+                            <MenuItem key={did} value={did}>
+                              {did}
+                            </MenuItem>
+                          );
+                        })}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={8}>
+                    <TextField
                       variant="outlined"
                       required
-                      label="DID"
-                      name="did"
-                      id="did"
-                      value={this.state.did}
+                      fullWidth
+                      id="name"
+                      label="Name"
+                      name="name"
+                      value={this.state.name}
                       onChange={this.handleChange}
-                    >
-                      {this.state.dids.map((did) => {
-                        return (
-                          <MenuItem key={did} value={did}>
-                            {did}
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={8}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    id="name"
-                    label="Name"
-                    name="name"
-                    value={this.state.name}
-                    onChange={this.handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    variant="outlined"
-                    required
-                    fullWidth
-                    id="version"
-                    label="Version"
-                    name="version"
-                    value={this.state.version}
-                    onChange={this.handleChange}
-                  />
-                </Grid>
-                <Typography style={{ marginLeft: 10 }} variant="subtitle1">
-                  Attributes *
-                </Typography>
-                <Grid style={{ marginBottom: -15 }} item xs={12}>
-                  <Paper className={classes.root}>
-                    <AttributesTable
-                      rows={this.state.attributes}
-                      width={'100%'}
-                      height={215}
-                      rowHeight={45}
-                      onDeleteAttribute={this.onDeleteAttribute}
-                      onEditAttribute={this.onEditAttribute}
                     />
-                  </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      variant="outlined"
+                      required
+                      fullWidth
+                      id="version"
+                      label="Version"
+                      name="version"
+                      value={this.state.version}
+                      onChange={this.handleChange}
+                    />
+                  </Grid>
+                  <Typography style={{ marginLeft: 10 }} variant="subtitle1">
+                    Attributes *
+                  </Typography>
+                  <Grid style={{ marginBottom: -15 }} item xs={12}>
+                    <Paper className={classes.root}>
+                      <AttributesTable
+                        rows={this.state.attributes}
+                        width={'100%'}
+                        height={215}
+                        rowHeight={45}
+                        onDeleteAttribute={this.onDeleteAttribute}
+                        onEditAttribute={this.onEditAttribute}
+                      />
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={10}>
+                    <TextField
+                      variant="outlined"
+                      fullWidth
+                      id="attribute"
+                      label="Attribute Name"
+                      name="attribute"
+                      value={this.state.attribute}
+                      onChange={this.handleChange}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          this.onAddAttribute();
+                        }
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Button
+                      type="button"
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.addAttr}
+                      onClick={this.onAddAttribute}
+                    >
+                      Add
+                    </Button>
+                  </Grid>
                 </Grid>
-                <Grid item xs={10}>
-                  <TextField
-                    variant="outlined"
-                    fullWidth
-                    id="attribute"
-                    label="Attribute Name"
-                    name="attribute"
-                    value={this.state.attribute}
-                    onChange={this.handleChange}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        this.onAddAttribute();
-                      }
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={2}>
-                  <Button
-                    type="button"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    className={classes.addAttr}
-                    onClick={this.onAddAttribute}
-                  >
-                    Add
-                  </Button>
-                </Grid>
-              </Grid>
-              <Button
-                type="button"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={[classes.add, classes.button]}
-                onClick={this.onSubmit}
-              >
-                Create
-              </Button>
-            </form>
-          </div>
-        </Grid>
-        <Grid item xs={12} lg={7}>
-          {this.state.schema !== '' ? (
-            <Card className={classes.card}>
-              <p>Name: {this.state.schema.name}</p>
-              <p>Version: {this.state.schema.version}</p>
-              Attributes:
-              <ul>
-                {this.state.schema.attrNames.map((attr) => {
-                  return <li key={attr}>{attr}</li>;
-                })}
-              </ul>
-            </Card>
-          ) : null}
+                <Button
+                  type="button"
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={[classes.add, classes.button]}
+                  onClick={this.onSubmit}
+                >
+                  Create
+                </Button>
+              </form>
+            </div>
+          </Grid>
+          <Grid item xs={12} lg={7} xl={8}>
+            {this.state.schema ? <SchemaCard schema={this.state.schema} /> : null}
+          </Grid>
         </Grid>
       </Container>
     );
@@ -324,17 +318,15 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    maxWidth: 550,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   result: {
     margin: 30,
     display: 'flex',
     flexDirection: 'line',
     alignItems: 'center',
-  },
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
   },
   add: {
     height: '40px',
@@ -345,7 +337,6 @@ const useStyles = (theme) => ({
     width: '100%',
   },
   form: {
-    width: '500px',
     marginTop: theme.spacing(3),
   },
   formControl: {

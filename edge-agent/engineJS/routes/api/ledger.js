@@ -6,15 +6,32 @@ const sdk = require('indy-sdk');
 
 // Send did to the ledger with a specific role
 router.post('/send-nym', passport.authenticate('jwt', { session: false }), async (req, res) => {
-  let { did, newDid, newVerKey, role } = req.body;
-  if (role === 'COMMON_USER') role = null;
-  console.log('cheguei 1');
-  const nym = await indy.ledger.sendNym(did, newDid, newVerKey, role);
-  console.log('cheguei 2');
-  const didDoc = await indy.ledger.createNymDocument(newDid, newVerKey);
-  console.log('cheguei 3');
+  try {
+    let { did, newDid, newVerKey, role, isMyDid } = req.body;
+    if (role === 'COMMON_USER') role = null;
+    console.log('cheguei 1');
+    const nym = await indy.ledger.sendNym(did, newDid, newVerKey, role);
+    console.log('cheguei 2');
+    let didDocument = null;
+    if (isMyDid) {
+      try {
+        didDocument = await indy.ledger.createNymDocument(newDid, newVerKey);
+      } catch (error) {
+        if (error.indyCode === 212) {
+          // WalletItemNotFound
+          throw new "Server error: You can't create a did document for a did that does not belong you"();
+        } else {
+          throw error;
+        }
+      }
+    }
+    console.log('cheguei 3');
 
-  res.status(200).send({ did: nym, role: role, didDoc: didDoc });
+    res.status(200).send({ did: nym, role, didDocument });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ error });
+  }
 });
 
 // Get did from the ledger
