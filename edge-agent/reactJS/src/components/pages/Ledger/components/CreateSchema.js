@@ -19,7 +19,7 @@ import uuid from 'uuid';
 import { connect } from 'react-redux';
 import axios from 'axios';
 import config from '../../../../config';
-
+import './CreateSchema.css';
 import SchemaCard from './SchemaCard';
 
 class CreateSchema extends Component {
@@ -243,9 +243,6 @@ class CreateSchema extends Component {
                       onChange={this.handleChange}
                     />
                   </Grid>
-                  <Typography style={{ marginLeft: 10 }} variant="subtitle1">
-                    Attributes *
-                  </Typography>
                   <Grid style={{ marginBottom: -15 }} item xs={12}>
                     <Paper className={classes.root}>
                       <AttributesTable
@@ -258,34 +255,48 @@ class CreateSchema extends Component {
                       />
                     </Paper>
                   </Grid>
-                  <Grid item xs={10}>
-                    <TextField
-                      variant="outlined"
-                      fullWidth
-                      id="attribute"
-                      label="Attribute Name"
-                      name="attribute"
-                      value={this.state.attribute}
-                      onChange={this.handleChange}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          this.onAddAttribute();
-                        }
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={2}>
-                    <Button
-                      type="button"
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      className={classes.addAttr}
-                      onClick={this.onAddAttribute}
-                    >
-                      Add
-                    </Button>
+                  <Grid item xs={12} style={{ display: 'flex' }}>
+                    <div style={{ width: '80%' }}>
+                      <TextField
+                        variant="outlined"
+                        fullWidth
+                        id="attribute"
+                        placeholder="New attribute"
+                        name="attribute"
+                        value={this.state.attribute}
+                        onChange={this.handleChange}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            this.onAddAttribute();
+                          }
+                        }}
+                        InputProps={{ className: `${classes.input}` }}
+                        inputProps={{ className: 'addAttrInput' }}
+                        InputLabelProps={{
+                          classes: {
+                            root: {
+                              fontSize: 20,
+                              color: 'red',
+                              '&$labelFocused': {
+                                color: 'purple',
+                              },
+                            },
+                          },
+                        }}
+                      />
+                    </div>
+                    <div style={{ width: '20%' }}>
+                      <Button
+                        type="button"
+                        fullWidth
+                        variant="contained"
+                        className={classes.addAttr}
+                        onClick={this.onAddAttribute}
+                      >
+                        Add
+                      </Button>
+                    </div>
                   </Grid>
                 </Grid>
                 <Button
@@ -312,6 +323,10 @@ class CreateSchema extends Component {
 
 // Styles
 const useStyles = (theme) => ({
+  input: {
+    height: 40,
+    fontSize: 15,
+  },
   paper: {
     marginTop: 30,
     marginBottom: 30,
@@ -333,8 +348,8 @@ const useStyles = (theme) => ({
     marginTop: 10,
   },
   addAttr: {
-    height: 40,
-    width: '100%',
+    marginBottom: 10,
+    height: 38,
   },
   form: {
     marginTop: theme.spacing(3),

@@ -14,11 +14,26 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import { withSnackbar } from 'notistack';
+import Paper from '@material-ui/core/Paper';
 import JSONPretty from 'react-json-pretty';
 
-import AddAttributeDialog from './AddAttributeDialog';
+import AttributesTable from './AttributesTable';
+import AttributeDialog from './AttributeDialog';
 
 import { connect } from 'react-redux';
+
+import './ProposePresentation.css';
+
+const attributesTableColumns = [
+  { id: 'name', label: 'Name', width: '30%' },
+  { id: 'value', label: 'Value', width: '35%' },
+];
+
+const predicatesTableColumns = [
+  { id: 'name', label: 'Name', width: '26%' },
+  { id: 'predicate', label: 'Predicate', width: '8%' },
+  { id: 'threshold', label: 'Value', width: '31%' },
+];
 
 class ProposePresentation extends Component {
   state = {
@@ -38,8 +53,10 @@ class ProposePresentation extends Component {
       comment: '',
       presentationPreview: '',
     },
-    attrDialogOpen: false,
+    addAttrDialogOpen: false,
+    editAttrDialogOpen: false,
     isPredicate: false,
+    attrToEdit: null,
   };
 
   showSnackbarVariant = (message, variant) => {
@@ -63,12 +80,41 @@ class ProposePresentation extends Component {
     </Fragment>
   );
 
-  handleOpenAttrDialog = (isPredicate) => {
-    this.setState({ isPredicate, attrDialogOpen: true });
+  handleOpenAddAttrDialog = (isPredicate) => {
+    this.setState({ isPredicate, addAttrDialogOpen: true });
   };
 
-  handleCloseAttrDialog = () => {
-    this.setState({ attrDialogOpen: false });
+  handleCloseAddAttrDialog = () => {
+    this.setState({ addAttrDialogOpen: false });
+  };
+
+  handleOpenEditAttrDialog = (isPredicate, attrId) => {
+    let errors = this.state.formErrors;
+    let attribute = null;
+    try {
+      const preview = JSON.parse(this.state.presentationPreview);
+      attribute = isPredicate
+        ? preview.predicates.find((attr) => attr.name === attrId)
+        : preview.attributes.find((attr) => attr.name === attrId);
+    } catch (e) {
+      errors['presentationPreview'] = 'Invalid JSON object';
+    }
+    if (attribute) {
+      this.setState({
+        isPredicate,
+        editAttrDialogOpen: true,
+        attrToEdit: attribute,
+      });
+    } else {
+      this.showSnackbarVariant('Error finding attribute to edit. Please try again.', 'error');
+    }
+    this.setState({
+      formErrors: errors,
+    });
+  };
+
+  handleCloseEditAttrDialog = () => {
+    this.setState({ editAttrDialogOpen: false });
   };
 
   // Handle fields change
@@ -95,6 +141,13 @@ class ProposePresentation extends Component {
           errors['comment'] = 'Invalid characters';
         }
         break;
+      case 'presentationPreview':
+        if (value.length < 1) {
+          this.setState({
+            presentationPreview: JSON.stringify({ attributes: [], predicates: [] }),
+          });
+        }
+        break;
       default:
         break;
     }
@@ -105,8 +158,6 @@ class ProposePresentation extends Component {
     let errors = this.state.formErrors;
     try {
       const preview = JSON.parse(this.state.presentationPreview);
-      console.log(preview.attributes.length);
-      console.log(preview.predicates.length);
       if (!preview.attributes) {
         errors['presentationPreview'] = 'Attributes field missing';
       } else if (!preview.predicates) {
@@ -114,11 +165,22 @@ class ProposePresentation extends Component {
       } else if (preview.attributes.length < 1 && preview.predicates.length < 1) {
         errors['presentationPreview'] = 'No attributes nor predicates were provided';
       }
+      this.setState({ presentationPreview: JSON.stringify(preview, undefined, 2) });
     } catch (e) {
       errors['presentationPreview'] = 'Invalid JSON object';
     } finally {
+      console.log(errors);
       this.setState({ formErrors: errors });
     }
+  };
+
+  isPreviewValid = () => {
+    try {
+      JSON.parse(this.state.presentationPreview);
+    } catch (e) {
+      return false;
+    }
+    return true;
   };
 
   cleanJsonErrors = () => {
@@ -128,17 +190,61 @@ class ProposePresentation extends Component {
   };
 
   onAddAttr = (isPredicate, attribute) => {
-    let preview = JSON.parse(this.state.presentationPreview);
-    isPredicate
-      ? (preview.predicates = [...preview.predicates, attribute])
-      : (preview.attributes = [...preview.attributes, attribute]);
-
     let errors = this.state.formErrors;
-    errors['presentationPreview'] = '';
-    this.setState({
-      presentationPreview: JSON.stringify(preview, undefined, 2),
-      formErrors: errors,
-    });
+    try {
+      let preview = JSON.parse(this.state.presentationPreview);
+      isPredicate
+        ? (preview.predicates = [...preview.predicates, attribute])
+        : (preview.attributes = [...preview.attributes, attribute]);
+
+      errors['presentationPreview'] = '';
+      this.setState({ presentationPreview: JSON.stringify(preview, undefined, 2) });
+    } catch (e) {
+      errors['presentationPreview'] = 'Invalid JSON object';
+    }
+    this.setState({ formErrors: errors });
+  };
+
+  onDeleteAttr = (isPredicate, id) => {
+    console.log('onDelete: ', id);
+    console.log('isPredicate: ', isPredicate);
+    let errors = this.state.formErrors;
+
+    try {
+      let preview = JSON.parse(this.state.presentationPreview);
+      console.log(preview.predicates);
+      console.log(preview.attributes);
+      isPredicate
+        ? (preview.predicates = preview.predicates.filter((attr) => attr.name !== id))
+        : (preview.attributes = preview.attributes.filter((attr) => attr.name !== id));
+      console.log(preview);
+      errors['presentationPreview'] = '';
+      this.setState({ presentationPreview: JSON.stringify(preview, undefined, 2) });
+    } catch (e) {
+      console.log('error: ', e);
+      errors['presentationPreview'] = 'Invalid JSON object';
+    }
+    this.setState({ formErrors: errors });
+  };
+
+  onEditAttr = (isPredicate, attribute) => {
+    let errors = this.state.formErrors;
+    try {
+      let preview = JSON.parse(this.state.presentationPreview);
+      if (isPredicate) {
+        const index = preview.predicates.findIndex((attr) => attr.id === attribute.id);
+        preview.predicates[index] = attribute;
+      } else {
+        const index = preview.attributes.findIndex((attr) => attr.id === attribute.id);
+        preview.attributes[index] = attribute;
+      }
+
+      errors['presentationPreview'] = '';
+      this.setState({ presentationPreview: JSON.stringify(preview, undefined, 2) });
+    } catch (e) {
+      errors['presentationPreview'] = 'Invalid JSON object';
+    }
+    this.setState({ formErrors: errors });
   };
 
   isFormValid = () => {
@@ -193,12 +299,12 @@ class ProposePresentation extends Component {
 
   render() {
     const { classes } = this.props;
-    console.log('formErrors: ', this.state.formErrors);
+    console.log('state: ', this.state);
 
     return (
       <Container spacing={2} className="px-0" maxWidth="100%">
         <Grid container align="center">
-          <Grid item md={12} lg={5} xl={4}>
+          <div className={classes.outerDiv}>
             <div className={`${classes.paper} p-5`}>
               <Typography component="span" variant="h5">
                 Propose Presentation
@@ -244,23 +350,43 @@ class ProposePresentation extends Component {
                       helperText={this.state.formErrors.comment}
                     />
                   </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      variant="outlined"
-                      required
-                      fullWidth
-                      multiline
-                      rows={10}
-                      id="presentationPreview"
-                      label="Attributes and Predicates"
-                      placeholder="You can either insert the JSON object here directly or use the buttons bellow to add attributes and predicates"
-                      name="presentationPreview"
-                      value={this.state.presentationPreview}
-                      onChange={(e) => {
-                        console.log(e.target.value);
-                        this.handleChange(e);
-                      }}
-                    />
+                  <Grid style={{ marginBottom: -7 }} item xs={12}>
+                    <Paper className={classes.root}>
+                      <AttributesTable
+                        title="Attributes"
+                        columns={attributesTableColumns}
+                        showHeader={true}
+                        rows={
+                          this.isPreviewValid()
+                            ? JSON.parse(this.state.presentationPreview).attributes
+                            : []
+                        }
+                        minRows={3}
+                        width={'100%'}
+                        rowHeight={40}
+                        onDeleteAttribute={(id) => this.onDeleteAttr(false, id)}
+                        onEditAttribute={(id) => this.handleOpenEditAttrDialog(false, id)}
+                      />
+                    </Paper>
+                  </Grid>
+                  <Grid style={{ marginBottom: 2 }} item xs={12}>
+                    <Paper className={classes.root}>
+                      <AttributesTable
+                        title="Predicates"
+                        columns={predicatesTableColumns}
+                        showHeader={true}
+                        rows={
+                          this.isPreviewValid()
+                            ? JSON.parse(this.state.presentationPreview).predicates
+                            : []
+                        }
+                        minRows={3}
+                        width={'100%'}
+                        rowHeight={40}
+                        onDeleteAttribute={(id) => this.onDeleteAttr(true, id)}
+                        onEditAttribute={(id) => this.handleOpenEditAttrDialog(true, id)}
+                      />
+                    </Paper>
                   </Grid>
                   <Container>
                     <Grid container align="center">
@@ -271,7 +397,7 @@ class ProposePresentation extends Component {
                           variant="contained"
                           color="grey"
                           className={classes.add}
-                          onClick={() => this.handleOpenAttrDialog(false)}
+                          onClick={() => this.handleOpenAddAttrDialog(false)}
                         >
                           Add attribute
                         </Button>
@@ -283,7 +409,7 @@ class ProposePresentation extends Component {
                           variant="contained"
                           color="grey"
                           className={classes.add}
-                          onClick={() => this.handleOpenAttrDialog(true)}
+                          onClick={() => this.handleOpenAddAttrDialog(true)}
                         >
                           Add predicate
                         </Button>
@@ -300,20 +426,11 @@ class ProposePresentation extends Component {
                 >
                   Send Proposal
                 </Button>
-                <AddAttributeDialog
-                  open={this.state.attrDialogOpen}
-                  handleClose={this.handleCloseAttrDialog}
-                  handleOpen={this.handleOpenAttrDialog}
-                  onAddAttr={this.onAddAttr}
-                  isPredicate={this.state.isPredicate}
-                />
               </form>
             </div>
-          </Grid>
-          <Grid item md={12} lg={7} xl={8}>
-            <div className={`${classes.json} p-5`}>
+            <div className={`${classes.json} jsonInput p-5`}>
               <Typography component="span" style={{ fontSize: 18 }}>
-                Presentation Attributes and predicates
+                Presentation Attributes and Predicates <sup>(1)</sup>
               </Typography>
               <Grid container align="left" spacing={2} style={{ marginTop: 10 }}>
                 <Grid item xs={12}>
@@ -322,24 +439,43 @@ class ProposePresentation extends Component {
                     required
                     fullWidth
                     multiline
-                    rows={24}
+                    rows={27}
                     id="presentationPreview"
                     placeholder="You can either insert the JSON object here directly or use the buttons bellow to add attributes and predicates"
                     name="presentationPreview"
                     value={this.state.presentationPreview}
+                    onChange={this.handleChange}
                     onBlur={this.handleJsonValidation}
                     onFocus={this.cleanJsonErrors}
-                    onChange={(e) => {
-                      console.log(e.target.value);
-                      this.handleChange(e);
-                    }}
                     error={this.state.formErrors.presentationPreview !== ''}
                     helperText={this.state.formErrors.presentationPreview}
                   />
+                  <div style={{ marginTop: 2 }}>
+                    <sup>
+                      <sup>(1)</sup> You can also enter the attributes in a valid JSON format to
+                      save time!
+                    </sup>
+                  </div>
                 </Grid>
               </Grid>
             </div>
-          </Grid>
+          </div>
+
+          <AttributeDialog
+            open={this.state.addAttrDialogOpen}
+            handleClose={this.handleCloseAddAttrDialog}
+            handleOpen={this.handleOpenAddAttrDialog}
+            dialogAction={this.onAddAttr}
+            isPredicate={this.state.isPredicate}
+          />
+          <AttributeDialog
+            attribute={this.state.attrToEdit}
+            open={this.state.editAttrDialogOpen}
+            handleClose={this.handleCloseEditAttrDialog}
+            handleOpen={this.handleOpenEditAttrDialog}
+            dialogAction={this.onEditAttr}
+            isPredicate={this.state.isPredicate}
+          />
         </Grid>
       </Container>
     );
@@ -348,18 +484,27 @@ class ProposePresentation extends Component {
 
 // Styles
 const useStyles = (theme) => ({
+  outerDiv: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
+  },
   paper: {
+    margin: 30,
     marginTop: 30,
     marginBottom: 30,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    minWidth: 400,
     maxWidth: 500,
     backgroundColor: 'white',
     borderRadius: 5,
   },
   json: {
-    marginLeft: 0,
+    marginLeft: 30,
     marginRight: 30,
     marginTop: 30,
     marginBottom: 30,
@@ -367,13 +512,13 @@ const useStyles = (theme) => ({
     flexDirection: 'column',
     alignItems: 'center',
     minWidth: 500,
+    maxWidth: 900,
     backgroundColor: 'white',
     borderRadius: 5,
     height: 'calc(100% - 60px)',
   },
   add: {
-    width: 160,
-    margin: 10,
+    width: '90%',
     marginTop: 0,
     marginBottom: 40,
   },

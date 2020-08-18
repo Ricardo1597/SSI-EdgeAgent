@@ -155,7 +155,7 @@ class Dashboard extends Component {
 
         <Grid container>
           <Grid item xs={12}>
-            <div className={`${classes.table}`} style={{ alignContent: 'center' }}>
+            <div className={`${classes.table}`} style={{ alignContent: 'center', maxWidth: 1300 }}>
               <h3>My DIDs:</h3>
               <CustomPaginationTable dids={this.state.dids} getRole={this.getRole} />
             </div>

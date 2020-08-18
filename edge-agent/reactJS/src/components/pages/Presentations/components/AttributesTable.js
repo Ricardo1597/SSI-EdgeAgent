@@ -11,9 +11,6 @@ import EditOutlinedIcon from '@material-ui/icons/EditOutlined';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import { TableHead } from '@material-ui/core';
-import { AutoSizer } from 'react-virtualized';
-
-const columns = [{ id: 'name', label: 'Name', width: 240 }];
 
 const useStyles = makeStyles({
   root: {
@@ -41,41 +38,30 @@ const StyledTableRow = withStyles((theme) => ({
 
 export default function AttributesTable(props) {
   const classes = useStyles();
+  const emptyRows = props.minRows - props.rows.length;
+  console.log(40 * emptyRows);
 
   return (
     <Paper className={classes.root}>
-      <TableContainer style={{ tableLayout: 'auto', overflowY: 'hidden' }}>
-        <Table stickyHeader size="small">
-          <TableHead style={{ display: 'table', width: '100%' }}>
-            <StyledTableRow>
-              <StyledTableCell align="center" colSpan={3}>
-                <strong>Attributes</strong>
-              </StyledTableCell>
-            </StyledTableRow>
-          </TableHead>
-          <TableBody
-            className="scrollBar"
-            style={{
-              display: 'block',
-              overflowY: 'auto',
-              height: 180,
-            }}
-          >
+      <TableContainer style={{ tableLayout: 'auto' }}>
+        <Table size="small">
+          {props.showHeader ? (
+            <TableHead height="40px">
+              <StyledTableRow>
+                <StyledTableCell align="center" colSpan={props.columns.length + 2}>
+                  <strong>{props.title}</strong>
+                </StyledTableCell>
+              </StyledTableRow>
+            </TableHead>
+          ) : null}
+          <TableBody>
             {props.rows.map((row) => {
+              console.log(row);
               return (
-                <StyledTableRow
-                  style={{
-                    height: '40px !important',
-                    display: 'table',
-                    margin: 'auto',
-                    width: '100%',
-                  }}
-                  hover
-                  key={row.id}
-                >
-                  {columns.map((column) => {
+                <StyledTableRow style={{ height: '40px !important' }} hover key={row.id}>
+                  {props.columns.map((column) => {
                     return (
-                      <StyledTableCell key={column.id} align="left">
+                      <StyledTableCell key={column.id} align="center">
                         {row[column.id]}
                       </StyledTableCell>
                     );
@@ -85,22 +71,18 @@ export default function AttributesTable(props) {
                       <IconButton
                         style={{ padding: 5 }}
                         aria-label="edit"
-                        onClick={() => props.onEditAttribute()}
+                        onClick={() => props.onEditAttribute(row.name)}
                       >
                         <EditOutlinedIcon />
                       </IconButton>
                     </Tooltip>
                   </StyledTableCell>
-                  <StyledTableCell
-                    key="delete"
-                    align="right"
-                    style={{ padding: 0, paddingRight: 5, width: 50 }}
-                  >
+                  <StyledTableCell key="delete" align="right" style={{ padding: 0, width: 50 }}>
                     <Tooltip title="Delete">
                       <IconButton
                         style={{ padding: 5 }}
                         aria-label="delete"
-                        onClick={() => props.onDeleteAttribute(row.id)}
+                        onClick={() => props.onDeleteAttribute(row.name)}
                       >
                         <DeleteOutlinedIcon />
                       </IconButton>
@@ -109,6 +91,12 @@ export default function AttributesTable(props) {
                 </StyledTableRow>
               );
             })}
+
+            {emptyRows > 0 && (
+              <TableRow style={{ height: 35 * emptyRows }}>
+                <StyledTableCell colSpan={props.columns.length + 2} />
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

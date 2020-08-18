@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -14,7 +14,13 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Container from '@material-ui/core/Container';
 
-export default function AddAttributeDialog({ onAddAttr, open, handleClose, isPredicate }) {
+export default function AddAttributeDialog({
+  dialogAction,
+  open,
+  handleClose,
+  isPredicate,
+  attribute,
+}) {
   const [attrName, setAttrName] = useState('');
   const [attrPredicate, setAttrPredicate] = useState('<');
   const [attrValue, setAttrValue] = useState('');
@@ -25,6 +31,13 @@ export default function AddAttributeDialog({ onAddAttr, open, handleClose, isPre
     attrValue: '',
     attrCredDefId: '',
   });
+
+  useEffect(() => {
+    setAttrName(attribute && attribute.name);
+    setAttrPredicate(attribute && attribute.predicate);
+    setAttrValue(attribute && (attribute.value || attribute.threshold));
+    setAttrCredDefId(attribute && attribute.cred_def_id);
+  }, [attribute]);
 
   // Clear all state
   const clearState = () => {
@@ -88,25 +101,27 @@ export default function AddAttributeDialog({ onAddAttr, open, handleClose, isPre
 
   const handleAddAttr = () => {
     isPredicate
-      ? onAddAttr(true, {
+      ? dialogAction(true, {
           name: attrName,
           predicate: attrPredicate,
           threshold: attrValue,
           cred_def_id: attrCredDefId,
         })
-      : onAddAttr(false, {
+      : dialogAction(false, {
           name: attrName,
           value: attrValue,
           cred_def_id: attrCredDefId,
         });
   };
 
+  console.log('attribute: ', attribute);
+
   return (
     <div>
       <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
         <div className="p-1">
           <DialogTitle id="form-dialog-title">
-            {isPredicate ? 'Add Predicate' : 'Add Attribute'}
+            {(attribute ? 'Edit ' : 'Add ') + (isPredicate ? 'Predicate' : 'Attribute')}
           </DialogTitle>
           <DialogContent className="mx-2" style={{ marginTop: -15 }}>
             <DialogContentText style={{ textAlign: 'justify' }}>
@@ -204,7 +219,7 @@ export default function AddAttributeDialog({ onAddAttr, open, handleClose, isPre
               }}
               color="primary"
             >
-              Add attribute
+              {attribute ? 'Save changes' : 'Add attribute'}
             </Button>
           </DialogActions>
         </div>

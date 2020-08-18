@@ -16,8 +16,6 @@ import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import TableHead from '@material-ui/core/TableHead';
 
-import styles from './DidTable.css';
-
 const useStyles1 = makeStyles((theme) => ({
   root: {
     flexShrink: 0,

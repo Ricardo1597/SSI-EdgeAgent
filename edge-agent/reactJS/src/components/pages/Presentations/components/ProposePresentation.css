@@ -1,0 +1,14 @@
+@media only screen and (max-width: 1250px) {
+  .paper {
+    width: '100%';
+  }
+  .jsonInput {
+    display: none !important;
+  }
+}
+
+@media only screen and (min-width: 1250px) {
+  .jsonInput {
+    flex: 1;
+  }
+}
