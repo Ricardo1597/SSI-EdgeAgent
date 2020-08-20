@@ -259,6 +259,7 @@ class ProposePresentation extends Component {
 
     return valid;
   };
+
   onSubmit = (e) => {
     e.preventDefault();
 
@@ -362,10 +363,11 @@ class ProposePresentation extends Component {
                             : []
                         }
                         minRows={3}
-                        width={'100%'}
                         rowHeight={40}
                         onDeleteAttribute={(id) => this.onDeleteAttr(false, id)}
                         onEditAttribute={(id) => this.handleOpenEditAttrDialog(false, id)}
+                        isPredicate={false}
+                        isRequest={false}
                       />
                     </Paper>
                   </Grid>
@@ -381,10 +383,11 @@ class ProposePresentation extends Component {
                             : []
                         }
                         minRows={3}
-                        width={'100%'}
                         rowHeight={40}
                         onDeleteAttribute={(id) => this.onDeleteAttr(true, id)}
                         onEditAttribute={(id) => this.handleOpenEditAttrDialog(true, id)}
+                        isPredicate={true}
+                        isRequest={false}
                       />
                     </Paper>
                   </Grid>
@@ -464,17 +467,17 @@ class ProposePresentation extends Component {
           <AttributeDialog
             open={this.state.addAttrDialogOpen}
             handleClose={this.handleCloseAddAttrDialog}
-            handleOpen={this.handleOpenAddAttrDialog}
             dialogAction={this.onAddAttr}
             isPredicate={this.state.isPredicate}
+            isRequest={false}
           />
           <AttributeDialog
             attribute={this.state.attrToEdit}
             open={this.state.editAttrDialogOpen}
             handleClose={this.handleCloseEditAttrDialog}
-            handleOpen={this.handleOpenEditAttrDialog}
             dialogAction={this.onEditAttr}
             isPredicate={this.state.isPredicate}
+            isRequest={false}
           />
         </Grid>
       </Container>

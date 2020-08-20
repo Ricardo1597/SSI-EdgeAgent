@@ -90,16 +90,17 @@ router.post(
 
 // Issuer send independent presentation exchange request
 router.post('/send-request', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  let { connectionId, comment, presentationRequest } = req.body;
   try {
     // Create presentation exchange record
     let presentationExchangeRecord = indy.presentationExchange.verifierCreatePresentationExchangeRecord(
-      req.body.connectionId
+      connectionId
     );
 
     const [record, messageSent] = await indy.presentationExchange.verifierCreateAndSendRequest(
       presentationExchangeRecord,
-      req.body.comment,
-      req.body.presentationRequest
+      comment,
+      presentationRequest
     );
 
     res.status(200).send({ record, messageSent });
@@ -114,6 +115,7 @@ router.post(
   '/:id/send-request',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
+    let { comment, presentationRequest } = req.body;
     try {
       // Get presentation exchange record
       let presentationExchangeRecord = await indy.wallet.getWalletRecord(
@@ -124,8 +126,8 @@ router.post(
 
       const [record, messageSent] = await indy.presentationExchange.verifierCreateAndSendRequest(
         presentationExchangeRecord,
-        req.body.comment,
-        req.body.presentationRequest
+        comment,
+        presentationRequest
       );
 
       res.status(200).send({ record, messageSent });

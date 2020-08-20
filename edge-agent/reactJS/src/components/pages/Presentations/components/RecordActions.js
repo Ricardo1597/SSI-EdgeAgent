@@ -102,7 +102,7 @@ function RecordActions(props) {
     case 'request_received':
       return (
         <div>
-          <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 2, id)}>
+          <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 3, id)}>
             Accept Request
           </Button>
           <Button size="small" color="primary" onClick={() => rejectExchange(id, 'request')}>

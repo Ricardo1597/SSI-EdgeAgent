@@ -174,10 +174,13 @@ class SendPresentation extends Component {
     const { classes } = this.props;
 
     console.log('Inputs: ', this.state.dinamicInputs);
+    console.log('1: ', this.props.recordId);
+    console.log('1: ', this.state.proofReq);
+    console.log('1: ', Object.keys(this.state.credentials).length);
 
     return this.props.recordId &&
-      this.state.proofReq &&
-      Object.keys(this.state.credentials).length ? (
+      this.state.proofReq /*&&
+      Object.keys(this.state.credentials).length*/ ? (
       <Container spacing={2}>
         <div className={classes.paper}>
           <Typography component="span" variant="h5">

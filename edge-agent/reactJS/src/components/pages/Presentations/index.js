@@ -45,7 +45,7 @@ class Presentations extends Component {
           <Tabs
             value={tab}
             onChange={this.handleChangeTabs}
-            indicatorColor={tab !== 2 ? 'primary' : 'transparent'}
+            indicatorColor={tab !== 3 ? 'primary' : 'transparent'}
             textColor="primary"
           >
             <Tab className={classes.button} label="Presentation Exchanges" {...a11yProps(0)} />
@@ -53,7 +53,7 @@ class Presentations extends Component {
             {this.getDIDPermissions() ? (
               <Tab className={classes.button} label="Request Presentation" {...a11yProps(2)} />
             ) : null}
-            <Tab style={{ visibility: 'hidden' }} />
+            <Tab {...a11yProps(3)} style={{ visibility: 'hidden' }} />
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
@@ -68,6 +68,7 @@ class Presentations extends Component {
           </TabPanel>
         ) : null}
         <TabPanel value={tab} index={3}>
+          <p>Teste display</p>
           <SendPresentation recordId={recordId} />
         </TabPanel>
       </div>

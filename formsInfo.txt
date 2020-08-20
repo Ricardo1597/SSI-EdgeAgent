@@ -4,10 +4,6 @@ creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:17:TAG1
 Credential for using amazon website
 
 
-"{"@type":"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/propose-credential","@id":"41c7e38a-afb3-4bca-8aef-1b53ee027213","~thread":{"thid":"41c7e38a-afb3-4bca-8aef-1b53ee027213"},"comment":"Credential for using amazon website","credential_proposal":{"@type":"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview","attributes":[{"name":"username","mime-type":null,"value":"ricardo"}]},"schema_issuer_did":"schema","schema_id":"schema:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:2:test2:1.2","schema_name":"did","schema_version":"mybc","cred_def_id":"creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1"}"
-
-
-"{"@type":"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/propose-credential","@id":"dd8e010e-c651-4085-bd9b-c81f035948a4","~thread":{"thid":"235af419-0efe-4d75-a1f0-c60871d91520"},"comment":"Credential for using amazon website 2.0","credential_proposal":{"@type":"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/issue-credential/1.0/credential-preview","attributes":[{"name":"username","mime-type":null,"value":"ricardo123"}]},"schema_issuer_did":"did:mybc:EbP4aYNeTHL6q385GuVpRV","schema_id":"schema:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:2:test2:1.2","schema_name":"test2","schema_version":"1.2","cred_def_id":"creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1","issuer_did":null}"
 
 
 3a0bf92e-afd9-4649-8188-4dfac44db932
@@ -68,7 +64,7 @@ Proof of login credentials
 
 
 {
-    "name": "Proof request",
+  "name": "Proof request",
 	"version": "1.0",    
 	"ver": "2.0",    
 	"requested_attributes": {

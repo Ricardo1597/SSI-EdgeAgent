@@ -127,6 +127,11 @@ exports.verifierCreateAndSendRequest = async (
     throw new Error(`Invalid state trasition.`);
   }
 
+  // Add versions for Indy SDK
+  presentationRequest.version = '1.0';
+  presentationRequest.ver = '2.0';
+  console.log('PRESENTATION REQUEST: ', JSON.stringify(presentationRequest));
+
   presentationRequest.date = parseInt(new Date().getTime() / 1000);
 
   console.log('Cheguei 3');
@@ -541,7 +546,7 @@ exports.createPresentationExchangeRecord = (
     initiator: initiator,
     role: role,
     state: state,
-    presentationProposalDict: JSON.stringify(message.presentation_proposal),
+    presentationProposalDict: JSON.stringify((message && message.presentation_proposal) || null),
     createdAt: currentDate,
     updatedAt: currentDate,
   };
