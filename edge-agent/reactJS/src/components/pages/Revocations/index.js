@@ -8,9 +8,6 @@ import TabPanel, { a11yProps } from '../../TabPanel';
 import { withStyles } from '@material-ui/core/styles';
 
 import MyRegistries from './components/MyRegistries';
-import GetRegistry from './components/GetRegistry';
-import CreateRegistry from './components/CreateRegistry';
-import RevokeCredential from './components/RevokeCredential';
 import { withSnackbar } from 'notistack';
 import { connect } from 'react-redux';
 
@@ -54,6 +51,40 @@ class Revocations extends Component {
     this.setState({ tab: newValue });
   };
 
+  addRecord = (record) => {
+    this.setState({ registries: [...this.state.registries, record] });
+  };
+
+  updatePending = (id, credRevId) => {
+    let registries = this.state.registries;
+    for (let i = 0; i < registries.length; i++) {
+      if (registries[i].revocRegId === id) {
+        registries[i].hasPendingRevocations = true;
+        registries[i].pendingPub = [...registries[i].pendingPub, credRevId];
+        break;
+      }
+    }
+    this.setState({ registries });
+  };
+
+  cleanPending = (id) => {
+    let registries = this.state.registries;
+    if (!id) {
+      registries.map((registry) => {
+        return { ...registry, hasPendingRevocations: false, pendingPub: [] };
+      });
+    } else {
+      for (let i = 0; i < registries.length; i++) {
+        if (registries[i].revocRegId === id) {
+          registries[i].hasPendingRevocations = false;
+          registries[i].pendingPub = [];
+          break;
+        }
+      }
+    }
+    this.setState({ registries });
+  };
+
   componentWillMount() {
     const jwt = this.props.accessToken;
 
@@ -64,12 +95,15 @@ class Revocations extends Component {
       .then((res) => {
         console.log(res.data);
         this.setState({
-          registries: res.data.records || [],
+          registries: res.data.records,
         });
       })
       .catch((err) => {
         console.error(err);
-        this.showSnackbarVariant('Error getting registries. Please try again.', 'error');
+        this.showSnackbarVariant(
+          'Error getting revocation registries. Please refresh the page.',
+          'error'
+        );
       });
   }
 
@@ -88,23 +122,16 @@ class Revocations extends Component {
             indicatorColor="primary"
             textColor="primary"
           >
-            <Tab className={classes.button} label="My Registries" {...a11yProps(1)} />
-            <Tab className={classes.button} label="Get Registry" {...a11yProps(0)} />
-            <Tab className={classes.button} label="Create Registry" {...a11yProps(2)} />
-            <Tab className={classes.button} label="Revoke Credential" {...a11yProps(3)} />
+            <Tab className={classes.button} label="My Registries" {...a11yProps(0)} />
           </Tabs>
         </AppBar>
         <TabPanel value={this.state.tab} index={0}>
-          <MyRegistries myRegistries={this.state.registries} />
-        </TabPanel>
-        <TabPanel value={this.state.tab} index={1}>
-          <GetRegistry />
-        </TabPanel>
-        <TabPanel value={this.state.tab} index={2}>
-          <CreateRegistry />
-        </TabPanel>
-        <TabPanel value={this.state.tab} index={3}>
-          <RevokeCredential myRegistries={this.state.registries} />
+          <MyRegistries
+            myRegistries={this.state.registries}
+            addRecord={this.addRecord}
+            updatePending={this.updatePending}
+            cleanPending={this.cleanPending}
+          />
         </TabPanel>
       </div>
     );

@@ -188,7 +188,7 @@ class CreateSchema extends Component {
     const { classes } = this.props;
 
     return (
-      <Container spacing={2} maxWidth="100%">
+      <Container maxWidth="100%">
         <Grid container align="center">
           <Grid item xs={12} lg={5} xl={4}>
             <div className={`${classes.paper} p-5`}>
@@ -196,12 +196,11 @@ class CreateSchema extends Component {
                 Create Schema
               </Typography>
               <form className={classes.form} onSubmit={this.onSubmit}>
-                <Grid container align="left" spacing={2}>
+                <Grid container align="left" spacing={3}>
                   <Grid item xs={12}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel htmlFor="did">DID</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="DID"
                         name="did"
@@ -221,7 +220,6 @@ class CreateSchema extends Component {
                   </Grid>
                   <Grid item xs={12} sm={8}>
                     <TextField
-                      variant="outlined"
                       required
                       fullWidth
                       id="name"
@@ -233,7 +231,6 @@ class CreateSchema extends Component {
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField
-                      variant="outlined"
                       required
                       fullWidth
                       id="version"
@@ -333,7 +330,7 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    maxWidth: 550,
+    maxWidth: 500,
     backgroundColor: 'white',
     borderRadius: 5,
   },
@@ -345,7 +342,7 @@ const useStyles = (theme) => ({
   },
   add: {
     height: '40px',
-    marginTop: 10,
+    marginTop: 30,
   },
   addAttr: {
     marginBottom: 10,

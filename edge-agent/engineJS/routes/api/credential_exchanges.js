@@ -182,7 +182,7 @@ router.post('/revoke', passport.authenticate('jwt', { session: false }), async f
       credRevId,
       publish
     );
-    res.status(200).send({ ok: true, invalidCredRevIds });
+    res.status(200).send({ invalidCredRevIds });
   } catch (error) {
     console.log('Error revoking credential: ', error);
     res.status(400).send({ error });
@@ -213,7 +213,7 @@ router.post(
       const [delta, invalidCredRevIds] = await indy.credentialExchange.publishPendingRevocations(
         req.query.id
       );
-      res.status(200).send({ record, messageSent });
+      res.status(200).send({ delta, invalidCredRevIds });
     } catch (error) {
       console.log('Error publishing revocations: ', error);
       res.status(400).send({ error });

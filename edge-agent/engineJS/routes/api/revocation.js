@@ -91,7 +91,7 @@ router.post(
   '/create-registry',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
-    let { credDefId, issuanceByDefault, maxCredNum } = req.body;
+    let { credDefId, name, issuanceByDefault, maxCredNum } = req.body;
 
     // Extract issuer ID from credential definition ID
     const credDefParts = credDefId.split(':');
@@ -107,15 +107,16 @@ router.post(
     }
 
     try {
-      const [revocRegId, revocRegDef, revocRegEntry] = await indy.revocation.createAndStoreRevocReg(
+      const record = await indy.revocation.createAndStoreRevocReg(
         issuerDid,
         null,
         credDefId,
+        name,
         '/tmp/indy_acme_tails',
         parseInt(maxCredNum),
         issuanceByDefault
       );
-      res.status(200).send({ revocRegId, revocRegDef, revocRegEntry });
+      res.status(200).send({ record });
     } catch (error) {
       console.log(error);
       res.status(400).send({ error });

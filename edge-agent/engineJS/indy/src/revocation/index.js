@@ -22,6 +22,7 @@ exports.createAndStoreRevocReg = async (
   issuerDid,
   revocDefType,
   credDefId,
+  name,
   tailsBasePath,
   maxCredNum,
   issuanceByDefault
@@ -62,6 +63,7 @@ exports.createAndStoreRevocReg = async (
       tag,
       issuerDid,
       credDefId,
+      name,
       revocRegId,
       revocRegDef,
       revocRegEntry,
@@ -93,7 +95,7 @@ exports.createAndStoreRevocReg = async (
       await this.publishRevocRegEntry(revocRegRecord.revocRegId);
     }
 
-    return [revocRegId, revocRegDef, revocRegEntry];
+    return revocRegRecord;
   } catch (error) {
     console.log('Error when creating revocation registry: ', error);
     throw error;
@@ -242,6 +244,7 @@ exports.createRevocRegRecord = (
   tag,
   issuerDid,
   credDefId,
+  name,
   revocRegId,
   revocRegDef,
   revocRegEntry,
@@ -253,6 +256,7 @@ exports.createRevocRegRecord = (
 
   return {
     recordId: tag,
+    name: name,
     credDefId: credDefId,
     revocRegId: revocRegId,
     revocRegDef: revocRegDef,

@@ -1,18 +1,39 @@
 import React, { Component, Fragment } from 'react';
 import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import Grid from '@material-ui/core/Grid';
+import Container from '@material-ui/core/Container';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
-import Card from '@material-ui/core/Card';
 import { withStyles } from '@material-ui/core/styles';
 import { connect } from 'react-redux';
-import JSONPretty from 'react-json-pretty';
 import { withSnackbar } from 'notistack';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import PublishIcon from '@material-ui/icons/Publish';
+
+import RegistriesTable from './RegistriesTable';
+import PublishAllDialog from './PublishAllDialog';
+import CreateRegistryDialog from './CreateRegistryDialog';
+import RevokeCredentialDialog from './RevokeCredentialDialog';
 
 import axios from 'axios';
 import config from '../../../../config';
 
-class GetRegistry extends Component {
+const columns = [
+  { id: 'name', label: 'Name', width: '26%' },
+  { id: 'issuanceType', label: 'Issuance', width: '24%' },
+  { id: 'maxCredNum', label: 'Capacity', width: '12%' },
+  { id: 'currCredNum', label: 'Slots Used', width: '12%' },
+  { id: 'state', label: 'State', width: '14%' },
+  { id: 'pendingRevocations', label: 'Pending', width: '12%' },
+];
+
+class MyRegistries extends Component {
+  state = {
+    createRegDialogOpen: false,
+    revokeCredDialogOpen: false,
+    publishAllDialogOpen: false,
+    selectedRevocReg: null,
+  };
+
   showSnackbarVariant = (message, variant) => {
     this.props.enqueueSnackbar(message, {
       variant,
@@ -40,57 +61,210 @@ class GetRegistry extends Component {
     });
   };
 
-  onSubmit = (e) => {
-    e.preventDefault();
-
-    this.setState({ loading: true });
+  onCreateReg = ({ credDefId, name, issuanceByDefault, maxCredNum }) => {
+    console.log('In create reg action: ', credDefId, issuanceByDefault, maxCredNum);
 
     const jwt = this.props.accessToken;
 
     axios
       .post(
-        `${config.endpoint}/api/credential-exchanges/publish-revocations`,
-        {},
+        `${config.endpoint}/api/revocation/create-registry`,
+        {
+          credDefId,
+          name,
+          issuanceByDefault,
+          maxCredNum,
+        },
         {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
-        this.showSnackbarVariant('Credentials revoked.', 'success');
+      .then(({ data: { record } }) => {
+        console.log(record);
+        this.props.addRecord(record);
+        this.showSnackbarVariant('Registry created.', 'success');
       })
       .catch((err) => {
         console.error(err);
-        this.showSnackbarVariant('Error revoking credentials. Please try again.', 'error');
+        this.showSnackbarVariant('Error creating registry. Please try again.', 'error');
       })
       .finally(() => {
         this.setState({ loading: false });
       });
   };
 
+  onRevokeCred = (revocRegId, credRevId, publish) => {
+    console.log('In revoke action: ', revocRegId, credRevId, publish);
+
+    const jwt = this.props.accessToken;
+
+    axios
+      .post(
+        `${config.endpoint}/api/credential-exchanges/revoke`,
+        {
+          revocRegId,
+          publish,
+          credRevId,
+        },
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
+        }
+      )
+      .then(({ data: { invalidCredRevIds } }) => {
+        console.log('invalidCredRevIds: ', invalidCredRevIds);
+        if (!publish) {
+          this.props.updatePending(revocRegId, credRevId);
+          this.showSnackbarVariant('Credential added to pending list.', 'success');
+        } else if (invalidCredRevIds.length) {
+          this.showSnackbarVariant(
+            'Error revoking credential: invalid credential revocation ID.',
+            'error'
+          );
+        } else {
+          this.showSnackbarVariant('Credential revoked.', 'success');
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        this.showSnackbarVariant('Error revoking credential. Please try again.', 'error');
+      })
+      .finally(() => {
+        this.setState({ loading: false });
+      });
+  };
+
+  onPublishPending = (revocRegId) => {
+    console.log('In publish pending action: ', revocRegId);
+
+    const jwt = this.props.accessToken;
+
+    axios
+      .post(
+        `${config.endpoint}/api/credential-exchanges/${
+          revocRegId ? revocRegId + '/' : ''
+        }publish-revocations`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
+        }
+      )
+      .then(({ data: { invalidCredRevIds } }) => {
+        console.log(invalidCredRevIds);
+        this.showSnackbarVariant('Credentials revoked.', 'success');
+        this.props.cleanPending(revocRegId);
+        if (Object.keys(invalidCredRevIds).length) {
+          this.showSnackbarVariant(
+            'Some credentials were invalid:' + JSON.stringify(invalidCredRevIds),
+            'warning'
+          );
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        this.showSnackbarVariant('Error revoking credentials. Please try again.', 'error');
+      });
+  };
+
   render() {
-    const { classes, registries } = this.props;
+    const { classes, myRegistries } = this.props;
 
     return (
-      <Grid container>
-        <Grid item xs={12} lg={5}>
-          <div className={classes.paper}>
-            <Typography component="span" variant="h5">
-              My Registries
+      <div className={classes.paper}>
+        <div style={{ display: 'flex' }}>
+          <div style={{ width: 200, marginBottom: 15 }}>
+            <Typography component="span" variant="h5" style={{ marginLeft: 25 }}>
+              <strong>My Registries</strong>
             </Typography>
           </div>
-        </Grid>
-        <Button
-          type="button"
-          fullWidth
-          variant="contained"
-          color="primary"
-          className={classes.add}
-          onClick={this.onSubmit}
-        >
-          Publish All
-        </Button>
-      </Grid>
+          <div
+            style={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', marginRight: 40 }}
+          >
+            <Button
+              type="button"
+              variant="contained"
+              style={{
+                width: 170,
+                marginRight: 10,
+                height: 35,
+                backgroundColor: '#24a0ed',
+                color: 'white',
+              }}
+              onClick={() => {
+                this.setState({ createRegDialogOpen: true });
+              }}
+            >
+              <AddCircleOutlineIcon fontSize="small" style={{ marginRight: 5 }} /> New Registry
+            </Button>
+            <Tooltip title="Publish all pending revocations">
+              <Button
+                type="button"
+                variant="contained"
+                color="primary"
+                style={{ width: 151, height: 35, backgroundColor: '#8884FF', color: 'white' }}
+                onClick={() => {
+                  this.setState({ publishAllDialogOpen: true });
+                }}
+              >
+                <PublishIcon fontSize="small" style={{ marginRight: 5 }} /> Publish All
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
+        <Container maxWidth="100%">
+          <div style={{ width: '100%' }}>
+            <RegistriesTable
+              columns={columns}
+              rows={(myRegistries || [])
+                .sort((a, b) =>
+                  a.updatedAt > b.updatedAt ? -1 : b.updatedAt > a.updatedAt ? 1 : 0
+                )
+                .map((registry) => {
+                  return {
+                    name: registry.name,
+                    issuanceType: registry.issuanceType,
+                    maxCredNum: registry.maxCredNum,
+                    currCredNum: registry.currCredNum,
+                    state: registry.state,
+                    pendingRevocations: registry.pendingPub.length,
+                    did: registry.issuerDid,
+                    registry: registry,
+                  };
+                })}
+              rowHeight={50}
+              onRevokeCredential={(revocRegId) => {
+                this.setState({ selectedRevocReg: revocRegId, revokeCredDialogOpen: true });
+              }}
+              onPublishPending={(revocRegId) => {
+                this.onPublishPending(revocRegId);
+              }}
+            />
+          </div>
+        </Container>
+
+        <CreateRegistryDialog
+          open={this.state.createRegDialogOpen}
+          handleClose={() => {
+            this.setState({ createRegDialogOpen: false });
+          }}
+          onCreateReg={(obj) => this.onCreateReg(obj)}
+        />
+        <PublishAllDialog
+          open={this.state.publishAllDialogOpen}
+          handleClose={() => {
+            this.setState({ publishAllDialogOpen: false });
+          }}
+          onPublishAll={() => this.onPublishPending(null)}
+        />
+        <RevokeCredentialDialog
+          open={this.state.revokeCredDialogOpen}
+          handleClose={() => {
+            this.setState({ revokeCredDialogOpen: false });
+          }}
+          onRevokeCred={(credRevId, publish) =>
+            this.onRevokeCred(this.state.selectedRevocReg, credRevId, publish)
+          }
+        />
+      </div>
     );
   }
 }
@@ -98,39 +272,15 @@ class GetRegistry extends Component {
 // Styles
 const useStyles = (theme) => ({
   paper: {
-    marginTop: 30,
-    marginBottom: 30,
+    padding: 30,
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-  },
-  result: {
-    margin: 30,
-    display: 'flex',
-    flexDirection: 'line',
-    alignItems: 'center',
+    width: '100%',
   },
   button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-  add: {
     height: '40px',
     width: '500px',
     marginTop: 10,
-  },
-  form: {
-    width: '500px',
-    marginTop: theme.spacing(3),
-  },
-  formControl: {
-    width: '100%',
-  },
-  card: {
-    width: '200px',
-    padding: 20,
-    margin: 20,
   },
 });
 
@@ -140,4 +290,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(GetRegistry)));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(MyRegistries)));

@@ -498,8 +498,9 @@ exports.publishPendingRevocations = async (revocRegId = null) => {
 
   // Get registry record if it has pending revocations
   let revocRegRecords = await indy.revocation.searchRevocRegRecord(tags, true);
-  if (revocRegRecords.length === 0) {
+  if (!revocRegRecords) {
     console.log('No records with pending revocations found.');
+    return [{}, {}];
   }
 
   let result = {};

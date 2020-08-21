@@ -68,7 +68,6 @@ class Presentations extends Component {
           </TabPanel>
         ) : null}
         <TabPanel value={tab} index={3}>
-          <p>Teste display</p>
           <SendPresentation recordId={recordId} />
         </TabPanel>
       </div>

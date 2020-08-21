@@ -145,7 +145,7 @@ class CreateNym extends Component {
     const { classes } = this.props;
 
     return (
-      <Container spacing={2} maxWidth="100%">
+      <Container maxWidth="100%">
         <Grid container align="center">
           <Grid item xs={12} lg={5} xl={4}>
             <div className={`${classes.paper} p-5`}>
@@ -153,12 +153,11 @@ class CreateNym extends Component {
                 Create Nym
               </Typography>
               <form className={classes.form} onSubmit={this.onSubmit}>
-                <Grid container align="left" spacing={2}>
+                <Grid container align="left" spacing={3}>
                   <Grid item xs={12}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel htmlFor="did">Supervisor DID</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="Supervisor DID"
                         name="did"
@@ -178,7 +177,6 @@ class CreateNym extends Component {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      variant="outlined"
                       required
                       fullWidth
                       id="newDid"
@@ -190,7 +188,6 @@ class CreateNym extends Component {
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
-                      variant="outlined"
                       required
                       fullWidth
                       id="newVerKey"
@@ -200,11 +197,10 @@ class CreateNym extends Component {
                       onChange={this.handleChange}
                     />
                   </Grid>
-                  <Grid item xs={6}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                  <Grid item xs={7}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel>Role</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="Role"
                         name="role"
@@ -230,11 +226,10 @@ class CreateNym extends Component {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={6}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                  <Grid item xs={5}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel>Is In My Wallet?</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="Is In My Wallet?"
                         name="isMyDid"
@@ -284,7 +279,7 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    maxWidth: 550,
+    maxWidth: 500,
     backgroundColor: 'white',
     borderRadius: 5,
   },
@@ -296,7 +291,7 @@ const useStyles = (theme) => ({
   },
   add: {
     height: '40px',
-    marginTop: 10,
+    marginTop: 30,
   },
   addAttr: {
     height: 40,

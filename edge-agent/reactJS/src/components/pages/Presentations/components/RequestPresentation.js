@@ -309,8 +309,8 @@ class RequestPresentation extends Component {
       request.requested_attributes[`attribute${i + 1}`] = {
         ...attr,
         non_revoked: {
-          from: new Date(attr.non_revoked.from).getTime() / 1000,
-          to: new Date(attr.non_revoked.to).getTime() / 1000,
+          from: attr.non_revoked.from,
+          to: attr.non_revoked.to,
         },
       };
     }
@@ -321,14 +321,13 @@ class RequestPresentation extends Component {
       request.requested_predicates[`predicate${i + 1}`] = {
         ...attr,
         non_revoked: {
-          from: new Date(attr.non_revoked.from).getTime() / 1000,
-          to: new Date(attr.non_revoked.to).getTime() / 1000,
+          from: attr.non_revoked.from,
+          to: attr.non_revoked.to,
         },
       };
     }
 
     console.log('Request: ', request);
-    return;
 
     const jwt = this.props.accessToken;
 
@@ -610,14 +609,14 @@ class RequestPresentation extends Component {
               <Typography component="span" style={{ fontSize: 18 }}>
                 Presentation Attributes and Predicates <sup>(1)</sup>
               </Typography>
-              <Grid container align="left" spacing={2} style={{ marginTop: 10 }}>
+              <Grid container align="left" spacing={2} style={{ marginTop: 5 }}>
                 <Grid item xs={12}>
                   <TextField
                     variant="outlined"
                     required
                     fullWidth
                     multiline
-                    rows={33}
+                    rows={35}
                     id="presentationRequest"
                     placeholder="You can either insert the JSON object here directly or use the buttons bellow to add attributes and predicates"
                     name="presentationRequest"

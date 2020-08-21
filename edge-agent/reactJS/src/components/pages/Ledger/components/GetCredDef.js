@@ -156,6 +156,7 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    maxWidth: 500,
   },
   result: {
     margin: 30,
@@ -173,7 +174,7 @@ const useStyles = (theme) => ({
     marginTop: 10,
   },
   form: {
-    width: '500px',
+    width: '100%',
     marginTop: theme.spacing(3),
   },
   formControl: {

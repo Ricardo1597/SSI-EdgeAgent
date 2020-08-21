@@ -135,8 +135,8 @@ class SendPresentation extends Component {
         headers: { Authorization: `Bearer ${jwt}` },
       })
       .then((res) => {
-        console.log(res.data);
-        console.log(res.data.record.presentationRequest);
+        console.log('data: ', res.data);
+        console.log('data2: ', res.data.record.presentationRequest);
         this.setState({
           proofReq: res.data.record.presentationRequest,
         });
@@ -181,21 +181,25 @@ class SendPresentation extends Component {
     return this.props.recordId &&
       this.state.proofReq /*&&
       Object.keys(this.state.credentials).length*/ ? (
-      <Container spacing={2}>
-        <div className={classes.paper}>
+      <Container>
+        <div className={`${classes.paper} p-5`}>
           <Typography component="span" variant="h5">
             Send Presentation
           </Typography>
           <form noValidate className={classes.form} onSubmit={this.onSubmit}>
-            <Grid container align="left" className={classes.column} spacing={2}>
+            <Grid container align="left" spacing={2}>
               {Object.entries(this.state.proofReq['requested_attributes'] || {}).map(
                 ([key, value]) => {
+                  console.log(key, value);
                   return (
                     <Grid item key={key} xs={12}>
                       <FormControl variant="outlined" className={classes.formControl}>
                         <InputLabel>{value.name}</InputLabel>
                         <Select
-                          variant="outlined"
+                          displayEmpty={true}
+                          disabled={
+                            (Object.keys(this.state.credentials).requested_attributes || []).length
+                          }
                           required
                           label={value.name}
                           name={key}
@@ -203,18 +207,22 @@ class SendPresentation extends Component {
                           value={this.state.dinamicInputs.requested_attributes[key]}
                           onChange={this.handleChangeAttributes.bind(this, 'requested_attributes')}
                         >
-                          {this.state.credentials.requested_attributes[key].map((credential) => {
-                            return (
-                              <MenuItem
-                                key={credential.cred_info.referent}
-                                value={credential.cred_info.referent}
-                              >
-                                {`${credential.cred_info.attrs[value.name]} - ${
-                                  credential.cred_info.referent
-                                }`}
-                              </MenuItem>
-                            );
-                          })}
+                          {Object.keys(this.state.credentials).length
+                            ? (this.state.credentials.requested_attributes[key] || []).map(
+                                (credential) => {
+                                  return (
+                                    <MenuItem
+                                      key={credential.cred_info.referent}
+                                      value={credential.cred_info.referent}
+                                    >
+                                      {`${credential.cred_info.attrs[value.name]} - ${
+                                        credential.cred_info.referent
+                                      }`}
+                                    </MenuItem>
+                                  );
+                                }
+                              )
+                            : null}
                         </Select>
                       </FormControl>
                     </Grid>
@@ -228,7 +236,6 @@ class SendPresentation extends Component {
                       <FormControl variant="outlined" className={classes.formControl}>
                         <InputLabel>{value.name}</InputLabel>
                         <Select
-                          variant="outlined"
                           required
                           fullWidth
                           label={value.name}
@@ -237,18 +244,24 @@ class SendPresentation extends Component {
                           value={this.state.dinamicInputs.requested_predicates[key]}
                           onChange={this.handleChangeAttributes.bind(this, 'requested_predicates')}
                         >
-                          {this.state.credentials.requested_predicates[key].map((credential) => {
-                            return (
-                              <MenuItem
-                                key={credential.cred_info.referent}
-                                value={credential.cred_info.referent}
-                              >
-                                {`${credential.cred_info.attrs[value.name]} - ${
-                                  credential.cred_info.referent
-                                }`}
-                              </MenuItem>
-                            );
-                          })}
+                          {Object.keys(this.state.credentials).length ? (
+                            this.state.credentials.requested_predicates[key].map((credential) => {
+                              return (
+                                <MenuItem
+                                  key={credential.cred_info.referent}
+                                  value={credential.cred_info.referent}
+                                >
+                                  {`${credential.cred_info.attrs[value.name]} - ${
+                                    credential.cred_info.referent
+                                  }`}
+                                </MenuItem>
+                              );
+                            })
+                          ) : (
+                            <MenuItem>
+                              You don't have credentials that can be used in this attribute.
+                            </MenuItem>
+                          )}
                         </Select>
                       </FormControl>
                     </Grid>
@@ -262,7 +275,6 @@ class SendPresentation extends Component {
                       <FormControl variant="outlined" className={classes.formControl}>
                         <InputLabel>{value.name}</InputLabel>
                         <Select
-                          variant="outlined"
                           required
                           fullWidth
                           label={value.name}
@@ -274,20 +286,21 @@ class SendPresentation extends Component {
                             'self_attested_attributes'
                           )}
                         >
-                          {this.state.credentials.self_attested_attributes[key].map(
-                            (credential) => {
-                              return (
-                                <MenuItem
-                                  key={credential.cred_info.referent}
-                                  value={credential.cred_info.referent}
-                                >
-                                  {`${credential.cred_info.attrs[value.name]} - ${
-                                    credential.cred_info.referent
-                                  }`}
-                                </MenuItem>
-                              );
-                            }
-                          )}
+                          {Object.keys(this.state.credentials).length &&
+                            this.state.credentials.self_attested_attributes[key].map(
+                              (credential) => {
+                                return (
+                                  <MenuItem
+                                    key={credential.cred_info.referent}
+                                    value={credential.cred_info.referent}
+                                  >
+                                    {`${credential.cred_info.attrs[value.name]} - ${
+                                      credential.cred_info.referent
+                                    }`}
+                                  </MenuItem>
+                                );
+                              }
+                            )}
                         </Select>
                       </FormControl>
                     </Grid>
@@ -300,7 +313,7 @@ class SendPresentation extends Component {
               fullWidth
               variant="contained"
               color="primary"
-              className={`${classes.add} ${classes.button}`}
+              className={`${classes.button}`}
               onClick={this.onSubmit}
             >
               Send Presentation
@@ -317,25 +330,22 @@ const useStyles = (theme) => ({
   paper: {
     marginTop: 30,
     marginBottom: 30,
+    marginLeft: 'auto',
+    marginRight: 'auto',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    minWidth: 400,
+    maxWidth: 500,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-  add: {
-    height: '40px',
-    marginTop: 10,
+    marginTop: 30,
   },
   form: {
-    maxWidth: '500',
+    width: '100%',
     marginTop: theme.spacing(3),
-  },
-  column: {
-    width: '500px',
   },
   formControl: {
     width: '100%',

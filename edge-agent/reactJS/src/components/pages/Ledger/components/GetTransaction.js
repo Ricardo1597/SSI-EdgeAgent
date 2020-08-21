@@ -348,7 +348,7 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    maxWidth: 550,
+    maxWidth: 500,
     backgroundColor: 'white',
     borderRadius: 5,
   },

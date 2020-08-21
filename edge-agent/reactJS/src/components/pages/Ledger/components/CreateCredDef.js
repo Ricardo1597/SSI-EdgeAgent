@@ -127,7 +127,7 @@ class CreateCredDef extends Component {
     const { classes } = this.props;
 
     return (
-      <Container spacing={2} maxWidth="100%">
+      <Container maxWidth="100%">
         <Grid container align="center">
           <Grid item xs={12} lg={5} xl={4}>
             <div className={`${classes.paper} p-5`}>
@@ -135,10 +135,9 @@ class CreateCredDef extends Component {
                 Create credential definition
               </Typography>
               <form className={classes.form} onSubmit={this.onSubmit}>
-                <Grid container align="left" spacing={2}>
+                <Grid container align="left" spacing={3}>
                   <Grid item xs={12}>
                     <TextField
-                      variant="outlined"
                       required
                       fullWidth
                       id="schemaId"
@@ -149,10 +148,9 @@ class CreateCredDef extends Component {
                     />
                   </Grid>
                   <Grid item xs={12} md={8}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel>DID</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="DID"
                         name="did"
@@ -171,10 +169,9 @@ class CreateCredDef extends Component {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel>Support Revocation</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="Support Revocation"
                         value={this.state.supportRevocation}
@@ -229,7 +226,7 @@ const useStyles = (theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    maxWidth: 550,
+    maxWidth: 500,
     backgroundColor: 'white',
     borderRadius: 5,
   },
@@ -241,7 +238,7 @@ const useStyles = (theme) => ({
   },
   add: {
     height: '40px',
-    marginTop: 10,
+    marginTop: 30,
   },
   form: {
     width: '100%',

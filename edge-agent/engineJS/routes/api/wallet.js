@@ -43,6 +43,7 @@ router.get('/did/:id', passport.authenticate('jwt', { session: false }), async (
 
     res.status(200).send({ did: did });
   } catch (error) {
+    console.log(error);
     res.status(400).send({ error });
   }
 });
@@ -54,6 +55,7 @@ router.get('/credentials', passport.authenticate('jwt', { session: false }), asy
     console.log(credentials);
     res.status(200).send({ credentials });
   } catch (error) {
+    console.log(error);
     res.status(400).send({ error });
   }
 });
@@ -65,6 +67,7 @@ router.get('/credentials', passport.authenticate('jwt', { session: false }), asy
     let credentials = await indy.wallet.searchCredentials(query);
     res.status(200).send({ credentials });
   } catch (error) {
+    console.log(error);
     res.status(400).send({ error });
   }
 });
@@ -84,6 +87,7 @@ router.post(
       console.log('Aqui2: ', credentials);
       res.status(200).send({ credentials });
     } catch (error) {
+      console.log(error);
       res.status(400).send({ error });
     }
   }
