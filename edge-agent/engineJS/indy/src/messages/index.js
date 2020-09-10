@@ -20,13 +20,16 @@ exports.prepareMessage = async (payload, connection, invitation = null) => {
   return [message, endpoint];
 };
 
-exports.sendMessage = (payload, endpoint) => {
+exports.sendMessage = async (payload, endpoint) => {
   if (!endpoint) {
     throw new Error(`Missing endpoint. I don't know how and where to send the message.`);
   }
 
   console.log('Sending message...');
   console.log(payload);
+
+  // sleep for 1 second to ensure the order in the messages sent
+  await new Promise((r) => setTimeout(r, 1000));
 
   axios
     .post(`${endpoint}`, payload)

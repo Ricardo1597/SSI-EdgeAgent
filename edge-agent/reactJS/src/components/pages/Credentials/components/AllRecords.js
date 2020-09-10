@@ -19,8 +19,14 @@ import { connect } from 'react-redux';
 
 class AllRecords extends Component {
   state = {
-    exchanges: [],
-    exchange: null,
+    exchange:
+      this.props.exchanges && this.props.exchanges.length === 0
+        ? null
+        : this.props.recordId
+        ? this.props.exchanges.find((exchange) => {
+            return exchange.credentialExchangeId === this.props.recordId;
+          })
+        : this.props.exchanges[0],
   };
 
   showSnackbarVariant = (message, variant) => {
@@ -44,11 +50,11 @@ class AllRecords extends Component {
     </Fragment>
   );
 
-  changeCredExchange = (id) => {
-    const exchange = this.state.exchanges.find((exchange) => {
+  changeExchange = (id) => {
+    const exchange = this.props.exchanges.find((exchange) => {
       return exchange.credentialExchangeId === id;
     });
-    this.setState({ exchange: exchange });
+    if (exchange != null) this.setState({ exchange: exchange });
   };
 
   deleteRecord = (id) => {
@@ -58,8 +64,9 @@ class AllRecords extends Component {
       .delete(`${config.endpoint}/api/credential-exchanges/${id}`, {
         headers: { Authorization: `Bearer ${jwt}` },
       })
-      .then((res) => {
-        console.log(res.data.id);
+      .then(({ data: { id } }) => {
+        console.log(id);
+        this.props.removeExchange(id);
         this.showSnackbarVariant('Credential exchange record deleted.', 'success');
       })
       .catch((err) => {
@@ -75,38 +82,11 @@ class AllRecords extends Component {
   componentWillReceiveProps(props) {
     props.recordId
       ? this.setState({
-          exchange: this.state.exchanges.find((exchange) => {
+          exchange: props.exchanges.find((exchange) => {
             return exchange.credentialExchangeId === props.recordId;
           }),
         })
-      : this.setState({ exchange: this.state.exchanges[0] });
-  }
-
-  componentWillMount() {
-    const jwt = this.props.accessToken;
-
-    axios
-      .get(`${config.endpoint}/api/credential-exchanges`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      })
-      .then((res) => {
-        console.log(res.data);
-        this.setState({
-          exchanges: res.data.records || [],
-        });
-        this.props.recordId
-          ? this.changeCredExchange(this.props.recordId)
-          : res.data.records && res.data.records.length
-          ? this.setState({ exchange: res.data.records[0] })
-          : this.setState({ exchange: null });
-      })
-      .catch((err) => {
-        console.error(err);
-        this.showSnackbarVariant(
-          'Error getting credentials exchanges records. Please try again.',
-          'error'
-        );
-      });
+      : this.setState({ exchange: props.exchanges[0] });
   }
 
   render() {
@@ -121,8 +101,8 @@ class AllRecords extends Component {
               style={{ height: '85vh', overflowY: 'scroll' }}
               maxWidth="xs"
             >
-              {this.state.exchanges.length
-                ? this.state.exchanges
+              {this.props.exchanges.length
+                ? this.props.exchanges
                     .filter((exchange) => {
                       return exchange.state !== 'mudar para done';
                     })
@@ -131,7 +111,7 @@ class AllRecords extends Component {
                         item
                         xs={12}
                         key={exchange.credentialExchangeId}
-                        onClick={this.changeCredExchange.bind(this, exchange.credentialExchangeId)}
+                        onClick={this.changeExchange.bind(this, exchange.credentialExchangeId)}
                       >
                         <RecordSummary
                           record={{
@@ -171,6 +151,7 @@ class AllRecords extends Component {
                     id={this.state.exchange.credentialExchangeId}
                     state={this.state.exchange.state}
                     role={this.state.exchange.role}
+                    updateExchange={this.props.updateExchange}
                   />
                   <Button
                     size="small"

@@ -192,10 +192,10 @@ class CreateCredDef extends Component {
                   fullWidth
                   variant="contained"
                   color="primary"
-                  className={[classes.add, classes.button]}
+                  className={classes.button}
                   onClick={this.onSubmit}
                 >
-                  Create Cred Def
+                  Create
                 </Button>
               </form>
             </div>
@@ -236,7 +236,7 @@ const useStyles = (theme) => ({
     flexDirection: 'line',
     alignItems: 'center',
   },
-  add: {
+  button: {
     height: '40px',
     marginTop: 30,
   },

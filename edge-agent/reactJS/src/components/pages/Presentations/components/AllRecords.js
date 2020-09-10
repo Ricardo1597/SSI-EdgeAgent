@@ -19,8 +19,14 @@ import { connect } from 'react-redux';
 
 class AllRecords extends Component {
   state = {
-    exchanges: [],
-    exchange: null,
+    exchange:
+      this.props.exchanges && this.props.exchanges.length === 0
+        ? null
+        : this.props.recordId
+        ? this.props.exchanges.find((exchange) => {
+            return exchange.presentationExchangeId === this.props.recordId;
+          })
+        : this.props.exchanges[0],
   };
 
   showSnackbarVariant = (message, variant) => {
@@ -45,7 +51,7 @@ class AllRecords extends Component {
   );
 
   changeExchange = (id) => {
-    const exchange = this.state.exchanges.find((exchange) => {
+    const exchange = this.props.exchanges.find((exchange) => {
       return exchange.presentationExchangeId === id;
     });
     if (exchange != null) this.setState({ exchange: exchange });
@@ -58,8 +64,9 @@ class AllRecords extends Component {
       .delete(`${config.endpoint}/api/presentation-exchanges/${id}`, {
         headers: { Authorization: `Bearer ${jwt}` },
       })
-      .then((res) => {
-        console.log(res.data.id);
+      .then(({ data: { id } }) => {
+        console.log(id);
+        this.props.removeExchange(id);
         this.showSnackbarVariant(
           'Presentation exchange record deleted from your wallet.',
           'success'
@@ -78,38 +85,11 @@ class AllRecords extends Component {
   componentWillReceiveProps(props) {
     props.recordId
       ? this.setState({
-          exchange: this.state.exchanges.find((exchange) => {
+          exchange: props.exchanges.find((exchange) => {
             return exchange.presentationExchangeId === props.recordId;
           }),
         })
-      : this.setState({ exchange: this.state.exchanges[0] });
-  }
-
-  componentWillMount() {
-    const jwt = this.props.accessToken;
-
-    axios
-      .get(`${config.endpoint}/api/presentation-exchanges`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      })
-      .then((res) => {
-        console.log(res.data);
-        this.setState({
-          exchanges: res.data.records,
-        });
-        this.props.recordId
-          ? this.changeCredExchange(this.props.recordId)
-          : res.data.records && res.data.records.length
-          ? this.setState({ exchange: res.data.records[0] })
-          : this.setState({ exchange: null });
-      })
-      .catch((err) => {
-        console.error(err);
-        this.showSnackbarVariant(
-          'Error getting presentation exchanges records. Please refresh the page.',
-          'error'
-        );
-      });
+      : this.setState({ exchange: props.exchanges[0] });
   }
 
   render() {
@@ -124,8 +104,8 @@ class AllRecords extends Component {
               style={{ height: '85vh', overflowY: 'scroll' }}
               maxWidth="xs"
             >
-              {this.state.exchanges
-                ? this.state.exchanges.map((exchange) => (
+              {this.props.exchanges
+                ? this.props.exchanges.map((exchange) => (
                     <Grid
                       item
                       xs={12}
@@ -174,6 +154,7 @@ class AllRecords extends Component {
                     state={this.state.exchange.state}
                     role={this.state.exchange.role}
                     changeTabs={this.props.changeTabs}
+                    updateExchange={this.props.updateExchange}
                   />
                   <Button
                     size="small"

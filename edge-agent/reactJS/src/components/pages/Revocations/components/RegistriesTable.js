@@ -139,7 +139,7 @@ export default function RegistriesTable({
               </StyledTableRow>
             ))}
             {emptyRows > 0 && (
-              <TableRow style={{ height: 40 * emptyRows }}>
+              <TableRow style={{ height: rowHeight * emptyRows }}>
                 <StyledTableCell colSpan={Object.keys(columns).lenght + 1} />
               </TableRow>
             )}
@@ -147,7 +147,7 @@ export default function RegistriesTable({
           <TableFooter>
             <StyledTableRow>
               <TablePagination
-                rowsPerPageOptions={[10, 15, 20, { label: 'All', value: -1 }]}
+                rowsPerPageOptions={[5, 10, 15, 20, { label: 'All', value: -1 }]}
                 colSpan={Object.keys(columns).lenght + 1}
                 count={(rows || []).length}
                 rowsPerPage={rowsPerPage}

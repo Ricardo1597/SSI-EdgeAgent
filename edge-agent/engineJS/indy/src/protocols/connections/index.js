@@ -459,7 +459,6 @@ exports.removeConnection = async (connectionId) => {
 };
 
 exports.getInvitation = async (invitationId) => {
-  console.log('Aqui: ', invitationId);
   try {
     return await indy.wallet.getWalletRecord(
       indy.recordTypes.RecordType.Invitation,

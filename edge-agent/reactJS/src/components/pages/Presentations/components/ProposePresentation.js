@@ -1,7 +1,5 @@
 import React, { Component, Fragment } from 'react';
 
-import axios from 'axios';
-import config from '../../../../config';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -20,6 +18,9 @@ import JSONPretty from 'react-json-pretty';
 import AttributesTable from './AttributesTable';
 import AttributeDialog from './AttributeDialog';
 
+import axios from 'axios';
+import config from '../../../../config';
+
 import { connect } from 'react-redux';
 
 import './ProposePresentation.css';
@@ -37,7 +38,7 @@ const predicatesTableColumns = [
 
 class ProposePresentation extends Component {
   state = {
-    connectionId: '',
+    connectionId: this.props.connectionId || '',
     connections: (this.props.connections || [])
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
@@ -283,14 +284,10 @@ class ProposePresentation extends Component {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        if (res.status === 200) {
-          console.log(res.data);
-          this.showSnackbarVariant('Presentation proposal sent.', 'success');
-        } else {
-          const error = new Error(res.error);
-          throw error;
-        }
+      .then(({ data: { record } }) => {
+        console.log(record);
+        this.props.addExchange(record);
+        this.showSnackbarVariant('Presentation proposal sent.', 'success');
       })
       .catch((err) => {
         console.error(err);
@@ -399,7 +396,7 @@ class ProposePresentation extends Component {
                           fullWidth
                           variant="contained"
                           color="grey"
-                          className={classes.add}
+                          className={classes.button}
                           onClick={() => this.handleOpenAddAttrDialog(false)}
                         >
                           Add attribute
@@ -411,7 +408,7 @@ class ProposePresentation extends Component {
                           fullWidth
                           variant="contained"
                           color="grey"
-                          className={classes.add}
+                          className={classes.button}
                           onClick={() => this.handleOpenAddAttrDialog(true)}
                         >
                           Add predicate
@@ -496,8 +493,6 @@ const useStyles = (theme) => ({
   },
   paper: {
     margin: 30,
-    marginTop: 30,
-    marginBottom: 30,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -507,10 +502,7 @@ const useStyles = (theme) => ({
     borderRadius: 5,
   },
   json: {
-    marginLeft: 30,
-    marginRight: 30,
-    marginTop: 30,
-    marginBottom: 30,
+    margin: 30,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -520,7 +512,7 @@ const useStyles = (theme) => ({
     borderRadius: 5,
     height: 'calc(100% - 60px)',
   },
-  add: {
+  button: {
     width: '90%',
     marginTop: 0,
     marginBottom: 40,

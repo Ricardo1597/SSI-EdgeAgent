@@ -17,7 +17,6 @@ import { connect } from 'react-redux';
 
 class SendPresentation extends Component {
   state = {
-    proofReq: null,
     dinamicInputs: {
       requested_attributes: {},
       requested_predicates: {},
@@ -85,7 +84,7 @@ class SendPresentation extends Component {
 
     axios
       .post(
-        `${config.endpoint}/api/presentation-exchanges/${this.props.recordId}/create-presentation`,
+        `${config.endpoint}/api/presentation-exchanges/${this.props.record.presentationExchangeId}/create-presentation`,
         {
           comment: this.state.comment,
           requestedAttributes: this.state.dinamicInputs,
@@ -110,7 +109,7 @@ class SendPresentation extends Component {
         }
         axios
           .post(
-            `${config.endpoint}/api/presentation-exchanges/${this.props.recordId}/send-presentation`,
+            `${config.endpoint}/api/presentation-exchanges/${this.state.record.presentationExchangeId}/send-presentation`,
             {},
             {
               headers: { Authorization: `Bearer ${jwt}` },
@@ -131,55 +130,37 @@ class SendPresentation extends Component {
     const jwt = this.props.accessToken;
 
     axios
-      .get(`${config.endpoint}/api/presentation-exchanges/${this.props.recordId}`, {
-        headers: { Authorization: `Bearer ${jwt}` },
-      })
+      .post(
+        `${config.endpoint}/api/wallet/credentials-for-request`,
+        {
+          proofRequest: this.props.record.presentationRequest,
+        },
+        {
+          headers: { Authorization: `Bearer ${jwt}` },
+        }
+      )
       .then((res) => {
-        console.log('data: ', res.data);
-        console.log('data2: ', res.data.record.presentationRequest);
+        console.log(res.data);
         this.setState({
-          proofReq: res.data.record.presentationRequest,
+          credentials: res.data.credentials,
         });
-        axios
-          .post(
-            `${config.endpoint}/api/wallet/credentials-for-request`,
-            {
-              proofRequest: res.data.record.presentationRequest,
-            },
-            {
-              headers: { Authorization: `Bearer ${jwt}` },
-            }
-          )
-          .then((res) => {
-            console.log(res.data);
-            this.setState({
-              credentials: res.data.credentials,
-            });
-          })
-          .catch((err) => {
-            console.log('Error getting credentials for proof request.');
-            console.error(err);
-          });
       })
       .catch((err) => {
+        console.log('Error getting credentials for proof request.');
         console.error(err);
-        this.showSnackbarVariant(
-          'Error getting credentials for proof request. Please try again.',
-          'error'
-        );
       });
   }
 
   render() {
-    const { classes } = this.props;
+    const { classes, record } = this.props;
 
     console.log('Inputs: ', this.state.dinamicInputs);
-    console.log('1: ', this.props.recordId);
-    console.log('1: ', this.state.proofReq);
+    console.log('1: ', record);
+    console.log('1: ', record.presentationRequest);
     console.log('1: ', Object.keys(this.state.credentials).length);
 
-    return this.props.recordId &&
-      this.state.proofReq /*&&
+    return record.presentationExchangeId &&
+      record.presentationRequest /*&&
       Object.keys(this.state.credentials).length*/ ? (
       <Container>
         <div className={`${classes.paper} p-5`}>
@@ -188,7 +169,7 @@ class SendPresentation extends Component {
           </Typography>
           <form noValidate className={classes.form} onSubmit={this.onSubmit}>
             <Grid container align="left" spacing={2}>
-              {Object.entries(this.state.proofReq['requested_attributes'] || {}).map(
+              {Object.entries(record.presentationRequest['requested_attributes'] || {}).map(
                 ([key, value]) => {
                   console.log(key, value);
                   return (
@@ -229,7 +210,7 @@ class SendPresentation extends Component {
                   );
                 }
               )}
-              {Object.entries(this.state.proofReq['requested_predicates'] || {}).map(
+              {Object.entries(record.presentationRequest['requested_predicates'] || {}).map(
                 ([key, value]) => {
                   return (
                     <Grid item key={key} xs={12}>
@@ -268,7 +249,7 @@ class SendPresentation extends Component {
                   );
                 }
               )}
-              {Object.entries(this.state.proofReq['self_attested_attributes'] || {}).map(
+              {Object.entries(record.presentationRequest['self_attested_attributes'] || {}).map(
                 ([key, value]) => {
                   return (
                     <Grid item key={key} xs={12}>

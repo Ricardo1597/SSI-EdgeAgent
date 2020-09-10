@@ -136,10 +136,10 @@ class ReceiveInvitation extends Component {
     const { classes } = this.props;
 
     return (
-      <Container spacing={2}>
+      <Container>
         <Grid container align="center">
           <Grid item xs={12}>
-            <div className={`${classes.paper} p-4`}>
+            <div className={`${classes.paper} p-5`}>
               <Typography component="span" variant="h5">
                 Receive invitation
               </Typography>
@@ -147,7 +147,6 @@ class ReceiveInvitation extends Component {
                 <Grid container align="left" spacing={3}>
                   <Grid item xs={12}>
                     <TextField
-                      variant="outlined"
                       required
                       fullWidth
                       id="alias"
@@ -171,7 +170,6 @@ class ReceiveInvitation extends Component {
                       id="invitation"
                       value={this.state.invitation}
                       onChange={this.handleChange}
-                      className={classes.jsonBox}
                       error={this.state.formErrors.invitation}
                       helperText={this.state.formErrors.invitation}
                     />
@@ -182,7 +180,7 @@ class ReceiveInvitation extends Component {
                   fullWidth
                   variant="contained"
                   color="primary"
-                  className={classes.add}
+                  className={classes.button}
                   onClick={this.onSubmit}
                 >
                   Receive Invitation
@@ -199,28 +197,24 @@ class ReceiveInvitation extends Component {
 // Styles
 const useStyles = (theme) => ({
   paper: {
-    marginTop: 30,
-    marginBottom: 30,
+    margin: 30,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    minWidth: 400,
     maxWidth: 500,
     backgroundColor: 'white',
     borderRadius: 5,
   },
   form: {
-    maxWidth: '500px',
     marginTop: theme.spacing(3),
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
-  add: {
+  button: {
     height: '40px',
-    marginTop: 10,
-  },
-  jsonBox: {
-    marginTop: -10,
+    marginTop: 40,
   },
   formControl: {
     width: '100%',

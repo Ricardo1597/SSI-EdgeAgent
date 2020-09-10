@@ -39,9 +39,6 @@ exports.NewMessageType = messages.NewMessageType;
 
 // Prover starts exchange at presentation proposal
 exports.proverCreateAndSendProposal = async (connectionId, comment, presentationPreview) => {
-  // Get connection to send message (presentation proposal)
-  const connection = await indy.connections.getConnection(connectionId);
-
   const presentationProposalMessage = messages.createPresentationProposal(
     comment,
     presentationPreview
@@ -134,7 +131,6 @@ exports.verifierCreateAndSendRequest = async (
 
   presentationRequest.date = parseInt(new Date().getTime() / 1000);
 
-  console.log('Cheguei 3');
   // Get connection to send message (presentation request)
   const connection = await indy.connections.getConnection(presentationExchangeRecord.connectionId);
 
@@ -351,7 +347,6 @@ exports.proverCreatePresentation = async (presentationExchangeRecord, reqCredent
       reqCredentials['requested_predicates'][referent]['timestamp'] = referented['timestamp'];
     }
   }
-  console.log('Cheguei 4.12');
   console.log(presentationRequest);
   console.log(reqCredentials);
   console.log(schemas);
@@ -367,7 +362,6 @@ exports.proverCreatePresentation = async (presentationExchangeRecord, reqCredent
       credDefs,
       revocationStates
     );
-    console.log('Cheguei 4.13');
     console.log('Presentation: ', presentation);
 
     // Test if the presentation created is valid
@@ -546,7 +540,7 @@ exports.createPresentationExchangeRecord = (
     initiator: initiator,
     role: role,
     state: state,
-    presentationProposalDict: JSON.stringify((message && message.presentation_proposal) || null),
+    presentationProposalDict: JSON.stringify(message || ''),
     createdAt: currentDate,
     updatedAt: currentDate,
   };

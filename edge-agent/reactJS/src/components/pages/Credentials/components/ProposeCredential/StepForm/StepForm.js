@@ -22,7 +22,7 @@ const labels = ['General Information', 'My Attributes', 'Confirm Information'];
 class StepForm extends Component {
   state = {
     step: 0,
-    connectionId: '',
+    connectionId: this.props.connectionId || '',
     connections: this.props.connections
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
@@ -176,8 +176,9 @@ class StepForm extends Component {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        this.props.addExchange(record);
         this.showSnackbarVariant('Proposal sent.', 'success');
       })
       .catch((err) => {
@@ -242,8 +243,6 @@ class StepForm extends Component {
   };
 
   render() {
-    console.log(this.state);
-
     return (
       <Fragment>
         <Stepper

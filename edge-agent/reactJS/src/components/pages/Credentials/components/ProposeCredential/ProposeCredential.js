@@ -6,7 +6,7 @@ import Container from '@material-ui/core/Container';
 import Paper from '@material-ui/core/Paper';
 import StepForm from './StepForm/StepForm';
 
-const ProposeCredential = ({ classes }) => {
+const ProposeCredential = ({ classes, connectionId, addExchange }) => {
   return (
     <Container spacing={2}>
       <div className={classes.paper}>
@@ -14,7 +14,7 @@ const ProposeCredential = ({ classes }) => {
           <Typography component="span" variant="h5">
             Propose Credential
           </Typography>
-          <StepForm />
+          <StepForm connectionId={connectionId} addExchange={addExchange} />
         </Paper>
       </div>
     </Container>

@@ -9,9 +9,7 @@ router.post('/send-nym', passport.authenticate('jwt', { session: false }), async
   try {
     let { did, newDid, newVerKey, role, isMyDid } = req.body;
     if (role === 'COMMON_USER') role = null;
-    console.log('cheguei 1');
     const nym = await indy.ledger.sendNym(did, newDid, newVerKey, role);
-    console.log('cheguei 2');
     let didDocument = null;
     if (isMyDid) {
       try {
@@ -25,7 +23,6 @@ router.post('/send-nym', passport.authenticate('jwt', { session: false }), async
         }
       }
     }
-    console.log('cheguei 3');
 
     res.status(200).send({ did: nym, role, didDocument });
   } catch (error) {

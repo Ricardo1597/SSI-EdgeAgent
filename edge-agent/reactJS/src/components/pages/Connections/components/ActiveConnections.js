@@ -11,7 +11,6 @@ import Container from '@material-ui/core/Container';
 
 import ConnectionItem from './ConnectionItem';
 import ConnectionDetails from './ConnectionDetails';
-import ActiveConnectionActions from './ActiveConnectionActions';
 import { withSnackbar } from 'notistack';
 
 import { connect } from 'react-redux';
@@ -67,6 +66,22 @@ class ActiveConnections extends Component {
       : this.setState({ connection: this.props.connections[0] });
   }
 
+  proposeCredRedirect = (id) => {
+    this.props.history.push('/credentials?tab=2&connectionId=' + id);
+  };
+
+  offerCredRedirect = (id) => {
+    this.props.history.push('/credentials?tab=3&connectionId=' + id);
+  };
+
+  proposePresRedirect = (id) => {
+    this.props.history.push('/presentations?tab=1&connectionId=' + id);
+  };
+
+  requestPresRedirect = (id) => {
+    this.props.history.push('/presentations?tab=2&connectionId=' + id);
+  };
+
   deleteConnection = (id) => {
     const jwt = this.props.accessToken;
 
@@ -121,15 +136,33 @@ class ActiveConnections extends Component {
               <Card>
                 <ConnectionDetails connection={this.state.connection} />
                 <CardActions>
-                  <ActiveConnectionActions
-                    connection={this.state.connection}
-                    updateConnection={this.props.updateConnection}
-                  />
-                  <Button size="small" color="primary" onClick={() => {}}>
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => this.proposeCredRedirect(this.state.connection.connectionId)}
+                  >
                     Propose credential
                   </Button>
-                  <Button size="small" color="primary" onClick={() => {}}>
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => this.offerCredRedirect(this.state.connection.connectionId)}
+                  >
                     Offer credential
+                  </Button>
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => this.proposePresRedirect(this.state.connection.connectionId)}
+                  >
+                    Propose Presentation
+                  </Button>
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() => this.requestPresRedirect(this.state.connection.connectionId)}
+                  >
+                    Request Presentation
                   </Button>
                   <Button
                     size="small"

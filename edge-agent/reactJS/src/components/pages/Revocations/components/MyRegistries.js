@@ -18,12 +18,11 @@ import axios from 'axios';
 import config from '../../../../config';
 
 const columns = [
-  { id: 'name', label: 'Name', width: '26%' },
-  { id: 'issuanceType', label: 'Issuance', width: '24%' },
-  { id: 'maxCredNum', label: 'Capacity', width: '12%' },
-  { id: 'currCredNum', label: 'Slots Used', width: '12%' },
-  { id: 'state', label: 'State', width: '14%' },
-  { id: 'pendingRevocations', label: 'Pending', width: '12%' },
+  { id: 'name', label: 'Name', width: '29%' },
+  { id: 'issuanceType', label: 'Issuance', width: '23%' },
+  { id: 'occupation', label: 'Occupation', width: '15%' },
+  { id: 'state', label: 'State', width: '15%' },
+  { id: 'pendingRevocations', label: 'Pending', width: '15%' },
 ];
 
 class MyRegistries extends Component {
@@ -221,16 +220,16 @@ class MyRegistries extends Component {
                 .map((registry) => {
                   return {
                     name: registry.name,
-                    issuanceType: registry.issuanceType,
-                    maxCredNum: registry.maxCredNum,
-                    currCredNum: registry.currCredNum,
+                    issuanceType:
+                      registry.issuanceType === 'ISSUANCE_BY_DEFAULT' ? 'By Default' : 'On Demand',
+                    occupation: registry.currCredNum + ' / ' + registry.maxCredNum,
                     state: registry.state,
                     pendingRevocations: registry.pendingPub.length,
                     did: registry.issuerDid,
                     registry: registry,
                   };
                 })}
-              rowHeight={50}
+              rowHeight={45}
               onRevokeCredential={(revocRegId) => {
                 this.setState({ selectedRevocReg: revocRegId, revokeCredDialogOpen: true });
               }}
@@ -272,10 +271,13 @@ class MyRegistries extends Component {
 // Styles
 const useStyles = (theme) => ({
   paper: {
-    padding: 30,
+    paddingTop: 20,
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
+    maxWidth: 1400,
+    minWidth: 800,
+    overflow: 'auto',
   },
   button: {
     height: '40px',

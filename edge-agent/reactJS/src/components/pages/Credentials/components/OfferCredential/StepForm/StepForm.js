@@ -3,6 +3,7 @@ import React, { Component, Fragment } from 'react';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
+import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/core/styles';
 
 import FirstStep from './FirstStep';
@@ -21,7 +22,7 @@ const labels = ['General Information', 'Recipient Attributes', 'Confirm Informat
 class StepForm extends Component {
   state = {
     step: 0,
-    connectionId: '',
+    connectionId: this.props.connectionId || '',
     connections: this.props.connections
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
@@ -42,6 +43,27 @@ class StepForm extends Component {
       credAttributes: {},
     },
   };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
 
   componentWillMount() {
     const jwt = this.props.accessToken;
@@ -177,8 +199,9 @@ class StepForm extends Component {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        this.props.addExchange(record);
         this.showSnackbarVariant('Credential offer sent.', 'success');
       })
       .catch((err) => {

@@ -13,6 +13,7 @@ router.get('/', passport.authenticate('jwt', { session: false }), async (req, re
     }
     res.status(200).send({ records });
   } catch (error) {
+    console.log(error);
     res.status(400).send({ error });
   }
 });
@@ -23,6 +24,7 @@ router.get('/:id', passport.authenticate('jwt', { session: false }), async (req,
     let record = await indy.credentialExchange.getCredentialExchangeRecord(req.params.id);
     res.status(200).send({ record });
   } catch (error) {
+    console.log(error);
     res.status(400).send({ error });
   }
 });
@@ -33,6 +35,7 @@ router.delete('/:id', passport.authenticate('jwt', { session: false }), async (r
     await indy.credentialExchange.removeCredentialExchangeRecord(req.params.id);
     res.status(200).send({ id: req.params.id });
   } catch (error) {
+    console.log(error);
     res.status(400).send({ error });
   }
 });
@@ -120,7 +123,11 @@ router.post('/:id/send-offer', passport.authenticate('jwt', { session: false }),
     return res.status(200).send({ record, messageSent });
   } catch (error) {
     console.log('Error sending offer: ', error);
-    return res.status(400).send({ error });
+    if (error.indyCode === 212)
+      return res
+        .status(400)
+        .send({ error: 'You cannot offer a credential for this credential definition.' });
+    else return res.status(400).send({ error });
   }
 });
 

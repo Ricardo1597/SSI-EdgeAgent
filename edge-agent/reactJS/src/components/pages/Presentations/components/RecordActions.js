@@ -9,11 +9,20 @@ import config from '../../../../config';
 
 import { connect } from 'react-redux';
 
-function RecordActions(props) {
+function RecordActions({
+  enqueueSnackbar,
+  closeSnackbar,
+  accessToken,
+  changeTabs,
+  updateExchange,
+  state,
+  id,
+  role,
+}) {
   const classes = useStyles();
 
   const showSnackbarVariant = (message, variant) => {
-    props.enqueueSnackbar(message, {
+    enqueueSnackbar(message, {
       variant,
       autoHideDuration: 5000,
       action,
@@ -25,7 +34,7 @@ function RecordActions(props) {
       <Button
         style={{ color: 'white' }}
         onClick={() => {
-          props.closeSnackbar(key);
+          closeSnackbar(key);
         }}
       >
         <strong>Dismiss</strong>
@@ -33,28 +42,29 @@ function RecordActions(props) {
     </Fragment>
   );
 
-  const sendProposal = (recordId) => {
-    const jwt = props.accessToken;
-    axios
-      .post(
-        `${config.endpoint}/api/presentation-exchanges/${recordId}/send-proposal`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${jwt}` },
-        }
-      )
-      .then(({ data }) => {
-        console.log(data);
-        showSnackbarVariant('Presentation proposal sent.', 'success');
-      })
-      .catch((err) => {
-        console.error(err);
-        showSnackbarVariant('Error sending presentation proposal. Please try again.', 'error');
-      });
-  };
+  // const sendProposal = (recordId) => {
+  //   const jwt = accessToken;
+  //   axios
+  //     .post(
+  //       `${config.endpoint}/api/presentation-exchanges/${recordId}/send-proposal`,
+  //       {},
+  //       {
+  //         headers: { Authorization: `Bearer ${jwt}` },
+  //       }
+  //     )
+  //     .then(({ data: { record } }) => {
+  //       console.log(record);
+  //       updateExchange(record);
+  //       showSnackbarVariant('Presentation proposal sent.', 'success');
+  //     })
+  //     .catch((err) => {
+  //       console.error(err);
+  //       showSnackbarVariant('Error sending presentation proposal. Please try again.', 'error');
+  //     });
+  // };
 
   const rejectExchange = (recordId, messageType) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/presentation-exchanges/${recordId}/reject?messageType=${messageType}`,
@@ -63,8 +73,9 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then(({ data }) => {
-        console.log(data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        updateExchange(record);
         showSnackbarVariant(`Presentation ${messageType} rejected.`, 'success');
       })
       .catch((err) => {
@@ -73,25 +84,23 @@ function RecordActions(props) {
       });
   };
 
-  const { state, id, role } = props;
-
   switch (state) {
-    case 'init' && role == 'prover':
+    case 'init' && role === 'prover':
       return (
-        <Button size="small" color="primary" onClick={() => sendProposal(id)}>
+        <Button size="small" color="primary" onClick={(e) => changeTabs(e, 1, id)}>
           Send Proposal
         </Button>
       );
-    case 'init' && role == 'verifier':
+    case 'init' && role === 'verifier':
       return (
-        <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>
+        <Button size="small" color="primary" onClick={(e) => changeTabs(e, 2, id)}>
           Send Request
         </Button>
       );
     case 'proposal_received':
       return (
         <div>
-          <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 1, id)}>
+          <Button size="small" color="primary" onClick={(e) => changeTabs(e, 2, id)}>
             Accept Proposal
           </Button>
           <Button size="small" color="primary" onClick={() => rejectExchange(id, 'proposal')}>
@@ -102,7 +111,7 @@ function RecordActions(props) {
     case 'request_received':
       return (
         <div>
-          <Button size="small" color="primary" onClick={(e) => props.changeTabs(e, 3, id)}>
+          <Button size="small" color="primary" onClick={(e) => changeTabs(e, 3, id)}>
             Accept Request
           </Button>
           <Button size="small" color="primary" onClick={() => rejectExchange(id, 'request')}>

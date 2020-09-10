@@ -51,7 +51,7 @@ class CreateRegistryDialog extends Component {
       case 'name':
         if (value.length < 1) {
           errors['name'] = 'Cannot be empty';
-        } else if (!value.match(/^[a-zA-Z0-9:\ _\-]+$/)) {
+        } else if (!value.match(/^[a-zA-Z0-9:\ _\-.]+$/)) {
           errors['name'] = 'Invalid characters';
         }
         break;

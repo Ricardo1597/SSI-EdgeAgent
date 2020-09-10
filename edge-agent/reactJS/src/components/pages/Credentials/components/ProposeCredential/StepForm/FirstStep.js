@@ -31,7 +31,6 @@ const FirstStep = ({
     Object.values(formErrors).forEach((error) => {
       error.length && (valid = false);
     });
-    console.log('Cheguei: ', valid);
     return valid;
   };
 

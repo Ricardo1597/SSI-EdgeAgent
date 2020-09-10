@@ -71,6 +71,7 @@ class Connections extends Component {
             connectionId={search.connectionId}
             updateConnection={updateConnection}
             removeConnection={removeConnection}
+            history={this.props.history}
           />
         </TabPanel>
         <TabPanel value={tab} index={1}>

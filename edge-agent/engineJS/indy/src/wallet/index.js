@@ -183,7 +183,6 @@ exports.searchCredentialsForProofRequest = async (proofReq, query = null) => {
   let searchHandle = await sdk.proverSearchCredentialsForProofReq(walletHandle, proofReq, query);
 
   try {
-    console.log('cheguei1');
     console.log(proofReq);
 
     // requested attributes

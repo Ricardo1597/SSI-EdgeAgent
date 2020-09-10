@@ -98,7 +98,7 @@ function Notifications({ updateConnection, enqueueSnackbar, closeSnackbar }) {
         alignItems="center"
         onClick={() => notificationRedirect()}
       >
-        <Grid xs={2}>
+        <Grid item xs={2}>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <NotificationsIcon fontSize="large" />
           </div>

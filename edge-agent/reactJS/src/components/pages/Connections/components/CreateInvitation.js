@@ -154,18 +154,17 @@ class CreateInvitation extends Component {
     console.log(this.state);
 
     return (
-      <Container spacing={2}>
+      <Container className="px-0" maxWidth="100%">
         <Grid container align="center">
-          <Grid item xs={12} lg={5}>
-            <div className={`${classes.paper} p-4`}>
+          <div className={classes.outerDiv}>
+            <div className={`${classes.paper} p-5`}>
               <Typography component="span" variant="h5">
                 Create Invitation
               </Typography>
               <form className={classes.form} onSubmit={this.onSubmit}>
-                <Grid container align="left" spacing={2}>
+                <Grid container align="left" spacing={3}>
                   <Grid item xs={12} sm={9}>
                     <TextField
-                      variant="outlined"
                       required
                       fullWidth
                       id="alias"
@@ -177,11 +176,10 @@ class CreateInvitation extends Component {
                       helperText={this.state.formErrors.alias}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={3}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                  <Grid item xs={6} sm={3}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel>Multiuse</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="Multiuse"
                         name="isMultiuse"
@@ -194,11 +192,10 @@ class CreateInvitation extends Component {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={3}>
-                    <FormControl variant="outlined" className={classes.formControl}>
+                  <Grid item xs={6} sm={3}>
+                    <FormControl className={classes.formControl}>
                       <InputLabel>Public</InputLabel>
                       <Select
-                        variant="outlined"
                         required
                         label="Public"
                         value={this.state.isPublic}
@@ -214,14 +211,9 @@ class CreateInvitation extends Component {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} sm={9}>
-                    <FormControl
-                      variant="outlined"
-                      className={classes.formControl}
-                      error={this.state.formErrors.did}
-                    >
+                    <FormControl className={classes.formControl} error={this.state.formErrors.did}>
                       <InputLabel>DID</InputLabel>
                       <Select
-                        variant="outlined"
                         label="DID"
                         disabled={!this.state.isPublic}
                         name="did"
@@ -246,28 +238,33 @@ class CreateInvitation extends Component {
                   fullWidth
                   variant="contained"
                   color="primary"
-                  className={[classes.add, classes.button]}
+                  className={classes.button}
                   onClick={this.onSubmit}
                 >
                   Create Invitation
                 </Button>
               </form>
             </div>
-          </Grid>
-          {this.state.invitationJson ? (
-            <Grid item xs={12} lg={7}>
-              <Grid container align="left" className={classes.result}>
-                <Grid item xs={12}>
-                  <Typography variant="h6">Invitation Details</Typography>
-                  <JSONPretty data={this.state.invitationJson}></JSONPretty>
+            {this.state.invitationJson ? (
+              <div className={`${classes.result} p-5`}>
+                <Grid container align="center">
+                  <Grid item xs={12}>
+                    <Typography variant="h6">Invitation Details</Typography>
+                    <Fragment style={{ width: 'auto' }}>
+                      <JSONPretty
+                        data={this.state.invitationJson}
+                        style={{ display: 'inline-block', textAlign: 'left' }}
+                      ></JSONPretty>
+                    </Fragment>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="h6">Invitation QRCode</Typography>
+                    <QRCode value={this.state.invitationUrl} size={200} />
+                  </Grid>
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="h6">Invitation QRCode</Typography>
-                  <QRCode value={this.state.invitationUrl} size={200} />
-                </Grid>
-              </Grid>
-            </Grid>
-          ) : null}
+              </div>
+            ) : null}
+          </div>
         </Grid>
       </Container>
     );
@@ -276,12 +273,19 @@ class CreateInvitation extends Component {
 
 // Styles
 const useStyles = (theme) => ({
+  outerDiv: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
+  },
   paper: {
-    marginTop: 30,
-    marginBottom: 30,
+    margin: 30,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    minWidth: 400,
     maxWidth: 500,
     backgroundColor: 'white',
     borderRadius: 5,
@@ -289,19 +293,22 @@ const useStyles = (theme) => ({
   result: {
     margin: 30,
     display: 'flex',
-    flexDirection: 'line',
+    flexDirection: 'column',
     alignItems: 'center',
+    flex: 1,
+    maxWidth: 800,
+    backgroundColor: 'white',
+    borderRadius: 5,
   },
   form: {
-    maxWidth: '500px',
     marginTop: theme.spacing(3),
   },
   submit: {
     margin: theme.spacing(3, 0, 2),
   },
-  add: {
+  button: {
     height: '40px',
-    marginTop: 10,
+    marginTop: 40,
   },
   formControl: {
     width: '100%',

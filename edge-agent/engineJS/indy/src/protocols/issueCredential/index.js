@@ -167,6 +167,7 @@ exports.issuerCreateAndSendOffer = async (credentialExchangeRecord, comment) => 
 
   // Calculate "data"
   const credentialOffer = await indy.issuer.createCredentialOffer(credDefId);
+
   const data = Buffer.from(JSON.stringify(credentialOffer)).toString('base64');
 
   let credentialOfferMessage = messages.createCredentialOffer(
@@ -554,7 +555,7 @@ exports.createCredentialExchangeRecord = (
     initiator: initiator,
     role: role,
     state: state,
-    credentialProposalDict: JSON.stringify(message),
+    credentialProposalDict: JSON.stringify(message || ''),
     createdAt: currentDate,
     updatedAt: currentDate,
   };

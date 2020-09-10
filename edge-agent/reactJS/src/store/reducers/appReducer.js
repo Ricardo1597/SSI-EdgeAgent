@@ -23,7 +23,7 @@ export default (state = initState, action) => {
       let connections = state.connections.map((connection) => {
         if (connection.connectionId === action.connection.connectionId) {
           found = true;
-          return action.connection;
+          if (connection.state !== 'complete') return action.connection;
         }
         return connection;
       });

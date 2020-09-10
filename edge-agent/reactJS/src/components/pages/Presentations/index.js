@@ -1,10 +1,14 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect, Fragment } from 'react';
 
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import TabPanel, { a11yProps } from '../../TabPanel';
+import Button from '@material-ui/core/Button';
+
+import axios from 'axios';
+import config from '../../../config';
 
 import { connect } from 'react-redux';
 
@@ -13,8 +17,119 @@ import RequestPresentation from './components/RequestPresentation';
 import SendPresentation from './components/SendPresentation';
 import AllRecords from '../Presentations/components/AllRecords';
 import qs from 'qs';
+import { withSnackbar } from 'notistack';
+
+import io from 'socket.io-client';
+let socket;
+
+function PresentationNotifications({ updateExchange }) {
+  useEffect(() => {
+    socket = io(config.agentEndpoint);
+    return () => {
+      socket.emit('disconnect');
+      socket.off();
+    };
+  }, [config.agentEndpoint]);
+
+  useEffect(() => {
+    socket.on('notification', (notification) => {
+      if (notification.protocol === 'presentation') {
+        // If it is a presentation exchange notification, update record
+        updateExchange(notification.record);
+      }
+    });
+  }, []);
+
+  return null;
+}
 
 class Presentations extends Component {
+  state = {
+    exchanges: [],
+  };
+
+  showSnackbarVariant = (message, variant) => {
+    this.props.enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: this.action,
+    });
+  };
+
+  action = (key) => (
+    <Fragment>
+      <Button
+        style={{ color: 'white' }}
+        onClick={() => {
+          this.props.closeSnackbar(key);
+        }}
+      >
+        <strong>Dismiss</strong>
+      </Button>
+    </Fragment>
+  );
+
+  componentWillMount() {
+    const jwt = this.props.accessToken;
+
+    axios
+      .get(`${config.endpoint}/api/presentation-exchanges`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      })
+      .then(({ data: { records } }) => {
+        this.setState({
+          exchanges: records || [],
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        this.showSnackbarVariant(
+          'Error getting presentation exchanges records. Please refresh the page.',
+          'error'
+        );
+      });
+  }
+
+  addExchange = (record) => {
+    console.log('No add', record);
+    this.setState({
+      exchanges: [...this.state.exchanges, record].sort((a, b) =>
+        a.createdAt > b.createdAt ? -1 : 1
+      ),
+    });
+  };
+
+  updateExchange = (record) => {
+    console.log('No update', record);
+    let found = false;
+    let exchanges = this.state.exchanges.map((exchange) => {
+      if (exchange.presentationExchangeId === record.presentationExchangeId) {
+        found = true;
+        if (exchange.state !== 'done') return record;
+      }
+      return exchange;
+    });
+
+    // Add a new one if none was found
+    if (!found) {
+      exchanges = [...exchanges, record].sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1));
+    }
+    this.setState({ exchanges });
+  };
+
+  removeExchange = (recordId) => {
+    console.log('No remove', recordId);
+    this.setState({
+      exchanges: this.state.exchanges.filter(
+        (exchange) => exchange.presentationExchangeId === recordId
+      ),
+    });
+  };
+
+  getExchange = (recordId) => {
+    return this.state.exchanges.find((exchange) => exchange.presentationExchangeId === recordId);
+  };
+
   getDIDPermissions = () => {
     const dids = JSON.parse(localStorage.getItem('dids'));
     return dids && dids.filter((did) => did.role !== null && did.role !== 'no role').length > 0
@@ -34,13 +149,14 @@ class Presentations extends Component {
     const { classes } = this.props;
     const search = qs.parse(this.props.location.search, { ignoreQueryPrefix: true });
     const tab = parseInt(search.tab) || 0;
-    const recordId = search.recordId;
+    const recordId = search.recordId || null;
 
     return (
       <div
         className={`${classes.root} root-background`}
         style={{ minHeight: 'calc(100vh - 50px)' }}
       >
+        <PresentationNotifications updateExchange={this.updateExchange} />
         <AppBar position="static" color="default">
           <Tabs
             value={tab}
@@ -57,18 +173,27 @@ class Presentations extends Component {
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
-          <AllRecords changeTabs={this.handleChangeTabs} recordId={recordId} />
+          <AllRecords
+            changeTabs={this.handleChangeTabs}
+            exchanges={this.state.exchanges}
+            recordId={recordId}
+            removeExchange={this.removeExchange}
+            updateExchange={this.updateExchange}
+          />
         </TabPanel>
         <TabPanel value={tab} index={1}>
-          <ProposePresentation />
+          <ProposePresentation addExchange={this.addExchange} record={this.getExchange(recordId)} />
         </TabPanel>
         {this.getDIDPermissions() ? (
           <TabPanel value={tab} index={2}>
-            <RequestPresentation recordId={recordId} />
+            <RequestPresentation
+              record={this.getExchange(recordId)}
+              addExchange={this.addExchange}
+            />
           </TabPanel>
         ) : null}
         <TabPanel value={tab} index={3}>
-          <SendPresentation recordId={recordId} />
+          <SendPresentation record={this.getExchange(recordId)} />
         </TabPanel>
       </div>
     );
@@ -132,4 +257,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps)(withStyles(useStyles)(Presentations));
+export default connect(mapStateToProps)(withStyles(useStyles)(withSnackbar(Presentations)));

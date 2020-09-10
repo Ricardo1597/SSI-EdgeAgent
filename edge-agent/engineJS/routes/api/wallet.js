@@ -84,7 +84,6 @@ router.post(
       if (!proofRequest.nonce) proofRequest.nonce = indy.presentationExchange.randomNonce();
 
       let credentials = await indy.wallet.searchCredentialsForProofRequest(req.body.proofRequest);
-      console.log('Aqui2: ', credentials);
       res.status(200).send({ credentials });
     } catch (error) {
       console.log(error);

@@ -1,7 +1,5 @@
 import React, { Component, Fragment } from 'react';
 
-import axios from 'axios';
-import config from '../../../../config';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -18,6 +16,9 @@ import Paper from '@material-ui/core/Paper';
 
 import AttributesTable from './AttributesTable';
 import AttributeDialog from './AttributeDialog';
+
+import axios from 'axios';
+import config from '../../../../config';
 
 import { connect } from 'react-redux';
 
@@ -37,7 +38,7 @@ const predicatesTableColumns = [
 
 class RequestPresentation extends Component {
   state = {
-    connectionId: '',
+    connectionId: (this.props.record && this.props.record.connectionId) || '',
     connections: this.props.connections
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
@@ -63,6 +64,22 @@ class RequestPresentation extends Component {
     editAttrDialogOpen: false,
     isPredicate: false,
     attrToEdit: null,
+  };
+
+  componentWillReceiveProps = (props) => {
+    this.setState({
+      connectionId: (props.record && props.record.connectionId) || '',
+      connections: props.connections
+        .filter((connection) => connection.state === 'complete')
+        .map((connection) => {
+          return {
+            id: connection.connectionId,
+            alias: connection.theirAlias,
+          };
+        }),
+      // Use the proposal information to save time creating the request
+      // DON'T FORGET TO DO THIS
+    });
   };
 
   showSnackbarVariant = (message, variant) => {
@@ -344,8 +361,9 @@ class RequestPresentation extends Component {
               headers: { Authorization: `Bearer ${jwt}` },
             }
           )
-          .then(({ data }) => {
-            console.log(data);
+          .then(({ data: { record } }) => {
+            console.log(record);
+            this.props.addExchange(record);
             this.showSnackbarVariant('Presentation request sent.', 'success');
           })
           .catch((err) => {
@@ -380,11 +398,9 @@ class RequestPresentation extends Component {
   };
 
   render() {
-    const { classes } = this.props;
-    console.log('recordId: ', this.props.recordId, typeof this.props.recordId);
-    console.log(this.state.connections);
-    console.log(this.state.nonRevokedFrom);
-    console.log(this.state.nonRevokedTo);
+    const { classes, record } = this.props;
+    console.log('Record: ', record);
+    console.log('Record: ', this.state.connectionId);
 
     return (
       <Container className="px-0" maxWidth="100%">
@@ -396,33 +412,32 @@ class RequestPresentation extends Component {
               </Typography>
               <form noValidate className={classes.form} onSubmit={this.onSubmit}>
                 <Grid container align="left" spacing={2}>
-                  {!this.props.recordId ? (
-                    <Grid item xs={12} style={{ marginBottom: -4 }}>
-                      <FormControl
-                        error={this.state.formErrors.connectionId}
-                        style={{ width: '100%' }}
+                  <Grid item xs={12} style={{ marginBottom: -4 }}>
+                    <FormControl
+                      error={this.state.formErrors.connectionId}
+                      style={{ width: '100%' }}
+                    >
+                      <InputLabel>Connection *</InputLabel>
+                      <Select
+                        required
+                        disabled={record}
+                        label="Connection *"
+                        name="connectionId"
+                        id="connectionId"
+                        value={this.state.connectionId}
+                        onChange={this.handleChange}
                       >
-                        <InputLabel>Connection *</InputLabel>
-                        <Select
-                          required
-                          label="Connection *"
-                          name="connectionId"
-                          id="connectionId"
-                          value={this.state.connectionId}
-                          onChange={this.handleChange}
-                        >
-                          {this.state.connections.map(({ id, alias }) => {
-                            return (
-                              <MenuItem key={id} value={id}>
-                                {alias || id}
-                              </MenuItem>
-                            );
-                          })}
-                        </Select>
-                        <FormHelperText>{this.state.formErrors.connectionId}</FormHelperText>
-                      </FormControl>
-                    </Grid>
-                  ) : null}
+                        {this.state.connections.map(({ id, alias }) => {
+                          return (
+                            <MenuItem key={id} value={id}>
+                              {alias || id}
+                            </MenuItem>
+                          );
+                        })}
+                      </Select>
+                      <FormHelperText>{this.state.formErrors.connectionId}</FormHelperText>
+                    </FormControl>
+                  </Grid>
                   <Grid item xs={12}>
                     <TextField
                       fullWidth

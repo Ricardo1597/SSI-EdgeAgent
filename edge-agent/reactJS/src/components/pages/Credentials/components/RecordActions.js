@@ -9,11 +9,19 @@ import config from '../../../../config';
 
 import { connect } from 'react-redux';
 
-function RecordActions(props) {
+function RecordActions({
+  enqueueSnackbar,
+  closeSnackbar,
+  accessToken,
+  updateExchange,
+  state,
+  id,
+  role,
+}) {
   const classes = useStyles();
 
   const showSnackbarVariant = (message, variant) => {
-    props.enqueueSnackbar(message, {
+    enqueueSnackbar(message, {
       variant,
       autoHideDuration: 5000,
       action,
@@ -25,7 +33,7 @@ function RecordActions(props) {
       <Button
         style={{ color: 'white' }}
         onClick={() => {
-          props.closeSnackbar(key);
+          closeSnackbar(key);
         }}
       >
         <strong>Dismiss</strong>
@@ -34,7 +42,7 @@ function RecordActions(props) {
   );
 
   const sendProposal = (recordId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/credential-exchanges/${recordId}/send-proposal`,
@@ -43,8 +51,9 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then(({ data }) => {
-        console.log(data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        updateExchange(record);
         showSnackbarVariant('Credential proposal sent.', 'success');
       })
       .catch((err) => {
@@ -54,7 +63,7 @@ function RecordActions(props) {
   };
 
   const acceptProposal = (recordId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/credential-exchanges/${recordId}/send-offer`,
@@ -63,8 +72,9 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then(({ data }) => {
-        console.log(data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        updateExchange(record);
         showSnackbarVariant('Credential offer sent.', 'success');
       })
       .catch((err) => {
@@ -74,7 +84,7 @@ function RecordActions(props) {
   };
 
   const acceptOffer = (recordId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/credential-exchanges/${recordId}/send-request`,
@@ -83,8 +93,9 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then(({ data }) => {
-        console.log(data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        updateExchange(record);
         showSnackbarVariant('Credential request sent.', 'success');
       })
       .catch((err) => {
@@ -94,7 +105,7 @@ function RecordActions(props) {
   };
 
   const acceptRequest = (recordId) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/credential-exchanges/${recordId}/send-credential`,
@@ -103,8 +114,9 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then(({ data }) => {
-        console.log(data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        updateExchange(record);
         showSnackbarVariant('Credential sent.', 'success');
       })
       .catch((err) => {
@@ -114,7 +126,7 @@ function RecordActions(props) {
   };
 
   const rejectExchange = (recordId, messageType) => {
-    const jwt = props.accessToken;
+    const jwt = accessToken;
     axios
       .post(
         `${config.endpoint}/api/credential-exchanges/${recordId}/reject?messageType=${messageType}`,
@@ -123,8 +135,9 @@ function RecordActions(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then(({ data }) => {
-        console.log(data);
+      .then(({ data: { record } }) => {
+        console.log(record);
+        updateExchange(record);
         showSnackbarVariant(`Credential ${messageType} rejected!`, 'success');
       })
       .catch((err) => {
@@ -132,8 +145,6 @@ function RecordActions(props) {
         showSnackbarVariant(`Error rejecting ${messageType}. Please try again.`, 'error');
       });
   };
-
-  const { state, id, role } = props;
 
   switch (state) {
     case 'init' && role == 'holder':
