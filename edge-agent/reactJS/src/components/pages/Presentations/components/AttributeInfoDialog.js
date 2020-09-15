@@ -26,6 +26,11 @@ export default function AttributeInfoDialog({
   isPredicate,
   isRequest,
 }) {
+  const secondsToLocalDateTime = (seconds) => {
+    const date = new Date(seconds * 1000);
+    return date.toLocaleDateString() + ' @ ' + date.toLocaleTimeString();
+  };
+
   console.log('attribute: ', attribute);
   return (
     <Fragment>
@@ -76,13 +81,13 @@ export default function AttributeInfoDialog({
                     <ListItem style={{ width: '50%', display: 'inline-block' }}>
                       <ListItemText
                         primary="Non Revoked (From)"
-                        secondary={attribute.non_revoked.from}
+                        secondary={secondsToLocalDateTime(attribute.non_revoked.from)}
                       />
                     </ListItem>
                     <ListItem style={{ width: '50%', display: 'inline-block' }}>
                       <ListItemText
                         primary="Non Revoked (To)"
-                        secondary={attribute.non_revoked.to}
+                        secondary={secondsToLocalDateTime(attribute.non_revoked.to)}
                       />
                     </ListItem>
                     <Divider />

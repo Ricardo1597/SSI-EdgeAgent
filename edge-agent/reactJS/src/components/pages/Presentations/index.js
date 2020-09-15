@@ -149,6 +149,7 @@ class Presentations extends Component {
     const { classes } = this.props;
     const search = qs.parse(this.props.location.search, { ignoreQueryPrefix: true });
     const tab = parseInt(search.tab) || 0;
+    const connectionId = search.connectionId || null;
     const recordId = search.recordId || null;
 
     return (
@@ -182,11 +183,16 @@ class Presentations extends Component {
           />
         </TabPanel>
         <TabPanel value={tab} index={1}>
-          <ProposePresentation addExchange={this.addExchange} record={this.getExchange(recordId)} />
+          <ProposePresentation
+            connectionId={connectionId}
+            record={this.getExchange(recordId)}
+            addExchange={this.addExchange}
+          />
         </TabPanel>
         {this.getDIDPermissions() ? (
           <TabPanel value={tab} index={2}>
             <RequestPresentation
+              connectionId={connectionId}
               record={this.getExchange(recordId)}
               addExchange={this.addExchange}
             />

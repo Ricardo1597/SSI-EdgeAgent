@@ -36,9 +36,47 @@ const predicatesTableColumns = [
   { id: 'non_revoked_to', label: 'Non revoked (from)', width: '24%' },
 ];
 
+const proposalToRequest = (record) => {
+  const proposal =
+    record && record.presentationProposalDict
+      ? JSON.parse(record.presentationProposalDict).presentation_proposal
+      : null;
+
+  // Convert proposal format to request format
+  const attributes = proposal
+    ? Object.values(proposal.attributes).map((attr) => {
+        const dateNow = Math.floor(new Date().getTime() / 1000);
+        return {
+          name: attr.name,
+          non_revoked: {
+            from: dateNow,
+            to: dateNow,
+          },
+          restrictions: [],
+        };
+      })
+    : [];
+  const predicates = proposal
+    ? Object.values(proposal.predicates).map((pred) => {
+        const dateNow = new Date().getTime() / 1000;
+        return {
+          name: pred.name,
+          non_revoked: {
+            from: dateNow,
+            to: dateNow,
+          },
+          restrictions: [],
+        };
+      })
+    : [];
+
+  return { attributes, predicates };
+};
+
 class RequestPresentation extends Component {
   state = {
-    connectionId: (this.props.record && this.props.record.connectionId) || '',
+    connectionId:
+      this.props.connectionId || (this.props.record && this.props.record.connectionId) || '',
     connections: this.props.connections
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
@@ -51,7 +89,7 @@ class RequestPresentation extends Component {
     name: '',
     nonRevokedFrom: new Date().toISOString().split('.')[0],
     nonRevokedTo: new Date().toISOString().split('.')[0],
-    presentationRequest: JSON.stringify({ attributes: [], predicates: [] }, undefined, 2),
+    presentationRequest: JSON.stringify(proposalToRequest(this.props.record), undefined, 2),
     formErrors: {
       connectionId: '',
       comment: '',
@@ -68,7 +106,7 @@ class RequestPresentation extends Component {
 
   componentWillReceiveProps = (props) => {
     this.setState({
-      connectionId: (props.record && props.record.connectionId) || '',
+      connectionId: props.connectionId || (props.record && props.record.connectionId) || '',
       connections: props.connections
         .filter((connection) => connection.state === 'complete')
         .map((connection) => {
@@ -77,8 +115,7 @@ class RequestPresentation extends Component {
             alias: connection.theirAlias,
           };
         }),
-      // Use the proposal information to save time creating the request
-      // DON'T FORGET TO DO THIS
+      presentationRequest: JSON.stringify(proposalToRequest(props.record), undefined, 2),
     });
   };
 
@@ -160,9 +197,6 @@ class RequestPresentation extends Component {
       default:
         this.setState({ [name]: value });
     }
-    this.setState({
-      [name]: value,
-    });
 
     // Handle errors
     let errors = this.state.formErrors;

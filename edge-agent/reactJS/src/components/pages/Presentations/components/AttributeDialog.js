@@ -28,8 +28,8 @@ export default function AddAttributeDialog({
   const [attrName, setAttrName] = useState('');
   const [attrPredicate, setAttrPredicate] = useState('<');
   const [attrValue, setAttrValue] = useState('');
-  const [attrCredDefId, setAttrCredDefId] = useState('');
-  const [nonRevokedFrom, setNonRevokedFrom] = useState('');
+  const [attrCredDefId, setAttrCredDefId] = useState(new Date().toISOString().split('.')[0]);
+  const [nonRevokedFrom, setNonRevokedFrom] = useState(new Date().toISOString().split('.')[0]);
   const [nonRevokedTo, setNonRevokedTo] = useState('');
   const [checkedSchemaIssuer, setCheckedSchemaIssuer] = useState(false);
   const [checkedSchemaId, setCheckedSchemaId] = useState(false);
@@ -59,8 +59,8 @@ export default function AddAttributeDialog({
       setAttrValue(attribute.value || attribute.threshold);
       setAttrCredDefId(attribute.cred_def_id);
       if (attribute.non_revoked) {
-        setNonRevokedFrom(attribute.non_revoked.from);
-        setNonRevokedTo(attribute.non_revoked.to);
+        setNonRevokedFrom(new Date(attribute.non_revoked.from * 1000).toISOString().split('.')[0]);
+        setNonRevokedTo(new Date(attribute.non_revoked.to * 1000).toISOString().split('.')[0]);
       }
       if (attribute.restrictions && attribute.restrictions[0]) {
         if (attribute.restrictions[0].schema_issuer_did) {
@@ -151,11 +151,17 @@ export default function AddAttributeDialog({
           errors['attrCredDefId'] = 'Invalid characters';
         }
         break;
-      case 'nonRevokedFrom':
-        setNonRevokedFrom(value);
+      case 'nonRevokedFromDate':
+        setNonRevokedFrom(value + 'T' + nonRevokedFrom.split('T')[1]);
         break;
-      case 'nonRevokedTo':
-        setNonRevokedTo(value);
+      case 'nonRevokedFromTime':
+        setNonRevokedTo(nonRevokedFrom.split('T')[0] + 'T' + value);
+        break;
+      case 'nonRevokedToDate':
+        setNonRevokedFrom(value + 'T' + nonRevokedTo.split('T')[1]);
+        break;
+      case 'nonRevokedToTime':
+        setNonRevokedTo(nonRevokedTo.split('T')[0] + 'T' + value);
         break;
       case 'schemaIssuerDid':
         setSchemaIssuerDid(value);
@@ -228,6 +234,8 @@ export default function AddAttributeDialog({
   };
 
   console.log('attribute: ', attribute);
+  console.log('nonRevokedFrom: ', nonRevokedFrom);
+  console.log('nonRevokedTo: ', nonRevokedTo);
 
   return (
     <div>
@@ -303,42 +311,81 @@ export default function AddAttributeDialog({
               ) : null}
               {isRequest ? (
                 <Fragment>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      type="datetime-local"
-                      label="Non Revoked (From)"
-                      id="nonRevokedFrom"
-                      name="nonRevokedFrom"
-                      defaultValue="2017-05-24T10:30:00"
-                      value={nonRevokedFrom}
-                      onChange={handleChange}
-                      error={formErrors.nonRevokedFrom !== ''}
-                      helperText={formErrors.nonRevokedFrom}
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      inputProps={{ step: '1' }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      type="datetime-local"
-                      label="Non Revoked (To)"
-                      id="nonRevokedTo"
-                      name="nonRevokedTo"
-                      defaultValue="2017-05-24T10:30:00"
-                      value={nonRevokedTo}
-                      onChange={handleChange}
-                      error={formErrors.nonRevokedTo !== ''}
-                      helperText={formErrors.nonRevokedTo}
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      inputProps={{ step: '1' }}
-                    />
+                  <Grid item xs={12}>
+                    <Grid container spacing={4}>
+                      <Grid item xs={6}>
+                        <Grid container direction="column">
+                          <Grid item xs={12}>
+                            <TextField
+                              fullWidth
+                              type="date"
+                              label="Non Revoked (From)"
+                              id="nonRevokedFromDate"
+                              name="nonRevokedFromDate"
+                              value={(nonRevokedFrom + '').split('T')[0]}
+                              onChange={handleChange}
+                              error={formErrors.nonRevokedFrom !== ''}
+                              helperText={formErrors.nonRevokedFrom}
+                              InputLabelProps={{
+                                shrink: true,
+                                focused: false,
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} style={{ marginTop: -2 }}>
+                            <TextField
+                              fullWidth
+                              type="time"
+                              id="nonRevokedFromTime"
+                              name="nonRevokedFromTime"
+                              value={nonRevokedFrom.split('T')[1]}
+                              onChange={handleChange}
+                              error={formErrors.nonRevokedFrom !== ''}
+                              helperText={formErrors.nonRevokedFrom}
+                              InputLabelProps={{
+                                shrink: true,
+                              }}
+                            />
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Grid container direction="column">
+                          <Grid item xs={12}>
+                            <TextField
+                              fullWidth
+                              type="date"
+                              label="Non Revoked (To)"
+                              id="nonRevokedToDate"
+                              name="nonRevokedToDate"
+                              value={nonRevokedTo.split('T')[0]}
+                              onChange={handleChange}
+                              error={formErrors.nonRevokedTo !== ''}
+                              helperText={formErrors.nonRevokedTo}
+                              InputLabelProps={{
+                                shrink: true,
+                                focused: false,
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} style={{ marginTop: -2 }}>
+                            <TextField
+                              fullWidth
+                              type="time"
+                              id="nonRevokedToTime"
+                              name="nonRevokedToTime"
+                              value={nonRevokedTo.split('T')[1]}
+                              onChange={handleChange}
+                              error={formErrors.nonRevokedTo !== ''}
+                              helperText={formErrors.nonRevokedTo}
+                              InputLabelProps={{
+                                shrink: true,
+                              }}
+                            />
+                          </Grid>
+                        </Grid>
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Fragment>
               ) : null}
