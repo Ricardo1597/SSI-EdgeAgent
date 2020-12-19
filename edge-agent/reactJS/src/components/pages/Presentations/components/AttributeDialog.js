@@ -211,7 +211,7 @@ export default function AddAttributeDialog({
       attr['name'] = attrName;
       if (isPredicate) {
         attr['p_type'] = attrPredicate;
-        attr['p_value'] = attrValue;
+        attr['p_value'] = parseInt(attrValue);
       }
       attr['restrictions'] = [];
       let restrictions = {};

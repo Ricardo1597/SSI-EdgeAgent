@@ -196,4 +196,39 @@ router.get(
   }
 );
 
+// Get credential definition from the ledger
+router.get(
+  '/revoc-reg-def/:id',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    try {
+      let revocRefDef = await indy.ledger.getRevocRegDef(null, req.params.id);
+      res.status(200).send({ revocRefDef: revocRefDef });
+    } catch (error) {
+      console.log(error);
+      res.status(400).send({ error });
+    }
+  }
+);
+
+// Get credential definition from the ledger
+router.get(
+  '/revoc-reg-delta/:id',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    try {
+      let revocRefDelta = await indy.ledger.getRevocRegDelta(
+        null,
+        req.params.id,
+        req.query.from,
+        req.query.to
+      );
+      res.status(200).send({ revocRefDelta: revocRefDelta });
+    } catch (error) {
+      console.log(error);
+      res.status(400).send({ error });
+    }
+  }
+);
+
 module.exports = router;

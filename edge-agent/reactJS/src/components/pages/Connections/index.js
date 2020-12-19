@@ -65,7 +65,7 @@ class Connections extends Component {
         </AppBar>
         <TabPanel value={tab} index={0}>
           <ActiveConnections
-            connections={connections.filter((connection) => {
+            connections={(connections || []).filter((connection) => {
               return connection.state === 'complete';
             })}
             connectionId={search.connectionId}
@@ -76,7 +76,7 @@ class Connections extends Component {
         </TabPanel>
         <TabPanel value={tab} index={1}>
           <PendingConnections
-            connections={connections.filter((connection) => {
+            connections={(connections || []).filter((connection) => {
               return connection.state !== 'complete';
             })}
             connectionId={search.connectionId}

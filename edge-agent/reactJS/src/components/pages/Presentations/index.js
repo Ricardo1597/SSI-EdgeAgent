@@ -167,9 +167,7 @@ class Presentations extends Component {
           >
             <Tab className={classes.button} label="Presentation Exchanges" {...a11yProps(0)} />
             <Tab className={classes.button} label="Propose Presentation" {...a11yProps(1)} />
-            {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Request Presentation" {...a11yProps(2)} />
-            ) : null}
+            <Tab className={classes.button} label="Request Presentation" {...a11yProps(2)} />
             <Tab {...a11yProps(3)} style={{ visibility: 'hidden' }} />
           </Tabs>
         </AppBar>
@@ -189,15 +187,13 @@ class Presentations extends Component {
             addExchange={this.addExchange}
           />
         </TabPanel>
-        {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={2}>
-            <RequestPresentation
-              connectionId={connectionId}
-              record={this.getExchange(recordId)}
-              addExchange={this.addExchange}
-            />
-          </TabPanel>
-        ) : null}
+        <TabPanel value={tab} index={2}>
+          <RequestPresentation
+            connectionId={connectionId}
+            record={this.getExchange(recordId)}
+            addExchange={this.addExchange}
+          />
+        </TabPanel>
         <TabPanel value={tab} index={3}>
           <SendPresentation record={this.getExchange(recordId)} />
         </TabPanel>

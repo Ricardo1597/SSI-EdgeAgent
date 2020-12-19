@@ -362,7 +362,7 @@ exports.proverCreatePresentation = async (presentationExchangeRecord, reqCredent
       credDefs,
       revocationStates
     );
-    console.log('Presentation: ', presentation);
+    console.log('Presentation: ', JSON.stringify(presentation));
 
     // Test if the presentation created is valid
     const valid = await this.verifyPresentation(

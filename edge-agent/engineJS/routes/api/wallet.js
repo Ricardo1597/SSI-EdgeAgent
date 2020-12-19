@@ -48,6 +48,18 @@ router.get('/did/:id', passport.authenticate('jwt', { session: false }), async (
   }
 });
 
+// Get did document
+router.get('/did-doc/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    let didDoc = await indy.did.resolveDid(req.params.id);
+
+    res.status(200).send({ didDoc });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ error });
+  }
+});
+
 // Get all credentials
 router.get('/credentials', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {

@@ -77,6 +77,7 @@ class Credentials extends Component {
         headers: { Authorization: `Bearer ${jwt}` },
       })
       .then(({ data: { records } }) => {
+        console.log('Credentials: ', records);
         this.setState({
           exchanges: records || [],
         });

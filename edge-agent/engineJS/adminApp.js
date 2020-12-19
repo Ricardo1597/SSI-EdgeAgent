@@ -25,14 +25,14 @@ const presExchangesRoute = require('./routes/api/presentation_exchanges');
 const app = express();
 
 // Connect to MongoDB
-mongoose
-  .connect('mongodb://127.0.0.1:27017/ssi-agent', {
-    useCreateIndex: true,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('Mongo ready ' + mongoose.connection.readyState))
-  .catch(() => console.log('Connection Error!'));
+// mongoose
+//   .connect('mongodb://127.0.0.1:27017/ssi-agent', {
+//     useCreateIndex: true,
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//   })
+//   .then(() => console.log('Mongo ready ' + mongoose.connection.readyState))
+//   .catch(() => console.log('Connection Error!'));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

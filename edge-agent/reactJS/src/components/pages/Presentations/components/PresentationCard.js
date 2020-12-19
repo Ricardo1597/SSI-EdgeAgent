@@ -89,7 +89,7 @@ function PresentationCard(props) {
           return (
             <Typography key={key}>
               {props.request.requested_attributes[key].name}: {value.raw} <br />
-              <sup>{`* Validating between: ${startDate.toUTCString()} and ${endDate.toUTCString()}`}</sup>
+              {/*<sup>{`* Validating between: ${startDate.toUTCString()} and ${endDate.toUTCString()}`}</sup>*/}
             </Typography>
           );
         })}
@@ -107,7 +107,7 @@ function PresentationCard(props) {
           return (
             <Typography key={attr.name}>
               {`${attr.name}: ${attr.p_type} ${attr.p_value}`} <br />
-              <sup>{`* Validating between: ${startDate.toUTCString()} and ${endDate.toUTCString()}`}</sup>
+              {/*<sup>{`* Validating between: ${startDate.toUTCString()} and ${endDate.toUTCString()}`}</sup>*/}
             </Typography>
           );
         })}

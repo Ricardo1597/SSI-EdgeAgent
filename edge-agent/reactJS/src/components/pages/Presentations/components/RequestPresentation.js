@@ -359,6 +359,7 @@ class RequestPresentation extends Component {
       const attr = attrsAndPreds.attributes[i];
       request.requested_attributes[`attribute${i + 1}`] = {
         ...attr,
+        p_value: attr.p_value,
         non_revoked: {
           from: attr.non_revoked.from,
           to: attr.non_revoked.to,

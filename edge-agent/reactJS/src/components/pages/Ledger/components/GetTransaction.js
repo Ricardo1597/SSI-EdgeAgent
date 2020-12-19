@@ -24,6 +24,8 @@ class GetTransaction extends Component {
     did: '',
     didNym: null,
     didDocument: null,
+    didForDocument: '',
+    didDoc: null,
     formErrors: {
       schemaId: '',
       credDefId: '',
@@ -87,6 +89,15 @@ class GetTransaction extends Component {
           errors['did'] = 'Invalid characters';
         } else if (this.state.did.split(':').length !== 3) {
           errors['did'] = 'Invalid DID';
+        }
+        break;
+      case 'didForDocument': // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
+        if (this.state.didForDocument.length === 0) {
+          errors['didForDocument'] = 'Cannot be empty';
+        } else if (!this.state.didForDocument.match(/^[a-zA-Z0-9:]+$/)) {
+          errors['didForDocument'] = 'Invalid characters';
+        } else if (this.state.didForDocument.split(':').length !== 3) {
+          errors['didForDocument'] = 'Invalid DID';
         }
         break;
       default:
@@ -186,6 +197,29 @@ class GetTransaction extends Component {
       .catch((err) => {
         console.error(err);
         this.showSnackbarVariant('Error getting nym from the ledger. Please try again.', 'error');
+      });
+  };
+
+  onSubmitGetDocument = (e) => {
+    e.preventDefault();
+
+    if (this.state.formErrors.did !== '') {
+      return;
+    }
+
+    const jwt = this.props.accessToken;
+
+    axios
+      .get(`${config.endpoint}/api/wallet/did-doc/${this.state.didForDocument}`, {
+        headers: { Authorization: `Bearer ${jwt}` },
+      })
+      .then((res) => {
+        console.log(res.data);
+        this.setState({ didDoc: res.data.didDoc });
+      })
+      .catch((err) => {
+        console.error(err);
+        this.showSnackbarVariant('Error getting DID document. Please try again.', 'error');
       });
   };
 
@@ -315,6 +349,43 @@ class GetTransaction extends Component {
                 </Grid>
               </form>
             </div>
+            <div className={`${classes.paper} pt-3 pb-4 px-4`}>
+              <form className={classes.form} onSubmit={this.onSubmitGetDocument}>
+                <Grid container align="left" spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      variant="outlined"
+                      required
+                      fullWidth
+                      id="didForDocument"
+                      label="Did"
+                      name="didForDocument"
+                      placeholder="did:mybc:V4SGRU86Z58d6TV7PBUe6f"
+                      value={this.state.didForDocument}
+                      onChange={this.handleChange}
+                      InputProps={{
+                        classes: {
+                          input: classes.inputFontSize,
+                        },
+                      }}
+                      error={this.state.formErrors.didForDocument !== ''}
+                      helperText={this.state.formErrors.didForDocument}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      className={classes.button}
+                    >
+                      Get Document
+                    </Button>
+                  </Grid>
+                </Grid>
+              </form>
+            </div>
           </Grid>
           <Grid item xs={12} lg={7} xl={8}>
             <div align="center" style={{ paddingLeft: 50 }}>
@@ -331,6 +402,16 @@ class GetTransaction extends Component {
               ) : null}
               {this.state.didNym ? (
                 <NymCard nym={this.state.didNym} didDocument={this.state.didDocument} />
+              ) : null}
+              {this.state.didDoc ? (
+                <Card className={classes.card} align="left">
+                  <div align="center">
+                    <Typography component="span" variant="h6">
+                      <strong>DID Document</strong>
+                    </Typography>
+                  </div>
+                  <JSONPretty data={this.state.didDoc}></JSONPretty>
+                </Card>
               ) : null}
             </div>
           </Grid>
