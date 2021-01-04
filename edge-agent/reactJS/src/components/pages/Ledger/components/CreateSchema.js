@@ -199,7 +199,7 @@ class CreateSchema extends Component {
                 <Grid container align="left" spacing={3}>
                   <Grid item xs={12}>
                     <FormControl className={classes.formControl}>
-                      <InputLabel htmlFor="did">DID</InputLabel>
+                      <InputLabel htmlFor="did">DID *</InputLabel>
                       <Select
                         required
                         label="DID"

@@ -41,10 +41,13 @@ function MyNavbar(props) {
     ''
   ) : (
     <Navbar style={styles.navStyle} bg="dark" variant="dark">
-      <Link style={styles.navHome} to="/">
-        SelfSov
-      </Link>
+      <div style={styles.navHome}>
+        <strong>SelfSov</strong>
+      </div>
       <Nav className="mr-auto">
+        <Link to="/" style={{ ...styles.navLinkMargins, ...styles.navLinkStyle }}>
+          Dashboard
+        </Link>
         <Link to="/connections" style={{ ...styles.navLinkMargins, ...styles.navLinkStyle }}>
           Connections
         </Link>

@@ -15,7 +15,7 @@ import { connect } from 'react-redux';
 import ProposePresentation from './components/ProposePresentation';
 import RequestPresentation from './components/RequestPresentation';
 import SendPresentation from './components/SendPresentation';
-import AllRecords from '../Presentations/components/AllRecords';
+import AllRecords from '../Presentations/components/AllRecords/index';
 import qs from 'qs';
 import { withSnackbar } from 'notistack';
 

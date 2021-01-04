@@ -4,8 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import PropTypes from 'prop-types';
 
 export default function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
+  const { children, value, index, p, m, ...other } = props;
   return (
     <div
       role="tabpanel"
@@ -15,7 +14,7 @@ export default function TabPanel(props) {
       {...other}
     >
       {value === index && (
-        <Box p={3}>
+        <Box p={p != null ? p : 2} m={m != null ? m : 0}>
           <Typography component="div">{children}</Typography>
         </Box>
       )}

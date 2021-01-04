@@ -1,7 +1,6 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
 import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
@@ -18,8 +17,6 @@ function RecordActions({
   id,
   role,
 }) {
-  const classes = useStyles();
-
   const showSnackbarVariant = (message, variant) => {
     enqueueSnackbar(message, {
       variant,
@@ -202,15 +199,6 @@ RecordActions.propTypes = {
   state: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
 };
-
-// Styles
-const useStyles = makeStyles((theme) => ({
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-}));
 
 const mapStateToProps = (state) => {
   return {

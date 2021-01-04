@@ -39,8 +39,19 @@ exports.sendMessage = async (payload, endpoint) => {
       }
     })
     .catch((error) => {
-      console.error('Error status: ', error.response.status);
-      console.error('Error Description: ', error.response.data);
+      console.log(error);
+      if (error.code === 'ECONNREFUSED') {
+        throw {
+          externalMessage: 'Connection with the other agent refused.',
+          internalMessage: error,
+        };
+      } else {
+        if (error.response) {
+          console.error('Error status: ', error.response.status);
+          console.error('Error Description: ', error.response.data);
+        }
+        throw error;
+      }
     });
 };
 

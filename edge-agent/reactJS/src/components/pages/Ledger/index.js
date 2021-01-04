@@ -6,7 +6,7 @@ import Tab from '@material-ui/core/Tab';
 import TabPanel, { a11yProps } from '../../TabPanel';
 import { withStyles } from '@material-ui/core/styles';
 
-import GetTransaction from './components/GetTransaction';
+import SubmitTransaction from './components/SubmitTransaction';
 import CreateSchema from './components/CreateSchema';
 import CreateCredDef from './components/CreateCredDef';
 import qs from 'qs';
@@ -54,7 +54,7 @@ class Schema extends Component {
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
-          <GetTransaction />
+          <SubmitTransaction />
         </TabPanel>
         {this.getDIDPermissions() ? (
           <TabPanel value={tab} index={1}>

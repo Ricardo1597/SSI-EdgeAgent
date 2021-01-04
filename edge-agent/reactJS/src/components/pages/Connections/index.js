@@ -8,6 +8,7 @@ import TabPanel, { a11yProps } from '../../TabPanel';
 
 import { connect } from 'react-redux';
 
+import AllConnections from './components/AllConnections';
 import ActiveConnections from './components/ActiveConnections';
 import PendingConnections from './components/PendingConnections';
 import CreateInvitation from './components/CreateInvitation';
@@ -56,42 +57,21 @@ class Connections extends Component {
             indicatorColor="primary"
             textColor="primary"
           >
-            <Tab className={classes.button} label="Active Connections" {...a11yProps(0)} />
-            <Tab className={classes.button} label="Pending Connections" {...a11yProps(1)} />
-            <Tab className={classes.button} label="Invitations" {...a11yProps(2)} />
-            <Tab className={classes.button} label="Create invitation" {...a11yProps(3)} />
-            <Tab className={classes.button} label="Receive invitation" {...a11yProps(4)} />
+            <Tab className={classes.button} label="Connections" {...a11yProps(0)} />
+            <Tab className={classes.button} label="Invitations" {...a11yProps(1)} />
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
-          <ActiveConnections
-            connections={(connections || []).filter((connection) => {
-              return connection.state === 'complete';
-            })}
-            connectionId={search.connectionId}
+          <AllConnections
+            connections={connections}
+            recordId={search.connectionId}
+            addConnection={addConnection}
             updateConnection={updateConnection}
             removeConnection={removeConnection}
-            history={this.props.history}
           />
         </TabPanel>
         <TabPanel value={tab} index={1}>
-          <PendingConnections
-            connections={(connections || []).filter((connection) => {
-              return connection.state !== 'complete';
-            })}
-            connectionId={search.connectionId}
-            updateConnection={updateConnection}
-            removeConnection={removeConnection}
-          />
-        </TabPanel>
-        <TabPanel value={tab} index={2}>
           <Invitations />
-        </TabPanel>
-        <TabPanel value={tab} index={3}>
-          <CreateInvitation />
-        </TabPanel>
-        <TabPanel value={tab} index={4}>
-          <ReceiveInvitation addConnection={addConnection} />
         </TabPanel>
       </div>
     );

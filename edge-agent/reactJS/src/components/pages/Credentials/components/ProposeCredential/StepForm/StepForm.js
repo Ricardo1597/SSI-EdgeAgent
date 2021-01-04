@@ -23,7 +23,7 @@ class StepForm extends Component {
   state = {
     step: 0,
     connectionId: this.props.connectionId || '',
-    connections: this.props.connections
+    connections: (this.props.connections || [])
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
         return {

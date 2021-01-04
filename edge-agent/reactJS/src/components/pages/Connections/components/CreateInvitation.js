@@ -154,16 +154,16 @@ class CreateInvitation extends Component {
     console.log(this.state);
 
     return (
-      <Container className="px-0" maxWidth="100%">
+      <Container className="px-0" style={{ height: 450, width: 500 }}>
         <Grid container align="center">
           <div className={classes.outerDiv}>
-            <div className={`${classes.paper} p-5`}>
+            <div className={`p-5`}>
               <Typography component="span" variant="h5">
                 Create Invitation
               </Typography>
               <form className={classes.form} onSubmit={this.onSubmit}>
-                <Grid container align="left" spacing={3}>
-                  <Grid item xs={12} sm={9}>
+                <Grid container align="left" spacing={4}>
+                  <Grid item xs={12}>
                     <TextField
                       required
                       fullWidth
@@ -176,7 +176,7 @@ class CreateInvitation extends Component {
                       helperText={this.state.formErrors.alias}
                     />
                   </Grid>
-                  <Grid item xs={6} sm={3}>
+                  <Grid item xs={6}>
                     <FormControl className={classes.formControl}>
                       <InputLabel>Multiuse</InputLabel>
                       <Select
@@ -192,7 +192,7 @@ class CreateInvitation extends Component {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={6} sm={3}>
+                  <Grid item xs={6}>
                     <FormControl className={classes.formControl}>
                       <InputLabel>Public</InputLabel>
                       <Select
@@ -210,7 +210,7 @@ class CreateInvitation extends Component {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={9}>
+                  <Grid item xs={12}>
                     <FormControl className={classes.formControl} error={this.state.formErrors.did}>
                       <InputLabel>DID</InputLabel>
                       <Select
@@ -279,16 +279,6 @@ const useStyles = (theme) => ({
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'center',
-  },
-  paper: {
-    margin: 30,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    minWidth: 400,
-    maxWidth: 500,
-    backgroundColor: 'white',
-    borderRadius: 5,
   },
   result: {
     margin: 30,

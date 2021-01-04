@@ -20,7 +20,7 @@ const ConfirmationStep = ({
     <Fragment>
       <List disablePadding>
         {alias ? (
-          <ListItem>
+          <ListItem style={{ marginTop: -15 }}>
             <ListItemText primary="Connection" secondary={alias} />
           </ListItem>
         ) : null}
@@ -60,6 +60,8 @@ const ConfirmationStep = ({
             </Fragment>
           );
         })}
+
+        <Divider />
       </List>
 
       <div style={{ display: 'flex', marginTop: 50, justifyContent: 'flex-end' }}>

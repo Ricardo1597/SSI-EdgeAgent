@@ -8,9 +8,9 @@ import TabPanel, { a11yProps } from '../../TabPanel';
 import Button from '@material-ui/core/Button';
 
 import SeeCredentials from './components/SeeCredentials';
-import ProposeCredential from './components/ProposeCredential/ProposeCredential';
-import OfferCredential from './components/OfferCredential/OfferCredential';
-import AllRecords from './components/AllRecords';
+import ProposeCredential from './components/ProposeCredential';
+import OfferCredential from './components/OfferCredential';
+import AllRecords from './components/AllRecords/index';
 import qs from 'qs';
 import { withSnackbar } from 'notistack';
 
@@ -160,31 +160,19 @@ class Credentials extends Component {
           >
             <Tab className={classes.button} label="Credential Exchanges" {...a11yProps(0)} />
             <Tab className={classes.button} label="Credentials" {...a11yProps(1)} />
-            <Tab className={classes.button} label="Propose Credential" {...a11yProps(2)} />
-            {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Offer Credential" {...a11yProps(3)} />
-            ) : null}
           </Tabs>
         </AppBar>
         <TabPanel value={tab} index={0}>
           <AllRecords
             exchanges={this.state.exchanges}
             recordId={recordId}
-            removeExchange={this.removeExchange}
             updateExchange={this.updateExchange}
+            removeExchange={this.removeExchange}
           />
         </TabPanel>
         <TabPanel value={tab} index={1}>
-          <SeeCredentials />
+          <SeeCredentials addExchange={this.addExchange} />
         </TabPanel>
-        <TabPanel value={tab} index={2}>
-          <ProposeCredential connectionId={connectionId} addExchange={this.addExchange} />
-        </TabPanel>
-        {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={3}>
-            <OfferCredential connectionId={connectionId} addExchange={this.addExchange} />
-          </TabPanel>
-        ) : null}
       </div>
     );
   }

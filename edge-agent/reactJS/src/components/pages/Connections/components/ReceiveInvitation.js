@@ -136,21 +136,21 @@ class ReceiveInvitation extends Component {
     const { classes } = this.props;
 
     return (
-      <Container>
+      <Container className="px-0" style={{ width: 500 }}>
         <Grid container align="center">
           <Grid item xs={12}>
-            <div className={`${classes.paper} p-5`}>
+            <div className={`p-5`}>
               <Typography component="span" variant="h5">
                 Receive invitation
               </Typography>
               <form className={classes.form} onSubmit={this.onSubmit}>
-                <Grid container align="left" spacing={3}>
+                <Grid container align="left" spacing={4}>
                   <Grid item xs={12}>
                     <TextField
                       required
                       fullWidth
                       id="alias"
-                      label="Alias"
+                      label="Connection Alias"
                       name="alias"
                       value={this.state.alias}
                       onChange={this.handleChange}
@@ -196,16 +196,6 @@ class ReceiveInvitation extends Component {
 
 // Styles
 const useStyles = (theme) => ({
-  paper: {
-    margin: 30,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    minWidth: 400,
-    maxWidth: 500,
-    backgroundColor: 'white',
-    borderRadius: 5,
-  },
   form: {
     marginTop: theme.spacing(3),
   },

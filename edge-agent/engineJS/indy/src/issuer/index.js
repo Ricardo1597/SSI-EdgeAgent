@@ -23,13 +23,14 @@ exports.createCredDef = async (did, schemaId, tag, supportRevocation = false) =>
   const options = {
     support_revocation: supportRevocation,
   };
+  const finalTag = tag || uuid(); // If no tag is passed use uuid to differentiate the cred defs
   console.log(supportRevocation);
   let [, schema] = await indy.ledger.getSchema(null, schemaId);
   let [credDefId, credDefJson] = await sdk.issuerCreateAndStoreCredentialDef(
     await indy.wallet.get(),
     did,
     schema,
-    tag,
+    finalTag,
     'CL',
     JSON.stringify(options)
   );

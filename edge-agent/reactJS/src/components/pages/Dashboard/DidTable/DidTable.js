@@ -9,19 +9,23 @@ import TableFooter from '@material-ui/core/TableFooter';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import TableHead from '@material-ui/core/TableHead';
+import styled from 'styled-components';
+import Tooltip from '@material-ui/core/Tooltip';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 
-import TablePaginationActions from './TablePaginationActions';
+import TablePaginationActions from '../../../TablePaginationActions';
 
 const StyledTableCell = withStyles((theme) => ({
   head: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: '#444444',
     color: theme.palette.common.white,
+    fontSize: 16,
   },
   body: {
     fontSize: 14,
@@ -36,16 +40,9 @@ const StyledTableRow = withStyles((theme) => ({
   },
 }))(TableRow);
 
-const useStyles2 = makeStyles({
-  table: {
-    minWidth: 500,
-  },
-});
-
-export default function CustomPaginationTable({ dids, getRole }) {
-  const classes = useStyles2();
+const CustomPaginationTable = ({ dids, getRole }) => {
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(15);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, (dids || []).length - page * rowsPerPage);
 
@@ -59,10 +56,10 @@ export default function CustomPaginationTable({ dids, getRole }) {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table size="small" aria-label="customized table" style={{ tableLayout: 'auto' }}>
+    <TableContainer component={Paper} style={{ tableLayout: 'auto' }}>
+      <Table size="small" aria-label="customized table">
         <TableHead>
-          <TableRow height="40px">
+          <TableRow height="45px">
             <StyledTableCell align="center">
               <strong>Alias</strong>
             </StyledTableCell>
@@ -82,7 +79,7 @@ export default function CustomPaginationTable({ dids, getRole }) {
             ? (dids || []).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : dids || []
           ).map((row) => (
-            <StyledTableRow key={row.did} style={{ height: 40 }}>
+            <StyledTableRow key={row.did} height="45px">
               <StyledTableCell align="center">{row.metadata.alias}</StyledTableCell>
               <StyledTableCell align="center" hidden={window.innerWidth < 850}>
                 {row.did}
@@ -104,7 +101,7 @@ export default function CustomPaginationTable({ dids, getRole }) {
         <TableFooter>
           <StyledTableRow>
             <TablePagination
-              rowsPerPageOptions={[15, 25, 50, { label: 'All', value: -1 }]}
+              rowsPerPageOptions={[10, 15, 25, 50, { label: 'All', value: -1 }]}
               colSpan={4}
               count={(dids || []).length}
               rowsPerPage={rowsPerPage}
@@ -122,4 +119,6 @@ export default function CustomPaginationTable({ dids, getRole }) {
       </Table>
     </TableContainer>
   );
-}
+};
+
+export default CustomPaginationTable;

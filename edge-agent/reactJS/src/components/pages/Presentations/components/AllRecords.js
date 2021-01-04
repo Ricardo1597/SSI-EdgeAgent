@@ -9,11 +9,12 @@ import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
-
-import RecordSummary from '../../../RecordSummary';
-import RecordDetails from '../../../RecordDetails';
-import RecordActions from './RecordActions';
 import { withSnackbar } from 'notistack';
+
+import RecordSummary from '../../../sharedComponents/exchanges/RecordSummary';
+import RecordDetails from '../../../sharedComponents/exchanges/RecordDetails';
+import RecordActions from './RecordActions';
+import { transformPresentationState } from '../../../../resources/utils';
 
 import { connect } from 'react-redux';
 
@@ -124,6 +125,7 @@ class AllRecords extends Component {
                           exchange.presentationExchangeId ===
                             this.state.exchange.presentationExchangeId
                         }
+                        transformState={transformPresentationState}
                       />
                     </Grid>
                   ))

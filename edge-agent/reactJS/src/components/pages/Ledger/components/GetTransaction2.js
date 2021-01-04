@@ -30,6 +30,7 @@ class GetTransaction extends Component {
       schemaId: '',
       credDefId: '',
       did: '',
+      didForDocument: '',
     },
   };
 
@@ -66,37 +67,30 @@ class GetTransaction extends Component {
       schemaId: '',
       credDefId: '',
       did: '',
+      didForDocument: '',
     };
     switch (name) {
       case 'schemaId': // schemaId: schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3
-        if (this.state.schemaId.length < 1) {
-          errors['schemaId'] = 'Cannot be empty';
-        } else if (!this.state.schemaId.match(/^[a-zA-Z0-9:\-._]+$/)) {
+        if (!value.match(/^[a-zA-Z0-9:\-._]*$/)) {
           errors['schemaId'] = 'Invalid characters';
         }
         break;
       case 'credDefId': // credDefId: creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1
-        if (this.state.credDefId.length < 1) {
-          errors['credDefId'] = 'Cannot be empty';
-        } else if (!this.state.credDefId.match(/^[a-zA-Z0-9:\-]+$/)) {
+        if (!value.match(/^[a-zA-Z0-9:\-]*$/)) {
           errors['credDefId'] = 'Invalid characters';
         }
         break;
       case 'did': // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
-        if (this.state.did.length === 0) {
-          errors['did'] = 'Cannot be empty';
-        } else if (!this.state.did.match(/^[a-zA-Z0-9:]+$/)) {
+        if (!value.match(/^[a-zA-Z0-9:]*$/)) {
           errors['did'] = 'Invalid characters';
-        } else if (this.state.did.split(':').length !== 3) {
+        } else if (value.length && value.split(':').length !== 3) {
           errors['did'] = 'Invalid DID';
         }
         break;
       case 'didForDocument': // did: did:mybc:Th7MpTaRZVRYnPiabds81Y
-        if (this.state.didForDocument.length === 0) {
-          errors['didForDocument'] = 'Cannot be empty';
-        } else if (!this.state.didForDocument.match(/^[a-zA-Z0-9:]+$/)) {
+        if (!value.match(/^[a-zA-Z0-9:]*$/)) {
           errors['didForDocument'] = 'Invalid characters';
-        } else if (this.state.didForDocument.split(':').length !== 3) {
+        } else if (value.length && value.split(':').length !== 3) {
           errors['didForDocument'] = 'Invalid DID';
         }
         break;
@@ -266,6 +260,9 @@ class GetTransaction extends Component {
                       color="primary"
                       className={classes.button}
                       onClick={this.onSubmitGetSchema}
+                      disabled={
+                        !this.state.schemaId.length || this.state.formErrors.schemaId.length
+                      }
                     >
                       Get Schema
                     </Button>
@@ -284,7 +281,7 @@ class GetTransaction extends Component {
                       id="credDefId"
                       label="Credential Definition ID"
                       name="credDefId"
-                      placeholder="Leave this blank for a new random DID"
+                      placeholder="creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1"
                       value={this.state.credDefId}
                       onChange={this.handleChange}
                       InputProps={{
@@ -304,6 +301,9 @@ class GetTransaction extends Component {
                       color="primary"
                       className={classes.button}
                       onClick={this.onSubmitGetCredDef}
+                      disabled={
+                        !this.state.credDefId.length || this.state.formErrors.credDefId.length
+                      }
                     >
                       Get Credential Definition
                     </Button>
@@ -342,6 +342,7 @@ class GetTransaction extends Component {
                       color="primary"
                       className={classes.button}
                       onClick={this.onSubmitGetNym}
+                      disabled={!this.state.did.length || this.state.formErrors.did.length}
                     >
                       Get Nym
                     </Button>
@@ -379,6 +380,10 @@ class GetTransaction extends Component {
                       variant="contained"
                       color="primary"
                       className={classes.button}
+                      disabled={
+                        !this.state.didForDocument.length ||
+                        this.state.formErrors.didForDocument.length
+                      }
                     >
                       Get Document
                     </Button>

@@ -37,7 +37,7 @@ module.exports = function (config) {
           handler(decryptedMessage, req.app.io, function (err) {
             if (err) {
               console.error(err);
-              res.status(200).send();
+              res.status(400).send(err);
             } else {
               res.status(202).send();
             }
@@ -49,7 +49,7 @@ module.exports = function (config) {
             })
             .catch((err) => {
               console.error(err);
-              res.status(200).send();
+              res.status(400).send(err);
             });
         }
       } else {

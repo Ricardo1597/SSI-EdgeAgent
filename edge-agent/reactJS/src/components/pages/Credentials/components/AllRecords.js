@@ -11,14 +11,19 @@ import Container from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 import { withSnackbar } from 'notistack';
 
-import RecordSummary from '../../../RecordSummary';
-import RecordDetails from '../../../RecordDetails';
+import RecordSummary from '../../../sharedComponents/exchanges/RecordSummary';
+import RecordDetails from '../../../sharedComponents/exchanges/RecordDetails';
 import RecordActions from './RecordActions';
+import { transformCredentialState } from '../../../../resources/utils';
 
 import { connect } from 'react-redux';
 
 class AllRecords extends Component {
   state = {
+    completedExchanges: (this.props.exchanges || []).filter(
+      (exchange) => exchange.state === 'done'
+    ),
+    ongoingExchanges: (this.props.exchanges || []).filter((exchange) => exchange.state !== 'done'),
     exchange:
       this.props.exchanges && this.props.exchanges.length === 0
         ? null
@@ -125,6 +130,7 @@ class AllRecords extends Component {
                             exchange.credentialExchangeId ===
                               this.state.exchange.credentialExchangeId
                           }
+                          transformState={transformCredentialState}
                         />
                       </Grid>
                     ))

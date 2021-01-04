@@ -194,8 +194,9 @@ class SignUp extends Component {
                     this.handleChange(e);
                     this.handleValidation(e);
                   }}
+                  error={this.state.formErrors.name !== ''}
+                  helperText={this.state.formErrors.name}
                 />
-                <div className="input-feedback">{this.state.formErrors.name}</div>
                 <TextField
                   variant="outlined"
                   margin="normal"
@@ -210,8 +211,9 @@ class SignUp extends Component {
                     this.handleChange(e);
                     this.handleValidation(e);
                   }}
+                  error={this.state.formErrors.username !== ''}
+                  helperText={this.state.formErrors.username}
                 />
-                <div className="input-feedback">{this.state.formErrors.username}</div>
                 <TextField
                   variant="outlined"
                   margin="normal"
@@ -227,8 +229,9 @@ class SignUp extends Component {
                     this.handleChange(e);
                     this.handleValidation(e);
                   }}
+                  error={this.state.formErrors.password1 !== ''}
+                  helperText={this.state.formErrors.password1}
                 />
-                <div className="input-feedback">{this.state.formErrors.password1}</div>
                 <TextField
                   variant="outlined"
                   margin="normal"
@@ -244,8 +247,9 @@ class SignUp extends Component {
                     this.handleChange(e);
                     this.handleValidation(e);
                   }}
+                  error={this.state.formErrors.password2 !== ''}
+                  helperText={this.state.formErrors.password2}
                 />
-                <div className="input-feedback">{this.state.formErrors.password2}</div>
                 <Button
                   type="submit"
                   fullWidth

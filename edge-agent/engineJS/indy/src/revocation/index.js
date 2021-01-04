@@ -52,7 +52,7 @@ exports.createAndStoreRevocReg = async (
       await indy.wallet.get(),
       issuerDid,
       revocDefType,
-      tag,
+      null, // Pass null tag to use a uuid value
       credDefId,
       config,
       tailsWriter

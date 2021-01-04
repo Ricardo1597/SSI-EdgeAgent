@@ -6,13 +6,13 @@ import Container from '@material-ui/core/Container';
 import Paper from '@material-ui/core/Paper';
 import StepForm from './StepForm/StepForm';
 
-const OfferCredential = ({ classes, connectionId, addExchange }) => {
+const ProposeCredential = ({ classes, connectionId, addExchange }) => {
   return (
-    <Container spacing={2}>
+    <Container className="p-0">
       <div className={classes.paper}>
         <Paper className={`${classes.paper} p-5`} style={{ width: 500 }}>
           <Typography component="span" variant="h5">
-            Offer Credential
+            Propose Credential
           </Typography>
           <StepForm connectionId={connectionId} addExchange={addExchange} />
         </Paper>
@@ -24,12 +24,10 @@ const OfferCredential = ({ classes, connectionId, addExchange }) => {
 // Styles
 const useStyles = (theme) => ({
   paper: {
-    marginTop: 20,
-    marginBottom: 30,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
   },
 });
 
-export default withStyles(useStyles)(OfferCredential);
+export default withStyles(useStyles)(ProposeCredential);

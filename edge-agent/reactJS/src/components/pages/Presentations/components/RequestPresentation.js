@@ -77,7 +77,7 @@ class RequestPresentation extends Component {
   state = {
     connectionId:
       this.props.connectionId || (this.props.record && this.props.record.connectionId) || '',
-    connections: this.props.connections
+    connections: (this.props.connections || [])
       .filter((connection) => connection.state === 'complete')
       .map((connection) => {
         return {
