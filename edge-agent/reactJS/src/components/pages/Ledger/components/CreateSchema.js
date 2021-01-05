@@ -10,7 +10,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
-import AttributesTable from '../../../AttributesTable';
+import AttributesTable from './AttributesTable';
 import Container from '@material-ui/core/Container';
 import { withSnackbar } from 'notistack';
 

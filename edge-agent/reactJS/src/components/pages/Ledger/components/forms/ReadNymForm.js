@@ -7,30 +7,31 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 
 import axios from 'axios';
-import config from '../../../../config';
+import config from '../../../../../config';
 
 const MyButton = styled(Button)`
   margin-top: 20px;
 `;
 
-const GetCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
-  const [credDefId, setCredDefId] = useState('');
+const ReadNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
+  const [nym, setNym] = useState('');
   const [formErrors, setFormErrors] = useState({
-    credDefId: '',
+    nym: '',
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Handle validation
-    let errors = {
-      credDefId: '',
-    };
+    let errors = formErrors;
+
     switch (name) {
-      case 'credDefId': // credDefId: creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1
-        setCredDefId(value);
-        if (!value.match(/^[a-zA-Z0-9:\-]*$/)) {
-          errors['credDefId'] = 'Invalid characters';
+      case 'nym': // did:mybc:Th7MpTaRZVRYnPiabds81Y
+        setNym(value);
+        if (!value.match(/^[a-zA-Z0-9:]*$/)) {
+          errors['nym'] = 'Invalid characters';
+        } else if (value.length && value.split(':').length !== 3) {
+          errors['nym'] = 'Invalid DID';
         }
         break;
       default:
@@ -40,7 +41,7 @@ const GetCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
   };
 
   const isFormValid = () => {
-    return credDefId.length && !formErrors.credDefId.length;
+    return nym.length && !formErrors.nym.length;
   };
 
   const onSubmit = (e) => {
@@ -49,27 +50,19 @@ const GetCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
     if (!isFormValid()) return;
 
     axios
-      .get(`${config.endpoint}/api/ledger/cred-def`, {
+      .get(`${config.endpoint}/api/ledger/get-nym`, {
         params: {
-          credDefId: credDefId,
+          did: nym,
         },
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((res) => {
-        if (res.status === 200) {
-          console.log(res.data);
-          setResult(res.data.credDef);
-        } else {
-          const error = new Error(res.error);
-          throw error;
-        }
+        console.log(res.data);
+        setResult({ nym: res.data.did, didDocument: res.data.didDocument });
       })
       .catch((err) => {
         console.error(err);
-        showSnackbarVariant(
-          'Error getting credential definition from the ledger. Please try again.',
-          'error'
-        );
+        showSnackbarVariant('Error getting nym from the ledger. Please try again.', 'error');
       });
   };
 
@@ -81,14 +74,14 @@ const GetCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
             variant="standard"
             required
             fullWidth
-            id="credDefId"
-            label="Credential Definition ID"
-            name="credDefId"
-            placeholder="creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1"
-            value={credDefId}
+            id="nym"
+            label="Nym"
+            name="nym"
+            placeholder="did:mybc:Th7MpTaRZVRYnPiabds81Y"
+            value={nym}
             onChange={handleChange}
-            error={formErrors.credDefId !== ''}
-            helperText={formErrors.credDefId}
+            error={formErrors.nym !== ''}
+            helperText={formErrors.nym}
           />
         </Grid>
         <Grid item xs={12}>
@@ -113,4 +106,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps)(GetCredDefForm);
+export default connect(mapStateToProps)(ReadNymForm);

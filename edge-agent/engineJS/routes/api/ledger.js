@@ -114,7 +114,7 @@ router.post(
       let [credDefId, credDef] = await indy.issuer.createCredDef(
         did,
         schemaId,
-        'TAG1',
+        null, // Pass null to use uuid()
         supportRevocation
       );
       res.status(200).send({ credDefId: credDefId, credDef: credDef });

@@ -7,30 +7,29 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 
 import axios from 'axios';
-import config from '../../../../config';
+import config from '../../../../../config';
 
 const MyButton = styled(Button)`
   margin-top: 20px;
 `;
 
-const GetSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
-  const [schemaId, setSchemaId] = useState('');
+const ReadCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
+  const [credDefId, setCredDefId] = useState('');
   const [formErrors, setFormErrors] = useState({
-    schemaId: '',
+    credDefId: '',
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Handle validation
-    let errors = {
-      schemaId: '',
-    };
+    let errors = formErrors;
+
     switch (name) {
-      case 'schemaId': // schemaId: schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3
-        setSchemaId(value);
-        if (!value.match(/^[a-zA-Z0-9:\-._]*$/)) {
-          errors['schemaId'] = 'Invalid characters';
+      case 'credDefId': // credDefId: creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1
+        setCredDefId(value);
+        if (!value.match(/^[a-zA-Z0-9:\-]*$/)) {
+          errors['credDefId'] = 'Invalid characters';
         }
         break;
       default:
@@ -40,7 +39,7 @@ const GetSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
   };
 
   const isFormValid = () => {
-    return schemaId.length && !formErrors.schemaId.length;
+    return credDefId.length && !formErrors.credDefId.length;
   };
 
   const onSubmit = (e) => {
@@ -49,16 +48,16 @@ const GetSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
     if (!isFormValid()) return;
 
     axios
-      .get(`${config.endpoint}/api/ledger/schema`, {
+      .get(`${config.endpoint}/api/ledger/cred-def`, {
         params: {
-          schemaId: schemaId,
+          credDefId: credDefId,
         },
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((res) => {
         if (res.status === 200) {
           console.log(res.data);
-          setResult(res.data.schema);
+          setResult(res.data.credDef);
         } else {
           const error = new Error(res.error);
           throw error;
@@ -66,7 +65,10 @@ const GetSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
       })
       .catch((err) => {
         console.error(err);
-        showSnackbarVariant('Error getting schema from the ledger. Please try again.', 'error');
+        showSnackbarVariant(
+          'Error getting credential definition from the ledger. Please try again.',
+          'error'
+        );
       });
   };
 
@@ -78,14 +80,14 @@ const GetSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
             variant="standard"
             required
             fullWidth
-            id="schemaId"
-            label="Schema ID"
-            name="schemaId"
-            placeholder="schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.0"
-            value={schemaId}
+            id="credDefId"
+            label="Credential Definition ID"
+            name="credDefId"
+            placeholder="creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1"
+            value={credDefId}
             onChange={handleChange}
-            error={formErrors.schemaId !== ''}
-            helperText={formErrors.schemaId}
+            error={formErrors.credDefId !== ''}
+            helperText={formErrors.credDefId}
           />
         </Grid>
         <Grid item xs={12}>
@@ -110,4 +112,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps)(GetSchemaForm);
+export default connect(mapStateToProps)(ReadCredDefForm);

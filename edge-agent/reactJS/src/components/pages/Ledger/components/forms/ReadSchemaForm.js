@@ -7,32 +7,29 @@ import styled from 'styled-components';
 import { connect } from 'react-redux';
 
 import axios from 'axios';
-import config from '../../../../config';
+import config from '../../../../../config';
 
 const MyButton = styled(Button)`
   margin-top: 20px;
 `;
 
-const GetNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
-  const [nym, setNym] = useState('');
+const ReadSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
+  const [schemaId, setSchemaId] = useState('');
   const [formErrors, setFormErrors] = useState({
-    nym: '',
+    schemaId: '',
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Handle validation
-    let errors = {
-      nym: '',
-    };
+    let errors = formErrors;
+
     switch (name) {
-      case 'nym': // did:mybc:Th7MpTaRZVRYnPiabds81Y
-        setNym(value);
-        if (!value.match(/^[a-zA-Z0-9:]*$/)) {
-          errors['nym'] = 'Invalid characters';
-        } else if (value.length && value.split(':').length !== 3) {
-          errors['nym'] = 'Invalid DID';
+      case 'schemaId': // schemaId: schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3
+        setSchemaId(value);
+        if (!value.match(/^[a-zA-Z0-9:\-._]*$/)) {
+          errors['schemaId'] = 'Invalid characters';
         }
         break;
       default:
@@ -42,7 +39,7 @@ const GetNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
   };
 
   const isFormValid = () => {
-    return nym.length && !formErrors.nym.length;
+    return schemaId.length && !formErrors.schemaId.length;
   };
 
   const onSubmit = (e) => {
@@ -51,19 +48,24 @@ const GetNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
     if (!isFormValid()) return;
 
     axios
-      .get(`${config.endpoint}/api/ledger/get-nym`, {
+      .get(`${config.endpoint}/api/ledger/schema`, {
         params: {
-          did: nym,
+          schemaId: schemaId,
         },
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((res) => {
-        console.log(res.data);
-        setResult({ nym: res.data.did, didDocument: res.data.didDocument });
+        if (res.status === 200) {
+          console.log(res.data);
+          setResult(res.data.schema);
+        } else {
+          const error = new Error(res.error);
+          throw error;
+        }
       })
       .catch((err) => {
         console.error(err);
-        showSnackbarVariant('Error getting nym from the ledger. Please try again.', 'error');
+        showSnackbarVariant('Error getting schema from the ledger. Please try again.', 'error');
       });
   };
 
@@ -75,14 +77,14 @@ const GetNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
             variant="standard"
             required
             fullWidth
-            id="nym"
-            label="Nym"
-            name="nym"
-            placeholder="did:mybc:Th7MpTaRZVRYnPiabds81Y"
-            value={nym}
+            id="schemaId"
+            label="Schema ID"
+            name="schemaId"
+            placeholder="schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.0"
+            value={schemaId}
             onChange={handleChange}
-            error={formErrors.nym !== ''}
-            helperText={formErrors.nym}
+            error={formErrors.schemaId !== ''}
+            helperText={formErrors.schemaId}
           />
         </Grid>
         <Grid item xs={12}>
@@ -107,4 +109,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps)(GetNymForm);
+export default connect(mapStateToProps)(ReadSchemaForm);

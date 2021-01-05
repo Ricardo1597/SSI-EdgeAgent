@@ -13,9 +13,12 @@ import Card from '@material-ui/core/Card';
 import styled from 'styled-components';
 import { withSnackbar } from 'notistack';
 
-import GetSchemaForm from './GetSchemaForm';
-import GetCredDefForm from './GetCredDefForm';
-import GetNymForm from './GetNymForm';
+import ReadSchemaForm from './forms/ReadSchemaForm';
+import ReadCredDefForm from './forms/ReadCredDefForm';
+import ReadNymForm from './forms/ReadNymForm';
+import WriteSchemaForm from './forms/WriteSchemaForm';
+import WriteCredDefForm from './forms/WriteCredDefForm';
+import WriteNymForm from './forms/WriteNymForm';
 
 const MyFormControl = styled(FormControl)`
   width: 100%;
@@ -99,20 +102,35 @@ const SubmitTransaction = ({ enqueueSnackbar, closeSnackbar }) => {
   // };
 
   const transactionForm = () => {
-    if (type === 'get') {
+    if (type === 'read') {
       switch (operation) {
         case 'schema':
-          return <GetSchemaForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
+          return <ReadSchemaForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
         case 'credDef':
-          return <GetCredDefForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
+          return (
+            <ReadCredDefForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />
+          );
         case 'nym':
-          return <GetNymForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
+          return <ReadNymForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
         default:
           return null;
       }
-    } else {
-      return null;
-    }
+    } else if (type === 'write') {
+      switch (operation) {
+        case 'schema':
+          return (
+            <WriteSchemaForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />
+          );
+        case 'credDef':
+          return (
+            <WriteCredDefForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />
+          );
+        case 'nym':
+          return <WriteNymForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
+        default:
+          return null;
+      }
+    } else return null;
   };
 
   return (
@@ -133,8 +151,8 @@ const SubmitTransaction = ({ enqueueSnackbar, closeSnackbar }) => {
                   value={type}
                   onChange={(e) => setType(e.target.value)}
                 >
-                  <MenuItem value="get">Get</MenuItem>
-                  <MenuItem value="post">Post</MenuItem>
+                  <MenuItem value="read">Read</MenuItem>
+                  <MenuItem value="write">Write</MenuItem>
                 </Select>
               </MyFormControl>
             </Grid>

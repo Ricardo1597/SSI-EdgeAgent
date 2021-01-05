@@ -1,6 +1,7 @@
 'use strict';
 const sdk = require('indy-sdk');
 const indy = require('../../index.js');
+const uuid = require('uuid');
 
 exports.createSchema = async (did, name, version, attributes) => {
   let [id, schema] = await sdk.issuerCreateSchema(did, name, version, attributes);
@@ -20,11 +21,12 @@ exports.createSchema = async (did, name, version, attributes) => {
 // };
 
 exports.createCredDef = async (did, schemaId, tag, supportRevocation = false) => {
+  console.log(supportRevocation);
   const options = {
     support_revocation: supportRevocation,
   };
   const finalTag = tag || uuid(); // If no tag is passed use uuid to differentiate the cred defs
-  console.log(supportRevocation);
+  console.log(finalTag);
   let [, schema] = await indy.ledger.getSchema(null, schemaId);
   let [credDefId, credDefJson] = await sdk.issuerCreateAndStoreCredentialDef(
     await indy.wallet.get(),
