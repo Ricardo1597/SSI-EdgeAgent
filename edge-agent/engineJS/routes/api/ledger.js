@@ -17,7 +17,9 @@ router.post('/send-nym', passport.authenticate('jwt', { session: false }), async
       } catch (error) {
         if (error.indyCode === 212) {
           // WalletItemNotFound
-          throw new "Server error: You can't create a did document for a did that does not belong you"();
+          throw new Error(
+            "Server error: You can't create a did document for a did that does not belong you"
+          );
         } else {
           throw error;
         }
@@ -34,8 +36,7 @@ router.post('/send-nym', passport.authenticate('jwt', { session: false }), async
 // Get did from the ledger
 router.get('/get-nym', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
-    const getDidResponse = await indy.ledger.getNym(req.query.did);
-    const did = JSON.parse(getDidResponse.result.data);
+    const did = await indy.ledger.getNym(req.query.did);
 
     const didDocument = await indy.ledger.getDidAttribute(
       null,

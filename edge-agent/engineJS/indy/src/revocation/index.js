@@ -47,12 +47,16 @@ exports.createAndStoreRevocReg = async (
     }
     const tailsWriter = await indy.blobStorage.createTailsWriter(tailsBasePath);
     const tag = uuid();
-    console.log(JSON.stringify(config));
+    console.log(issuerDid);
+    console.log(revocDefType);
+    console.log(credDefId);
+    console.log(config);
+    console.log(tailsWriter);
     const [revocRegId, revocRegDef, revocRegEntry] = await sdk.issuerCreateAndStoreRevocReg(
       await indy.wallet.get(),
       issuerDid,
       revocDefType,
-      null, // Pass null tag to use a uuid value
+      tag,
       credDefId,
       config,
       tailsWriter

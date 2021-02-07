@@ -24,6 +24,7 @@ const ReadSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
 
     // Handle validation
     let errors = formErrors;
+    errors[name] = '';
 
     switch (name) {
       case 'schemaId': // schemaId: schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3

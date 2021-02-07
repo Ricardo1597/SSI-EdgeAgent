@@ -4,21 +4,29 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
+import styled from 'styled-components';
+
+const MyCard = styled(Card)`
+  cursor: pointer;
+  &:hover {
+    box-shadow: 0px 0px 16px -2px #888888 !important;
+  }
+`;
 
 export default function RecordSummary({ record, selected }) {
   const classes = useStyles();
-  const { id, createdAt, updatedAt, state } = record;
+  const { title, createdAt, updatedAt, state } = record;
 
   return (
-    <Card
+    <MyCard
       className={classes.root}
       style={{
-        boxShadow: `${selected ? '0px 0px 8px -2px #0033ee' : 'none'}`,
+        boxShadow: `${selected ? '0px 0px 10px -2px #888888' : 'none'}`,
       }}
     >
       <CardContent>
         <Typography style={{ marginBottom: 8 }} variant="body2">
-          {id}
+          {title}
         </Typography>
         <Typography variant="subtitle2" color="textSecondary">
           <div style={{ display: 'flex' }}>
@@ -30,12 +38,16 @@ export default function RecordSummary({ record, selected }) {
             {updatedAt}
           </div>
           <div style={{ display: 'flex', marginBottom: -5 }}>
-            <div style={{ fontWeight: 'bold' }}>Current state: &nbsp;</div>
-            {state}
+            {state ? (
+              <>
+                <div style={{ fontWeight: 'bold' }}>Current state: &nbsp;</div>
+                {state}
+              </>
+            ) : null}
           </div>
         </Typography>
       </CardContent>
-    </Card>
+    </MyCard>
   );
 }
 
@@ -47,7 +59,7 @@ RecordSummary.propTypes = {
 const useStyles = makeStyles((theme) => ({
   root: {
     width: 330,
-    borderRadius: 10,
+    borderRadius: 5,
     margin: 20,
     marginRight: 15,
     backgroundColor: '#f8f9ff',

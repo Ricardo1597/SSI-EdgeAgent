@@ -112,8 +112,7 @@ router.post('/login', checkNotAuthenticated, (req, res, next) => {
 
         dids = await Promise.all(
           dids.map(async (did) => {
-            let getDidResponse = await indy.ledger.getNym(did.did);
-            let didInfo = JSON.parse(getDidResponse.result.data);
+            let didInfo = await indy.ledger.getNym(did.did);
 
             did.role = didInfo ? didInfo.role : 'no role';
             did.metadata = JSON.parse(did.metadata);

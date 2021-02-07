@@ -10,13 +10,18 @@ import ListOfExchanges from './ListOfExchanges';
 import TabPanel, { a11yProps } from '../../TabPanel';
 
 const SideListDiv = styled.div`
-  margin: 10px;
   background-color: white;
   border-radius: 5px;
   width: 400px;
 `;
 
-const SideList = ({ exchanges, selectedExchange, changeExchange, isConnection = false }) => {
+const SideList = ({
+  exchanges,
+  selectedExchange,
+  changeExchange,
+  isConnection = false,
+  isLoading = false,
+}) => {
   const [ongoingExchanges, setOngoingExchanges] = useState([]);
   const [completedExchanges, setCompletedExchanges] = useState([]);
   const [tab, setTab] = useState(0); // Tab of ongoing exchanges
@@ -24,6 +29,7 @@ const SideList = ({ exchanges, selectedExchange, changeExchange, isConnection = 
   console.log('Side List: ', selectedExchange);
 
   useEffect(() => {
+    console.log('no use effect: ', selectedExchange);
     if (exchanges && exchanges.length) {
       // Divide exchanges by state
       const ongoingList = [];
@@ -40,9 +46,13 @@ const SideList = ({ exchanges, selectedExchange, changeExchange, isConnection = 
           ? setTab(0)
           : setTab(1);
       } else {
-        // Set the first exchange as the selected one
-        setTab(0);
-        if (ongoingList.length) changeExchange(ongoingList[0].id);
+        if (tab !== 0 && tab !== 1) {
+          setTab(0);
+        } else if (tab === 1 && completedList.length) {
+          changeExchange(completedList[0].id);
+        } else if (tab === 0 && ongoingList.length) {
+          changeExchange(ongoingList[0].id);
+        }
       }
     }
   }, [exchanges]);
@@ -84,6 +94,9 @@ const SideList = ({ exchanges, selectedExchange, changeExchange, isConnection = 
           exchanges={ongoingExchanges}
           selectedExchangeId={(selectedExchange && selectedExchange.id) || null}
           changeExchange={changeExchange}
+          isLoading={isLoading}
+          tab={tab}
+          isConnection={isConnection}
         />
       </TabPanel>
       <TabPanel value={tab} index={1} p={0} className="py-3 pr-3">
@@ -91,6 +104,8 @@ const SideList = ({ exchanges, selectedExchange, changeExchange, isConnection = 
           exchanges={completedExchanges}
           selectedExchangeId={(selectedExchange && selectedExchange.id) || null}
           changeExchange={changeExchange}
+          tab={tab}
+          isConnection={isConnection}
         />
       </TabPanel>
     </SideListDiv>

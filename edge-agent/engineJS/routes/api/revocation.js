@@ -3,6 +3,7 @@ var router = express.Router();
 var passport = require('passport');
 const indy = require('../../indy/index.js');
 const tempDirectory = require('temp-dir');
+const homedir = require('os').homedir();
 
 // Get revocation registriy by revocation registry ID
 router.get('/registry/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
@@ -106,13 +107,15 @@ router.post(
       issuerDid = credDefParts[0];
     }
 
+    console.log('Home Dir: ', homedir);
+
     try {
       const record = await indy.revocation.createAndStoreRevocReg(
         issuerDid,
         null,
         credDefId,
         name,
-        '/tmp/indy_acme_tails',
+        homedir + '/.indy_client/tails_files',
         parseInt(maxCredNum),
         issuanceByDefault
       );

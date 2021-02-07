@@ -1,4 +1,5 @@
-import React, { Component, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -10,7 +11,6 @@ import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
-import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { withSnackbar } from 'notistack';
@@ -20,175 +20,169 @@ import config from '../../config';
 
 import '../../styles.css';
 
-class SignIn extends Component {
-  state = {
-    username: '',
-    password: '',
-    loading: true,
-    redirect: false,
-    invalidCredentials: false,
-  };
+// Redux
+import { useDispatch, useSelector } from 'react-redux';
+import { getToken } from '../../redux/selectors';
+import { setConnections } from '../../redux/actions/connections';
+import { updateToken } from '../../redux/actions/auth';
 
-  showSnackbarVariant = (message, variant) => {
-    this.props.enqueueSnackbar(message, {
-      variant,
-      autoHideDuration: 5000,
-      action: this.action,
-    });
-  };
+const SignIn = ({ enqueueSnackbar, closeSnackbar, classes }) => {
+  const dispatch = useDispatch();
+  const history = useHistory();
 
-  action = (key) => (
-    <Fragment>
-      <Button
-        style={{ color: 'white' }}
-        onClick={() => {
-          this.props.closeSnackbar(key);
-        }}
-      >
-        <strong>Dismiss</strong>
-      </Button>
-    </Fragment>
-  );
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [redirect, setRedirect] = useState(false);
+  const [invalidCredentials, setInvalidCredentials] = useState(false);
 
-  handleChange = (e) => {
-    this.setState({
-      [e.target.name]: e.target.value,
-      invalidCredentials: false,
-    });
-  };
+  const accessToken = useSelector(getToken);
 
-  componentDidMount() {
-    const jwt = this.props.accessToken;
-    if (jwt !== '' && Cookies.get('refreshToken' + process.env.REACT_APP_SERVER_PORT) !== '') {
+  useEffect(() => {
+    if (
+      accessToken !== '' &&
+      Cookies.get('refreshToken' + process.env.REACT_APP_SERVER_PORT) !== ''
+    ) {
       axios
         .get(`${config.endpoint}/users/check-token`, {
-          headers: { Authorization: `Bearer ${jwt}` },
+          headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((res) => {
-          this.setState({ redirect: true });
+          setRedirect(true);
         })
         .catch((err) => {
-          this.props.updateAccessToken('');
+          dispatch(updateToken(''));
         });
     }
 
-    this.setState({ loading: false });
-  }
+    setLoading(false);
+  }, []);
 
-  onSubmit = (e) => {
+  const showSnackbarVariant = (message, variant) => {
+    enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: (key) => (
+        <>
+          <Button
+            style={{ color: 'white' }}
+            onClick={() => {
+              closeSnackbar(key);
+            }}
+          >
+            <strong>Dismiss</strong>
+          </Button>
+        </>
+      ),
+    });
+  };
+
+  const onSubmit = (e) => {
     e.preventDefault();
 
     axios
       .post(
         `${config.endpoint}/users/login`,
         {
-          username: this.state.username,
-          password: this.state.password,
+          username: username,
+          password: password,
         },
         {
           withCredentials: true,
         }
       )
-      .then((res) => {
-        console.log(res.data);
-        this.props.updateAccessToken(res.data.accessToken);
-        this.props.updateConnections(res.data.connections);
-        localStorage.setItem('dids', JSON.stringify(res.data.dids));
-        this.props.history.push('/');
+      .then(({ data: { accessToken, connections, dids } }) => {
+        dispatch(updateToken(accessToken));
+        dispatch(setConnections(connections));
+        localStorage.setItem('dids', JSON.stringify(dids));
+        history.push('/');
       })
       .catch((err) => {
         console.log(err);
         if (err.status === 401) {
-          this.setState({ invalidCredentials: true });
+          setInvalidCredentials(true);
         } else {
-          this.showSnackbarVariant('Error signing in. Please try again.', 'error');
+          showSnackbarVariant('Error signing in. Please try again.', 'error');
         }
       });
   };
 
-  render() {
-    const { classes } = this.props;
-
-    const { loading, redirect } = this.state;
-    if (loading) {
-      return null;
-    }
-    if (redirect) {
-      return <Redirect to="/" />;
-    }
-
-    return (
-      <Grid container component="main" className={classes.root}>
-        <CssBaseline />
-        <Grid item xs={false} sm={5} md={8} className={classes.image} />
-        <Grid item xs={12} sm={7} md={4} component={Paper} elevation={6} square>
-          <div style={{ marginTop: 200 }} className={classes.paper}>
-            <Avatar className={classes.avatar}></Avatar>
-            <Typography component="span" variant="h5">
-              Sign in
-            </Typography>
-            <form className={classes.form} noValidate onSubmit={this.onSubmit}>
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                id="username"
-                label="Username"
-                name="username"
-                autoComplete="username"
-                autoFocus
-                value={this.state.username}
-                onChange={this.handleChange}
-              />
-              <TextField
-                variant="outlined"
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="current-password"
-                value={this.state.password}
-                onChange={this.handleChange}
-              />
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
-              />
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}
-              >
-                Sign In
-              </Button>
-              {this.state.invalidCredentials && (
-                <div className="login-feedback">Invalid credentials</div>
-              )}
-              <Grid container>
-                <Grid item xs>
-                  <Link href="#" variant="body2">
-                    Forgot password?
-                  </Link>
-                </Grid>
-                <Grid item>
-                  <Link href="/register" variant="body2">
-                    {"Don't have an account? Sign Up"}
-                  </Link>
-                </Grid>
-              </Grid>
-            </form>
-          </div>
-        </Grid>
-      </Grid>
-    );
+  if (loading) {
+    return null;
   }
-}
+  if (redirect) {
+    return <Redirect to="/" />;
+  }
+
+  return (
+    <Grid container component="main" className={classes.root}>
+      <CssBaseline />
+      <Grid item xs={false} sm={5} md={8} className={classes.image} />
+      <Grid item xs={12} sm={7} md={4} component={Paper} elevation={6} square>
+        <div style={{ marginTop: 200 }} className={classes.paper}>
+          <Avatar className={classes.avatar}></Avatar>
+          <Typography component="span" variant="h5">
+            Sign in
+          </Typography>
+          <form className={classes.form} noValidate onSubmit={onSubmit}>
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              autoFocus
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <FormControlLabel
+              control={<Checkbox value="remember" color="primary" />}
+              label="Remember me"
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+            >
+              Sign In
+            </Button>
+            {invalidCredentials && <div className="login-feedback">Invalid credentials</div>}
+            <Grid container>
+              <Grid item xs>
+                <Link href="#" variant="body2">
+                  Forgot password?
+                </Link>
+              </Grid>
+              <Grid item>
+                <Link href="/register" variant="body2">
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Grid>
+            </Grid>
+          </form>
+        </div>
+      </Grid>
+    </Grid>
+  );
+};
 
 const useStyles = (theme) => ({
   root: {
@@ -221,24 +215,4 @@ const useStyles = (theme) => ({
   },
 });
 
-const mapStateToProps = (state) => {
-  return {
-    accessToken: state.auth.accessToken,
-  };
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    updateAccessToken: (token) => {
-      dispatch({ type: 'UPDATE_ACCESSTOKEN', token: token });
-    },
-    updateConnections: (connections) => {
-      dispatch({ type: 'INIT_CONNECTIONS', connections: connections });
-    },
-  };
-};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(withStyles(useStyles)(withSnackbar(SignIn)));
+export default withStyles(useStyles)(withSnackbar(SignIn));

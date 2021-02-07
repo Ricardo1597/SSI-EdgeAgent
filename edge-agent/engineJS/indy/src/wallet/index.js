@@ -179,9 +179,13 @@ exports.searchCredentialsForProofRequest = async (proofReq, query = null) => {
   if (!walletHandle) {
     throw new Error(`Wallet has not been initialized yet`);
   }
+  console.log('Cheguei 1.0');
+  console.log(proofReq);
+
   let credentials = {};
   let searchHandle = await sdk.proverSearchCredentialsForProofReq(walletHandle, proofReq, query);
 
+  console.log('Cheguei 1.1');
   try {
     console.log(proofReq);
 
@@ -190,6 +194,7 @@ exports.searchCredentialsForProofRequest = async (proofReq, query = null) => {
     for (const referent in proofReq.requested_attributes) {
       console.log('loop1');
       console.log(referent);
+      console.log(proofReq.requested_attributes[referent]);
       credentials['requested_attributes'][referent] = [];
       while (true) {
         const credentialsResult = await sdk.proverFetchCredentialsForProofReq(

@@ -44,6 +44,7 @@ const WriteCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
 
     // Handle validation
     let errors = formErrors;
+    errors[name] = '';
 
     switch (name) {
       case 'schemaId': // schema:mybc:did:mybc:V4SGRU86Z58d6TV7PBUe6f:2:cc:1.3
@@ -118,7 +119,7 @@ const WriteCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
         </Grid>
         <Grid item xs={12} md={8}>
           <MyFormControl>
-            <InputLabel>DID</InputLabel>
+            <InputLabel>DID *</InputLabel>
             <Select
               required
               label="DID"
@@ -139,10 +140,10 @@ const WriteCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
         </Grid>
         <Grid item xs={12} md={4}>
           <MyFormControl>
-            <InputLabel>Support Revocation</InputLabel>
+            <InputLabel>Revocable *</InputLabel>
             <Select
               required
-              label="Support Revocation"
+              label="With Revocation"
               value={supportRevocation}
               onChange={(e) => setSupportRevocation(e.target.value)}
               inputProps={{

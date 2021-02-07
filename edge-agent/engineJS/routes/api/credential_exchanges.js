@@ -109,6 +109,8 @@ router.post('/:id/send-offer', passport.authenticate('jwt', { session: false }),
   res
 ) {
   try {
+    console.log(indy.recordTypes.RecordType.CredentialExchange);
+    console.log(req.params.id);
     // Get credential exchange record
     let credentialExchangeRecord = await indy.wallet.getWalletRecord(
       indy.recordTypes.RecordType.CredentialExchange,
@@ -122,12 +124,12 @@ router.post('/:id/send-offer', passport.authenticate('jwt', { session: false }),
     );
     return res.status(200).send({ record, messageSent });
   } catch (error) {
-    console.log('Error sending offer: ', error);
+    console.log('Error sending offer: ', JSON.stringify(error));
     if (error.indyCode === 212)
       return res
         .status(400)
-        .send({ error: 'You cannot offer a credential for this credential definition.' });
-    else return res.status(400).send({ error });
+        .send({ message: 'You cannot offer a credential for this credential definition.' });
+    else return res.status(400).send({ message: error });
   }
 });
 
@@ -166,6 +168,7 @@ router.post(
         req.params.id,
         {}
       );
+      console.log('aqui 1');
 
       const [record, messageSent] = await indy.credentialExchange.issuerCreateAndSendCredential(
         credentialExchangeRecord,

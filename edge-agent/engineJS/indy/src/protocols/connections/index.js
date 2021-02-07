@@ -128,11 +128,14 @@ exports.receiveInvitation = async (myAlias, invitation, autoAccept = false) => {
 };
 
 exports.acceptInvitationAndSendRequest = async (connectionId) => {
+  console.log('Cheguei 1: ', connectionId);
   let connection = await this.getConnection(connectionId);
+  console.log('Cheguei 1.1');
 
   if (connection.state != ConnectionState.Invited) {
     throw new Error(`Invalid state trasition.`);
   }
+  console.log('Cheguei 1.2');
 
   // Create did and did document for this specific connection
   const options = { method_name: 'peer' };
@@ -140,6 +143,7 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     'Connection: ' + connection.theirAlias,
     options
   );
+  console.log('Cheguei 1.3');
 
   // Save created did document in the wallet
   await indy.didDoc.addLocalDidDocument(myDidDoc);
@@ -153,6 +157,7 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     connection.invitation['@id'],
     connection.myAlias
   );
+  console.log('Cheguei 1.4');
 
   // Prepare and send connection request
   const [message, endpoint] = await indy.messages.prepareMessage(
@@ -161,6 +166,7 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     connection.invitation
   );
   indy.messages.sendMessage(message, endpoint);
+  console.log('Cheguei 1.5');
 
   // Update connection record
   connection.threadId = connectionRequest['@id'];
@@ -171,11 +177,14 @@ exports.acceptInvitationAndSendRequest = async (connectionId) => {
     connection.connectionId,
     JSON.stringify(connection)
   );
+  console.log('Cheguei 1.6');
+
   await indy.wallet.updateWalletRecordTags(
     indy.recordTypes.RecordType.Connection,
     connection.connectionId,
     { myVerkey: myVerkey }
   );
+  console.log('Cheguei 1.7');
 
   return connection;
 };
@@ -441,20 +450,25 @@ exports.addConnection = async (id, value, tags = {}) => {
 exports.removeConnection = async (connectionId) => {
   let connection = await this.getConnection(connectionId);
 
-  const abandonConnectionMessage = indy.problemReport.messages.createProblemReportMessage(
-    indy.connections.MessageType.ProblemReport,
-    'connection_abandoned',
-    'Connection abandoned.',
-    'connection',
-    connection.threadId
-  );
+  if (
+    connection.state === 'responded' ||
+    connection.state === 'complete' ||
+    connection.state === 'error'
+  ) {
+    const abandonConnectionMessage = indy.problemReport.messages.createProblemReportMessage(
+      indy.connections.MessageType.ProblemReport,
+      'connection_abandoned',
+      'Connection abandoned.',
+      'connection',
+      connection.threadId
+    );
 
-  const [message, endpoint] = await indy.messages.prepareMessage(
-    abandonConnectionMessage,
-    connection
-  );
-  indy.messages.sendMessage(message, endpoint);
-
+    const [message, endpoint] = await indy.messages.prepareMessage(
+      abandonConnectionMessage,
+      connection
+    );
+    indy.messages.sendMessage(message, endpoint);
+  }
   await indy.wallet.deleteWalletRecord(indy.recordTypes.RecordType.Connection, connectionId);
 };
 

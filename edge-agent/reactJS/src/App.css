@@ -7,7 +7,6 @@ nav {
   justify-content: space-between;
   align-items: center;
   min-height: 20;
-  background: rgb(35, 43, 46);
   color: white;
 }
 
@@ -41,8 +40,13 @@ nav {
   background: linear-gradient(135deg, #616ae87c, #a7bfe881);
 }
 
-.root-background {
+.root-background0 {
   background: linear-gradient(135deg, #ced6ee, #e2e2e2bb);
+}
+
+
+.root-background {
+  background-color:  #edf0f1 !important;
 }
 
 .root-background1 {

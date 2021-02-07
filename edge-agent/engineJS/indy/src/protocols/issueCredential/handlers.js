@@ -420,7 +420,7 @@ exports.problemReportHandler = async (decryptedMessage, socket) => {
 
   let credentialExchangeRecord = await credentialsIndex.searchCredentialExchangeRecord({
     connectionId: connection.connectionId,
-    threadId: message['~thread']['thid'],
+    threadId: message['~thread']['pthid'],
   });
   switch (message.description.code) {
     case 'proposal_not_accepted':

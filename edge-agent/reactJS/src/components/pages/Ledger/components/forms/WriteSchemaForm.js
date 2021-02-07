@@ -68,6 +68,7 @@ const CreateSchemaForm = ({ setResult, showSnackbarVariant, accessToken }) => {
 
     // Handle validation
     let errors = formErrors;
+    errors[name] = '';
 
     switch (name) {
       case 'name':

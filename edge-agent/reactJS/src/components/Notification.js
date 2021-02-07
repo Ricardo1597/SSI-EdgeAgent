@@ -178,7 +178,7 @@ const styles = {
 
 const mapStateToProps = (state) => {
   return {
-    connections: state.app.connections,
+    connections: state.conn.connections,
   };
 };
 

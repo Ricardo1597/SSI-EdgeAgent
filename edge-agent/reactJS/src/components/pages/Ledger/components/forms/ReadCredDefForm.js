@@ -24,6 +24,7 @@ const ReadCredDefForm = ({ setResult, showSnackbarVariant, accessToken }) => {
 
     // Handle validation
     let errors = formErrors;
+    errors[name] = '';
 
     switch (name) {
       case 'credDefId': // credDefId: creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1

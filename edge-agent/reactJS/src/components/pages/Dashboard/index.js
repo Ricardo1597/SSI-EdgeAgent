@@ -9,7 +9,9 @@ import CreateDidDialog from './CreateDidDialog';
 import styled from 'styled-components';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import SearchIcon from '@material-ui/icons/Search';
 
 import axios from 'axios';
 import config from '../../../config';
@@ -21,9 +23,36 @@ const S = {
     width: 100%;
     position: relative;
   `,
+  NewDidButton: styled(Button)`
+    width: 150px;
+    height: 35px;
+    background-color: #5577ee !important;
+    color: white !important;
+  `,
+  FilterDiv: styled.div`
+    flex-grow: 1;
+    display: flex;
+    margin-bottom: 15px;
+    margin-top: 25px;
+  `,
+  TopButtonsDiv: styled.div`
+    width: 250px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    margin-right: 20px;
+    margin-bottom: 15px;
+    margin-top: 25px;
+  `,
+  MySearchIcon: styled(SearchIcon)`
+    transform: translateY(4px);
+    margin-right: 10px;
+  `,
 };
 const Dashboard = ({ enqueueSnackbar, closeSnackbar, accessToken }) => {
-  const [dids, setDids] = useState(JSON.parse(localStorage.getItem('dids')));
+  const [dids, setDids] = useState([]);
+  const [filteredDids, setFilteredDids] = useState([]);
+  const [filter, setFilter] = useState('');
   const [width, setWidth] = useState(window.innerWidth);
   const [isCreateDidDialogOpen, setIsCreateDidDialogOpen] = useState(false);
 
@@ -39,6 +68,16 @@ const Dashboard = ({ enqueueSnackbar, closeSnackbar, accessToken }) => {
       window.removeEventListener('resize', updateDimensions);
     };
   }, []);
+
+  useEffect(() => {
+    setDids(JSON.parse(localStorage.getItem('dids')));
+  }, []);
+
+  useEffect(() => {
+    setFilteredDids(
+      (dids || []).filter((did) => did.metadata.alias.toLowerCase().includes(filter))
+    );
+  }, [filter, dids]);
 
   const showSnackbarVariant = (message, variant) => {
     enqueueSnackbar(message, {
@@ -106,45 +145,45 @@ const Dashboard = ({ enqueueSnackbar, closeSnackbar, accessToken }) => {
   return (
     <div
       className={`p-4 root-background`}
-      style={{ minHeight: 'calc(100vh - 50px)', width: '100%' }}
+      style={{ minHeight: 'calc(100vh - 55px)', width: '100%' }}
     >
-      <div>
-        <h2>Welcome to SSI! :)</h2>
-        <p>This is a self-sovereign identity app where you control your own identity!</p>
-      </div>
-
       <S.TableDiv>
         <div style={{ maxWidth: 1500, margin: '0 auto' }}>
+          <Typography component="span" variant="h5">
+            <strong>My Decentralized Identifiers</strong>
+          </Typography>
           <div style={{ display: 'flex', width: '100%' }}>
-            <div style={{ width: 350, marginBottom: 15 }}>
-              <Typography component="span" variant="h5">
-                <strong>My Decentralized Identifiers</strong>
-              </Typography>
-            </div>
-            <div
-              style={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end', marginRight: 10 }}
-            >
+            <S.FilterDiv>
+              <S.MySearchIcon />
+              <TextField
+                fullWidth
+                id="filter"
+                name="filter"
+                placeholder="Search by alias"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+            </S.FilterDiv>
+            <S.TopButtonsDiv>
               <Tooltip title="Register a new DID">
-                <Button
+                <S.NewDidButton
                   type="button"
                   variant="contained"
-                  style={{
-                    width: 150,
-                    marginRight: 10,
-                    height: 35,
-                    backgroundColor: '#24a0ed',
-                    color: 'white',
-                  }}
                   onClick={() => {
                     setIsCreateDidDialogOpen(true);
                   }}
                 >
                   <AddCircleOutlineIcon fontSize="small" style={{ marginRight: 5 }} /> New DID
-                </Button>
+                </S.NewDidButton>
               </Tooltip>
-            </div>
+            </S.TopButtonsDiv>
           </div>
-          <CustomPaginationTable dids={dids} getRole={getRole} />
+          <CustomPaginationTable
+            dids={filteredDids.sort((a, b) =>
+              a.metadata.alias > b.metadata.alias ? 1 : b.metadata.alias > a.metadata.alias ? -1 : 0
+            )}
+            getRole={getRole}
+          />
         </div>
       </S.TableDiv>
       <CreateDidDialog

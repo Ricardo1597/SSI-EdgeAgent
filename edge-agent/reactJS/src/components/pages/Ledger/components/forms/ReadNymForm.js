@@ -24,6 +24,7 @@ const ReadNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
 
     // Handle validation
     let errors = formErrors;
+    errors[name] = '';
 
     switch (name) {
       case 'nym': // did:mybc:Th7MpTaRZVRYnPiabds81Y

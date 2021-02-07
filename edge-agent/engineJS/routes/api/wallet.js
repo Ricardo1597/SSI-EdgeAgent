@@ -18,11 +18,11 @@ router.post('/create-did', passport.authenticate('jwt', { session: false }), asy
     let [newDid, newVerKey] = await indy.did.createDid(alias, options);
 
     // If did is a already a nym (i.e. created with seed), create and send his did document to the ledger
-    if (JSON.parse((await indy.ledger.getNym(newDid)).result.data)) {
+    if (await indy.ledger.getNym(newDid)) {
       await indy.ledger.createNymDocument(newDid, newVerKey);
     }
     let did = await sdk.getMyDidWithMeta(await indy.wallet.get(), newDid);
-    let didInfo = JSON.parse((await indy.ledger.getNym(did.did)).result.data);
+    let didInfo = await indy.ledger.getNym(did.did);
     did.role = didInfo ? didInfo.role : 'no role';
     did.metadata = JSON.parse(did.metadata);
 
@@ -37,7 +37,7 @@ router.post('/create-did', passport.authenticate('jwt', { session: false }), asy
 router.get('/did/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     let did = await sdk.getMyDidWithMeta(await indy.wallet.get(), req.params.id);
-    let didInfo = JSON.parse((await indy.ledger.getNym(did.did)).result.data);
+    let didInfo = await indy.ledger.getNym(did.did);
     did.role = didInfo ? didInfo.role : 'no role';
     did.metadata = JSON.parse(did.metadata);
 
@@ -95,7 +95,7 @@ router.post(
       // Generate nonce if none is passed
       if (!proofRequest.nonce) proofRequest.nonce = indy.presentationExchange.randomNonce();
 
-      let credentials = await indy.wallet.searchCredentialsForProofRequest(req.body.proofRequest);
+      let credentials = await indy.wallet.searchCredentialsForProofRequest(proofRequest);
       res.status(200).send({ credentials });
     } catch (error) {
       console.log(error);

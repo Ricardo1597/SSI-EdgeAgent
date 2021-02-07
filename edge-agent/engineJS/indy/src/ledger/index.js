@@ -68,12 +68,25 @@ async function mkdir(filePath) {
 
 exports.sendNym = async (authDid, newDid, newVerKey, role) => {
   let nymRequest = await sdk.buildNymRequest(authDid, newDid, newVerKey, null, role);
-  return await sdk.signAndSubmitRequest(poolHandle, await indy.wallet.get(), authDid, nymRequest);
+  let nymResponse = await sdk.signAndSubmitRequest(
+    poolHandle,
+    await indy.wallet.get(),
+    authDid,
+    nymRequest
+  );
+  if (nymResponse.op === 'REJECT') {
+    // If nym already exists, only owner can change it
+    throw new Error(nymResponse.reason);
+  } else {
+    console.log(JSON.stringify(nymResponse));
+    return nymResponse.result.txn.data;
+  }
 };
 
 exports.getNym = async (did) => {
-  let getDidRequest = await sdk.buildGetNymRequest(null, did);
-  return await sdk.submitRequest(poolHandle, getDidRequest);
+  let getNymRequest = await sdk.buildGetNymRequest(null, did);
+  let getNymResponse = await sdk.submitRequest(poolHandle, getNymRequest);
+  return JSON.parse(getNymResponse.result.data);
 };
 
 exports.createNymDocument = async (did, verkey = null) => {
@@ -81,7 +94,8 @@ exports.createNymDocument = async (did, verkey = null) => {
   const didDoc = indy.didDoc.createDidDoc(did, verkey);
 
   // Set created did doc as an attribute of the ledger did
-  return await this.setDidAttribute(did, did, null, { 'did-document': didDoc }, null);
+  let didDocResponse = await this.setDidAttribute(did, did, null, { 'did-document': didDoc }, null);
+  return JSON.parse(didDocResponse.result.txn.data.raw)['did-document'];
 };
 
 exports.getTxn = async (did, type, seqNo) => {

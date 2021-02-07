@@ -25,6 +25,7 @@ export default {
         return response;
       },
       (error) => {
+        console.log(JSON.stringify(error));
         return new Promise((resolve, reject) => {
           const originalRequest = error.config;
           const status = error.response.status;
@@ -72,11 +73,11 @@ const refreshAccessToken = async (store) => {
       }
     )
     .then((res) => {
-      store.dispatch({ type: 'UPDATE_ACCESSTOKEN', token: res.data.accessToken });
+      store.dispatch({ type: 'UPDATE_ACCESS_TOKEN', token: res.data.accessToken });
       return res.data.accessToken;
     })
     .catch((error) => {
-      store.dispatch({ type: 'UPDATE_ACCESSTOKEN', token: '' });
+      store.dispatch({ type: 'UPDATE_ACCESS_TOKEN', token: '' });
       return null;
     });
 };

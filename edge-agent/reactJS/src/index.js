@@ -5,7 +5,7 @@ import * as serviceWorker from './serviceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Provider } from 'react-redux';
 import interceptors from './interceptors';
-import { store, persistor } from './store/config';
+import { store, persistor } from './redux/store';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { SnackbarProvider } from 'notistack';
 
@@ -16,7 +16,7 @@ ReactDOM.render(
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <SnackbarProvider maxSnack={4}>
-          <App />
+          <App id="App" />
         </SnackbarProvider>
       </PersistGate>
     </Provider>

@@ -27,7 +27,7 @@ const WriteNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
   const [did, setDid] = useState('');
   const [newDid, setNewDid] = useState('');
   const [newVerkey, setNewVerkey] = useState('');
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState('COMMON_USER');
   const [isMyDid, setIsMyDid] = useState(false);
   const [formErrors, setFormErrors] = useState({
     newDid: '',
@@ -47,9 +47,10 @@ const WriteNymForm = ({ setResult, showSnackbarVariant, accessToken }) => {
 
     // Handle validation
     let errors = formErrors;
+    errors[name] = '';
 
     switch (name) {
-      case 'newDid': // did:mybc:Th7MpTaRZVRYnPiabds81Y
+      case 'newDid': // (did:mybc:)?Th7MpTaRZVRYnPiabds81Y
         setNewDid(value);
         if (!value.match(/^[a-zA-Z0-9:]*$/)) {
           errors['newDid'] = 'Invalid characters';

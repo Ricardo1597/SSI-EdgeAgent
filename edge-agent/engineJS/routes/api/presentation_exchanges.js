@@ -195,7 +195,7 @@ router.post(
   }
 );
 
-// Holder send presentation exchange proposal
+// Holder send presentation
 router.post(
   '/:id/send-presentation',
   passport.authenticate('jwt', { session: false }),

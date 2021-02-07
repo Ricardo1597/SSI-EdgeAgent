@@ -33,7 +33,7 @@ function RecordDetails(props) {
   return (
     <ExchangeDetailsDiv>
       <CardContent className="m-2 pb-2">
-        <div className="scrollBar" style={{ overflowY: 'scroll', height: 'calc(80vh - 45px)' }}>
+        <div className="scrollBar" style={{ overflowY: 'scroll', height: 'calc(85vh - 90px)' }}>
           <Typography variant="h6" component="h2">
             {/* Here i could get the connection alias and display that.*/}
           </Typography>

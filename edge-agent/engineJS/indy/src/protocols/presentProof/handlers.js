@@ -293,7 +293,7 @@ exports.problemReportHandler = async (decryptedMessage, socket) => {
 
   let presentationExchangeRecord = await presentationsIndex.searchPresentationExchangeRecord({
     connectionId: connection.connectionId,
-    threadId: message['~thread']['thid'],
+    threadId: message['~thread']['pthid'],
   });
   switch (message.description.code) {
     case 'proposal_not_accepted':

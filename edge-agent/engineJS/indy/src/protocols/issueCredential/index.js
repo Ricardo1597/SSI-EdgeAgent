@@ -263,6 +263,7 @@ exports.issuerCreateAndSendCredential = async (
   }
   // Get connection to send message (credential)
   const connection = await indy.connections.getConnection(credentialExchangeRecord.connectionId);
+  console.log('aqui 1.1');
 
   // Calculate credential request "data"
   const [, schema] = await indy.ledger.getSchema(null, credentialExchangeRecord.schemaId);
@@ -274,11 +275,14 @@ exports.issuerCreateAndSendCredential = async (
   const encodedValues = createEncodedCredentialValues(credentialValues, schema['attrNames']);
   const credentialOffer = credentialExchangeRecord.credentialOffer;
   const credentialRequest = credentialExchangeRecord.credentialRequest;
+  console.log('aqui 1.2');
 
   // Get credential definition id from record and check for revocation registry
   const credDefId = JSON.parse(credentialExchangeRecord.credentialProposalDict).cred_def_id;
   const [, credDef] = await indy.ledger.getCredDef(null, credDefId);
   let tailsReaderHandler = -1;
+  console.log('aqui 1.3');
+
   if (credDef['value']['revocation']) {
     console.log('This credential support revocation.');
     // Find a active revocation registry record by credDefId
@@ -295,6 +299,12 @@ exports.issuerCreateAndSendCredential = async (
       tailsReaderHandler = await indy.blobStorage.createTailsReader(revocRegRecord.tailsLocalPath);
     }
   }
+  console.log('aqui 1.4');
+  console.log(credentialOffer);
+  console.log(credentialRequest);
+  console.log(encodedValues);
+  console.log(credentialExchangeRecord.revocRegId);
+  console.log(tailsReaderHandler);
 
   const [credential, revocationId] = await indy.issuer.createCredential(
     credentialOffer,
@@ -304,12 +314,16 @@ exports.issuerCreateAndSendCredential = async (
     tailsReaderHandler
   );
 
+  console.log('aqui 1.5');
+  console.log(credential);
+
   const data = Buffer.from(JSON.stringify(credential)).toString('base64');
 
   let credentialIssuedMessage = messages.createCredentialResponse(
     data,
     credentialExchangeRecord.threadId
   );
+  console.log('aqui 1.6');
 
   // Create and send credential message to a given endpoint
   const [message, endpoint] = await indy.messages.prepareMessage(
@@ -328,6 +342,7 @@ exports.issuerCreateAndSendCredential = async (
     credentialExchangeRecord.credentialExchangeId,
     JSON.stringify(credentialExchangeRecord)
   );
+  console.log('aqui 1.7');
 
   if (credentialExchangeRecord.revocRegId) {
     // Update revocation registry record
@@ -342,6 +357,8 @@ exports.issuerCreateAndSendCredential = async (
       JSON.stringify(revocRegRecord)
     );
   }
+
+  console.log('aqui 1.8');
 
   return [credentialExchangeRecord, credentialIssuedMessage];
 };

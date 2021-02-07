@@ -8,32 +8,29 @@ export default function withAuth(ComponentToProtect, accessToken, updateAccessTo
     constructor() {
       super();
       this.state = {
-        loading: true,
         redirect: false,
       };
     }
 
     componentDidMount() {
-      const jwt = accessToken;
+      this.setState({ loading: true });
       axios
         .get(`${config.endpoint}/users/check-token`, {
-          headers: { Authorization: `Bearer ${jwt}` },
+          headers: { Authorization: `Bearer ${accessToken}` },
         })
         .then((res) => {
-          this.setState({ loading: false });
+          // Do nothing
         })
         .catch((err) => {
           console.error('error in withAuth: ', err);
-          this.setState({ loading: false, redirect: true });
+          this.setState({ redirect: true });
           updateAccessToken('');
         });
     }
 
     render() {
-      const { loading, redirect } = this.state;
-      if (loading) {
-        return 'loading';
-      }
+      const { redirect } = this.state;
+
       if (redirect) {
         return <Redirect to="/login" />;
       }

@@ -42,7 +42,7 @@ function ProtectedRoute({ component: Component, accessToken, updateAccessToken, 
 const mapDispatchToProps = (dispatch) => {
   return {
     updateAccessToken: (token) => {
-      dispatch({ type: 'UPDATE_ACCESSTOKEN', token: token });
+      dispatch({ type: 'UPDATE_ACCESS_TOKEN', token: token });
     },
   };
 };

@@ -83,14 +83,14 @@ class SignUp extends Component {
       case 'name':
         if (value.length === 0) {
           errors.name = 'Required';
-        } else if (!value.match(/^[a-zA-Z0-9\-_ ]+$/)) {
+        } else if (!value.match(/^[a-zA-Z\u00C0-\u00ff ]*$/)) {
           errors.name = 'Invalid characters';
         }
         break;
       case 'username':
         if (value.length === 0) {
           errors.username = 'Required';
-        } else if (!value.match(/^[a-zA-Z0-9\-_]+$/)) {
+        } else if (!value.match(/^[a-zA-Z0-9\-_.]+$/)) {
           errors.username = 'Invalid characters';
         }
         break;
@@ -317,7 +317,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     updateAccessToken: (token) => {
-      dispatch({ type: 'UPDATE_ACCESSTOKEN', token: token });
+      dispatch({ type: 'UPDATE_ACCESS_TOKEN', token: token });
     },
   };
 };

@@ -1,93 +1,210 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import TabPanel, { a11yProps } from '../../TabPanel';
-import { withStyles } from '@material-ui/core/styles';
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import JSONPretty from 'react-json-pretty';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import styled from 'styled-components';
+import { withSnackbar } from 'notistack';
 
-import SubmitTransaction from './components/SubmitTransaction';
-import CreateSchema from './components/CreateSchema';
-import CreateCredDef from './components/CreateCredDef';
-import qs from 'qs';
-import CreateNym from './components/CreateNym';
+import ReadSchemaForm from './components/forms/ReadSchemaForm';
+import ReadCredDefForm from './components/forms/ReadCredDefForm';
+import ReadNymForm from './components/forms/ReadNymForm';
+import WriteSchemaForm from './components/forms/WriteSchemaForm';
+import WriteCredDefForm from './components/forms/WriteCredDefForm';
+import WriteNymForm from './components/forms/WriteNymForm';
 
-class Schema extends Component {
-  handleChangeTabs = (e, newValue) => {
-    this.props.history.push(`/ledger?tab=${newValue}`);
+const Root = styled.div`
+  width: '100%';
+  min-height: calc(100vh - 55px);
+`;
+
+const MyFormControl = styled(FormControl)`
+  width: 100%;
+`;
+
+const MyForm = styled.div`
+  margin-top: 30px;
+`;
+
+const FormDiv = styled.div`
+  width: 500px;
+  padding: 40px;
+  text-align: center;
+  background-color: white;
+`;
+
+const ResultDiv = styled.div`
+  padding: 10px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  background-color: white;
+  width: calc(100vw - 575px);
+`;
+
+const Result = styled.div`
+  padding: 20px;
+  padding-bottom: 0px;
+  min-height: calc(100vh - 210px);
+  overflow-y: scroll;
+  overflow-x: scroll;
+  text-align: start;
+`;
+
+const GridForm = styled(Grid)`
+  border-radius: 5;
+`;
+
+const GridResult = styled(Grid)`
+  border-radius: 5;
+  flex-grow: 1 !important; // needed to force the use of this style
+  min-width: 500;
+`;
+
+const SubmitTransaction = ({ enqueueSnackbar, closeSnackbar }) => {
+  const [type, setType] = useState('read');
+  const [operation, setOperation] = useState(null);
+  const [result, setResult] = useState('');
+
+  const showSnackbarVariant = (message, variant) => {
+    enqueueSnackbar(message, {
+      variant,
+      autoHideDuration: 5000,
+      action: (key) => (
+        <>
+          <Button
+            style={{ color: 'white' }}
+            onClick={() => {
+              closeSnackbar(key);
+            }}
+          >
+            <strong>Dismiss</strong>
+          </Button>
+        </>
+      ),
+    });
   };
 
-  getDIDPermissions = () => {
+  const getDIDPermissions = () => {
     const dids = JSON.parse(localStorage.getItem('dids'));
-    return dids && dids.filter((did) => did.role !== null && did.role !== 'no role').length > 0
+    return dids &&
+      dids.filter((did) => did.role !== null && did.role !== 'no role' && did.role !== '201')
+        .length > 0
       ? true
       : false;
   };
 
-  render() {
-    const { classes } = this.props;
-    const search = qs.parse(this.props.location.search, { ignoreQueryPrefix: true });
-    const tab = parseInt(search.tab) || 0;
+  const transactionForm = () => {
+    if (type === 'read') {
+      switch (operation) {
+        case 'schema':
+          return <ReadSchemaForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
+        case 'credDef':
+          return (
+            <ReadCredDefForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />
+          );
+        case 'nym':
+          return <ReadNymForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
+        default:
+          return null;
+      }
+    } else if (type === 'write' && getDIDPermissions()) {
+      switch (operation) {
+        case 'schema':
+          return (
+            <WriteSchemaForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />
+          );
+        case 'credDef':
+          return (
+            <WriteCredDefForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />
+          );
+        case 'nym':
+          return <WriteNymForm setResult={setResult} showSnackbarVariant={showSnackbarVariant} />;
+        default:
+          return null;
+      }
+    } else return null;
+  };
 
-    return (
-      <div
-        className={`${classes.root} root-background`}
-        style={{ minHeight: 'calc(100vh - 50px)' }}
-      >
-        <AppBar position="static" color="default">
-          <Tabs
-            value={tab}
-            onChange={this.handleChangeTabs}
-            indicatorColor="primary"
-            textColor="primary"
-          >
-            <Tab className={classes.button} label="Get Transaction" {...a11yProps(0)} />
-            {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Create Schema" {...a11yProps(1)} />
-            ) : null}
-            {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Create Cred Def" {...a11yProps(2)} />
-            ) : null}
-            {this.getDIDPermissions() ? (
-              <Tab className={classes.button} label="Create Nym" {...a11yProps(3)} />
-            ) : null}
-          </Tabs>
-        </AppBar>
-        <TabPanel value={tab} index={0}>
-          <SubmitTransaction />
-        </TabPanel>
-        {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={1}>
-            <CreateSchema />
-          </TabPanel>
-        ) : null}
-        {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={2}>
-            <CreateCredDef />
-          </TabPanel>
-        ) : null}
-        {this.getDIDPermissions() ? (
-          <TabPanel value={tab} index={3}>
-            <CreateNym />
-          </TabPanel>
-        ) : null}
-      </div>
-    );
-  }
-}
+  return (
+    <Root className="root-background p-4">
+      <Grid container>
+        <GridForm item>
+          <FormDiv>
+            <Typography component="span" variant="h5">
+              Submit Transaction
+            </Typography>
+            <MyForm>
+              <Grid container align="left" spacing={3}>
+                <Grid item xs={4}>
+                  <MyFormControl>
+                    <InputLabel>Type *</InputLabel>
+                    <Select
+                      required
+                      fullWidth
+                      label="Type"
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                    >
+                      <MenuItem value="read">Read</MenuItem>
+                      <MenuItem value="write">Write</MenuItem>
+                    </Select>
+                  </MyFormControl>
+                </Grid>
+                <Grid item xs={8}>
+                  <MyFormControl>
+                    <InputLabel>Operation *</InputLabel>
+                    {type === 'read' ? ( // no permissions needed
+                      <Select
+                        required
+                        fullWidth
+                        label="Operation"
+                        value={operation}
+                        onChange={(e) => setOperation(e.target.value)}
+                      >
+                        <MenuItem value="schema">Schema</MenuItem>
+                        <MenuItem value="credDef">Credential Definition</MenuItem>
+                        <MenuItem value="nym">Nym</MenuItem>
+                      </Select>
+                    ) : type === 'write' && getDIDPermissions() ? (
+                      <Select
+                        required
+                        fullWidth
+                        label="Operation"
+                        value={operation}
+                        onChange={(e) => setOperation(e.target.value)}
+                      >
+                        <MenuItem value="schema">Schema</MenuItem>
+                        <MenuItem value="credDef">Credential Definition</MenuItem>
+                        <MenuItem value="nym">Nym</MenuItem>
+                      </Select>
+                    ) : null}
+                  </MyFormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  {transactionForm()}
+                </Grid>
+              </Grid>
+            </MyForm>
+          </FormDiv>
+        </GridForm>
+        <GridResult item className="ml-4" align="center">
+          <ResultDiv>
+            <Typography component="span" variant="h6">
+              <strong>Transaction Result</strong>
+            </Typography>
+            <Result className="scrollBar">
+              <JSONPretty data={result}></JSONPretty>
+            </Result>
+          </ResultDiv>
+        </GridResult>
+      </Grid>
+    </Root>
+  );
+};
 
-// Styles
-const useStyles = (theme) => ({
-  root: {
-    flexGrow: 1,
-    width: '100%',
-    backgroundColor: theme.palette.background.paper,
-  },
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-});
-
-export default withStyles(useStyles)(Schema);
+export default withSnackbar(SubmitTransaction);

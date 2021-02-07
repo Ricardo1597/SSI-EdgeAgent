@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 // Components
-import Nav from './components/MyNavbar';
+import Nav from './components/Navbar';
 import Credentials from './components/pages/Credentials';
 import Presentations from './components/pages/Presentations';
 import Dashboard from './components/pages/Dashboard';
@@ -11,52 +11,86 @@ import Login from './components/pages/SignIn';
 import Register from './components/pages/SignUp';
 import Ledger from './components/pages/Ledger';
 import Revocations from './components/pages/Revocations';
+
+import Exchanges from './components/pages/Exchanges';
+import MyConnections from './components/pages/MyConnections';
+import MyWallet from './components/pages/MyWallet';
+import NotFound from './components/pages/NotFound/index';
+
 import withAuth from './components/withAuth';
-import { connect } from 'react-redux';
+
 import './App.css';
 
 import Notifications from './components/Notification';
 
-function App({ accessToken, updateAccessToken }) {
+// Redux
+import { useSelector, useDispatch } from 'react-redux';
+import { updateToken } from './redux/actions/auth';
+import { getToken } from './redux/selectors';
+
+function App() {
+  const dispatch = useDispatch();
+
+  const accessToken = useSelector(getToken);
+
+  const updateAccessToken = (token) => {
+    dispatch(updateToken(token));
+  };
+
   const protectRoute = (component) => {
     return withAuth(component, accessToken, updateAccessToken);
+  };
+
+  const withNav = (MyComponent) => {
+    return class extends Component {
+      constructor() {
+        super();
+      }
+
+      render() {
+        return (
+          <>
+            <Nav />
+            <MyComponent {...this.props} />
+          </>
+        );
+      }
+    };
   };
 
   return (
     <div>
       <Router>
-        <Nav />
         <Notifications />
-        <Switch>
-          <Route exact path="/" component={protectRoute(Dashboard)} />
-          <Route exact path="/login" component={Login} />
-          <Route exact path="/register" component={Register} />
-          <Route exact path="/credentials" component={protectRoute(Credentials)} />
-          <Route exact path="/presentations" component={protectRoute(Presentations)} />
-          <Route exact path="/connections" component={protectRoute(Connections)} />
-          <Route exact path="/ledger" component={protectRoute(Ledger)} />
-          <Route exact path="/revocations" component={protectRoute(Revocations)} />
-        </Switch>
+
+        <div id="pageContent">
+          <Switch>
+            <Route exact path="/login" component={Login} />
+            <Route exact path="/register" component={Register} />
+            <Route exact path="/" component={protectRoute(withNav(Dashboard))} />
+            <Route exact path="/home" component={protectRoute(withNav(Dashboard))} />
+            <Route
+              exact
+              path="/exchanges(/[a-zA-Z0-9\-]*)?"
+              component={protectRoute(withNav(Exchanges))}
+            />
+            <Route
+              exact
+              path="/connections(/[a-zA-Z0-9\-]*)?"
+              component={protectRoute(withNav(MyConnections))}
+            />
+            <Route
+              exact
+              path="/wallet(/[a-zA-Z0-9\-]*)?"
+              component={protectRoute(withNav(MyWallet))}
+            />
+            <Route exact path="/ledger" component={protectRoute(withNav(Ledger))} />
+            <Route path="*" component={NotFound} />
+          </Switch>
+        </div>
       </Router>
     </div>
   );
 }
 
-// Styles
-const styles = {};
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    updateAccessToken: (token) => {
-      dispatch({ type: 'UPDATE_ACCESSTOKEN', token: token });
-    },
-  };
-};
-
-const mapStateToProps = (state) => {
-  return {
-    accessToken: state.auth.accessToken,
-  };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default App;
