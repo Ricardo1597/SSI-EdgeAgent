@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useEffect } from 'react';
 import io from 'socket.io-client';
 import config from '../config';
 import ReactNotifications from 'react-notifications-component';
@@ -18,26 +18,13 @@ function Notifications({ updateConnection, enqueueSnackbar, closeSnackbar }) {
     enqueueSnackbar(message, options);
   };
 
-  const action = (key) => (
-    <Fragment>
-      <Button
-        style={{ color: 'white' }}
-        onClick={() => {
-          closeSnackbar(key);
-        }}
-      >
-        <strong>Dismiss</strong>
-      </Button>
-    </Fragment>
-  );
-
   useEffect(() => {
     socket = io(config.agentEndpoint);
     return () => {
       socket.emit('disconnect');
       socket.off();
     };
-  }, [config.agentEndpoint]);
+  }, []);
 
   useEffect(() => {
     socket.on('notification', (notification) => {
@@ -68,7 +55,18 @@ function Notifications({ updateConnection, enqueueSnackbar, closeSnackbar }) {
           vertical: 'top',
           horizontal: 'center',
         },
-        action,
+        action: (key) => (
+          <>
+            <Button
+              style={{ color: 'white' }}
+              onClick={() => {
+                closeSnackbar(key);
+              }}
+            >
+              <strong>Dismiss</strong>
+            </Button>
+          </>
+        ),
       });
     });
   }, []);

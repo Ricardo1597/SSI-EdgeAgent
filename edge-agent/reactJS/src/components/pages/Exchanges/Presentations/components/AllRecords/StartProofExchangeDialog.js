@@ -31,11 +31,11 @@ const StartProofExchangeDialog = ({ isOpen, handleClose }) => {
       fullWidth={true}
       maxWidth={selectedOperation === 2 ? 'sm' : 'sm'}
     >
-      {selectedOperation == 1 ? (
+      {selectedOperation === 1 ? (
         <DialogContent className="p-0">
           <ProposePresentation closeDialog={handleCloseDialog} />
         </DialogContent>
-      ) : selectedOperation == 2 ? (
+      ) : selectedOperation === 2 ? (
         <DialogContent className="p-0">
           <RequestPresentation closeDialog={handleCloseDialog} />
         </DialogContent>

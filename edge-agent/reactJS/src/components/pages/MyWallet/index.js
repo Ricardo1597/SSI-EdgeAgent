@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 
 import Divider from '@material-ui/core/Divider';
@@ -48,16 +48,6 @@ const SidebarItem = styled.div`
   }
 `;
 
-const BodyTitle = styled.div`
-  display: flex;
-  align-items: center;
-  height: 50px;
-  padding-left: 25px;
-  font-size: 1.4em;
-  background-color: #fafafa;
-  border-bottom: #dddddd 1px solid;
-`;
-
 const Exchanges = () => {
   const history = useHistory();
   const location = useLocation();
@@ -66,7 +56,7 @@ const Exchanges = () => {
   useEffect(() => {
     const path = location.pathname.split('/')[2];
     if (!path) history.push('/wallet/dids');
-  }, [location.pathname]);
+  }, [location.pathname, history]);
 
   const renderSwitch = () => {
     const path = location.pathname.split('/')[2];

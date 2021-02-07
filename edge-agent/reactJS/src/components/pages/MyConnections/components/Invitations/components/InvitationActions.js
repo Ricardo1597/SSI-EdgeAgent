@@ -1,7 +1,6 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
 import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
@@ -81,19 +80,18 @@ function InvitationActions({
       });
   };
 
-  const deleteInvitation = (id) => {
-    // axios.delete(`${config.endpoint}/api/connections/invitations/${id}`, {
-    //     headers: { Authorization: `Bearer ${accessToken}`}
-    // })
-    // .then(res => {
-    //     console.log(res.data.id)
-    // })
-    // .catch(err => {
-    //       console.error(err);
-    //       alert('Error deleting invitation. Please try again.');
-    // });
-    console.log('Action not available yet!\nID: ', id);
-  };
+  // const deleteInvitation = (id) => {
+  //   axios.delete(`${config.endpoint}/api/connections/invitations/${id}`, {
+  //       headers: { Authorization: `Bearer ${accessToken}`}
+  //   })
+  //   .then(res => {
+  //       console.log(res.data.id)
+  //   })
+  //   .catch(err => {
+  //         console.error(err);
+  //         alert('Error deleting invitation. Please try again.');
+  //   });
+  // };
 
   const { invitationId, isActive } = invitation;
 

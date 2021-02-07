@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import Button from '@material-ui/core/Button';
@@ -53,7 +53,7 @@ const Credentials = ({ enqueueSnackbar, closeSnackbar }) => {
       variant,
       autoHideDuration: 5000,
       action: (key) => (
-        <Fragment>
+        <>
           <Button
             style={{ color: 'white' }}
             onClick={() => {
@@ -62,7 +62,7 @@ const Credentials = ({ enqueueSnackbar, closeSnackbar }) => {
           >
             <strong>Dismiss</strong>
           </Button>
-        </Fragment>
+        </>
       ),
     });
   };

@@ -26,11 +26,11 @@ const StartConnectionDialog = ({ isOpen, handleClose, addConnection }) => {
 
   return (
     <Dialog open={isOpen} onClose={handleCloseDialog}>
-      {selectedOperation == 0 ? (
+      {selectedOperation === 0 ? (
         <DialogContent className="p-0">
           <CreateInvitation />
         </DialogContent>
-      ) : selectedOperation == 1 ? (
+      ) : selectedOperation === 1 ? (
         <DialogContent className="p-0">
           <ReceiveInvitation addConnection={addConnection} />
         </DialogContent>

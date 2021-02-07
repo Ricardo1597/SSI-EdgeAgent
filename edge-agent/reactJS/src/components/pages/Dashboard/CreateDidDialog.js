@@ -2,34 +2,12 @@ import React, { useState } from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
-import { makeStyles } from '@material-ui/core/styles';
 import { Dialog } from '@material-ui/core';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-const useStyles = makeStyles((theme) => ({
-  btn: {
-    height: 40,
-    marginTop: 20,
-  },
-  paper: {
-    marginTop: 40,
-    padding: 20,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    width: '100%',
-  },
-  form: {
-    marginTop: theme.spacing(2),
-    width: '100%',
-  },
-}));
-
 const CreateDidDialog = ({ isOpen, handleClose, onCreateDid }) => {
-  const classes = useStyles();
-
   const [seed, setSeed] = useState('');
   const [didAlias, setDidAlias] = useState('');
   const [formErrors, setFormErrors] = useState({

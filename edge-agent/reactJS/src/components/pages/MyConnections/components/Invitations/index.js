@@ -7,7 +7,6 @@ import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container';
 import { withSnackbar } from 'notistack';
 
 import InvitationActions from './components/InvitationActions.js';
@@ -82,7 +81,7 @@ const Invitations = ({ enqueueSnackbar, closeSnackbar, classes }) => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [accessToken, showSnackbarVariant]);
 
   const showSnackbarVariant = (message, variant) => {
     enqueueSnackbar(message, {
@@ -139,7 +138,7 @@ const Invitations = ({ enqueueSnackbar, closeSnackbar, classes }) => {
     <S.Root>
       <S.Title>Invitations</S.Title>
       <Grid container className="px-4 py-2">
-        <S.GridCard item item>
+        <S.GridCard item>
           <S.SideListDiv className="p-1">
             <div className="py-3 pr-3">
               <ListOfExchanges

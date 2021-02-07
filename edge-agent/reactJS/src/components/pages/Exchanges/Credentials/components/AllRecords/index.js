@@ -12,11 +12,7 @@ import { transformCredentialState } from '../../../../../../resources/utils';
 
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  addCredExchange,
-  updateCredExchange,
-  removeCredExchange,
-} from '../../../../../../redux/actions/credExchanges';
+import { addCredExchange, removeCredExchange } from '../../../../../../redux/actions/credExchanges';
 import { getCredExchanges } from '../../../../../../redux/selectors';
 
 const S = {
@@ -78,7 +74,7 @@ const AllRecords = ({ recordId, enqueueSnackbar, closeSnackbar, isLoading }) => 
         if (selectedExchange !== updatedSelected) setSelectedExchange(updatedSelected);
       }
     }
-  }, [exchanges]);
+  }, [exchanges, recordId, selectedExchange]);
 
   const showSnackbarVariant = (message, variant) => {
     enqueueSnackbar(message, {

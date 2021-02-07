@@ -113,7 +113,7 @@ class StepForm extends Component {
       case 'credDefId': // credDefId: creddef:mybc:did:mybc:EbP4aYNeTHL6q385GuVpRV:3:CL:14:TAG1
         if (value.length < 1) {
           errors['credDefId'] = 'Cannot be empty';
-        } else if (!value.match(/^[a-zA-Z0-9:\-]+$/)) {
+        } else if (!value.match(/^[a-zA-Z0-9:-]+$/)) {
           errors['credDefId'] = 'Invalid characters';
         }
         break;

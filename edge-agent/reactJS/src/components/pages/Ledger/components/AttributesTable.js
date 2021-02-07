@@ -11,7 +11,6 @@ import EditOutlinedIcon from '@material-ui/icons/EditOutlined';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 import { TableHead } from '@material-ui/core';
-import { AutoSizer } from 'react-virtualized';
 
 const columns = [{ id: 'name', label: 'Name', width: 240 }];
 

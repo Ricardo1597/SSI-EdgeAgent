@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
 import styled from 'styled-components';
 
 const ConnectionDetailsDiv = styled.div`
@@ -12,7 +11,6 @@ const ConnectionDetailsDiv = styled.div`
 `;
 
 function ConnectionDetails({ connection }) {
-  const classes = useStyles();
   const { state, stateToDisplay, theirAlias, connectionId, myDid, myVerkey, error } = connection;
 
   return (
@@ -61,14 +59,5 @@ function ConnectionDetails({ connection }) {
 ConnectionDetails.propTypes = {
   connection: PropTypes.object.isRequired,
 };
-
-// Styles
-const useStyles = makeStyles((theme) => ({
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-}));
 
 export default ConnectionDetails;

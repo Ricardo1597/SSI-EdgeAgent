@@ -12,7 +12,6 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import { withSnackbar } from 'notistack';
-import Paper from '@material-ui/core/Paper';
 import styled from 'styled-components';
 import TabPanel from '../../../../../TabPanel';
 
@@ -21,8 +20,6 @@ import AttributeDialog from '../AttributeDialog';
 
 import axios from 'axios';
 import config from '../../../../../../config';
-
-import { connect } from 'react-redux';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTable } from '@fortawesome/free-solid-svg-icons';
@@ -586,14 +583,14 @@ const RequestPresentation = ({
                   <MyFontAwesomeIcon
                     icon={faTable}
                     style={{
-                      color: tab == 0 ? '#3355cc' : 'black',
+                      color: tab === 0 ? '#3355cc' : 'black',
                     }}
                     onClick={() => setTab(0)}
                   />
                   <MyFontAwesomeIcon
                     icon={faCode}
                     style={{
-                      color: tab == 1 ? '#3355cc' : 'black',
+                      color: tab === 1 ? '#3355cc' : 'black',
                       marginRight: 3,
                     }}
                     onClick={() => setTab(1)}

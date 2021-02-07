@@ -55,7 +55,7 @@ const SideList = ({
         }
       }
     }
-  }, [exchanges]);
+  }, [exchanges, changeExchange, selectedExchange, tab]);
 
   const handleChangeTabs = (e, newValue) => {
     if (newValue !== tab) {

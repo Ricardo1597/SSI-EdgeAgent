@@ -39,11 +39,11 @@ const StartCredExchangeDialog = ({ isOpen, handleClose, addExchange }) => {
 
   return (
     <Dialog open={isOpen} onClose={handleCloseDialog}>
-      {selectedOperation == 0 ? (
+      {selectedOperation === 0 ? (
         <DialogContent className="p-0">
           <ProposeCredential addExchange={addExchange} handleClose={handleCloseDialog} />
         </DialogContent>
-      ) : selectedOperation == 1 ? (
+      ) : selectedOperation === 1 ? (
         <DialogContent className="p-0">
           <OfferCredential addExchange={addExchange} handleClose={handleCloseDialog} />
         </DialogContent>

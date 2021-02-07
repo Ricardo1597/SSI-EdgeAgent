@@ -1,18 +1,15 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import Container from '@material-ui/core/Container';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import { Typography } from '@material-ui/core';
@@ -138,7 +135,7 @@ export default function AddAttributeDialog({
         setAttrValue(value);
         if (value.length < 1) {
           errors['attrValue'] = 'Cannot be empty';
-        } else if (!value.match(/^[a-zA-Z0-9:_\-]+$/)) {
+        } else if (!value.match(/^[a-zA-Z0-9:_-]+$/)) {
           errors['attrValue'] = 'Invalid characters';
         }
         break;
@@ -198,7 +195,7 @@ export default function AddAttributeDialog({
         setCredDefId(value);
         if (value.length < 1) {
           errors['credDefId'] = 'Cannot be empty';
-        } else if (!value.match(/^[a-zA-Z0-9:_\-]+$/)) {
+        } else if (!value.match(/^[a-zA-Z0-9:_-]+$/)) {
           errors['credDefId'] = 'Invalid characters';
         }
         break;
@@ -317,7 +314,7 @@ export default function AddAttributeDialog({
                 </Grid>
               ) : null}
               {isRequest ? (
-                <Fragment>
+                <>
                   <Grid item xs={12}>
                     <Grid container spacing={4}>
                       <Grid item xs={6}>
@@ -394,7 +391,7 @@ export default function AddAttributeDialog({
                       </Grid>
                     </Grid>
                   </Grid>
-                </Fragment>
+                </>
               ) : null}
               {!isRequest ? (
                 <Grid item xs={12}>
@@ -411,7 +408,7 @@ export default function AddAttributeDialog({
                   />
                 </Grid>
               ) : (
-                <Fragment>
+                <>
                   <div
                     style={{
                       marginTop: 10,
@@ -551,7 +548,7 @@ export default function AddAttributeDialog({
                       </Grid>
                     ) : null}
                   </Grid>
-                </Fragment>
+                </>
               )}
             </Grid>
           </MyDialogContent>

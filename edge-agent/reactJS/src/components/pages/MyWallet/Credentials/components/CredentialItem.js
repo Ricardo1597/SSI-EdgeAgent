@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -6,21 +6,21 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 
 function CredentialItem(props) {
-  const getValidityStyle = () => {
-    var daysLeft = Math.ceil(
-      Math.abs(props.credential.validity - new Date()) / (1000 * 60 * 60 * 24)
-    );
-    if (daysLeft < 0) return { backgroundColor: '#DCDCDC' };
-    else if (daysLeft < 30) return { backgroundColor: '#FFA07A' };
-    else if (daysLeft < 360) return { backgroundColor: '#FFFF00' };
-    else return { backgroundColor: '#F0FFFF' };
-  };
+  // const getValidityStyle = () => {
+  //   var daysLeft = Math.ceil(
+  //     Math.abs(props.credential.validity - new Date()) / (1000 * 60 * 60 * 24)
+  //   );
+  //   if (daysLeft < 0) return { backgroundColor: '#DCDCDC' };
+  //   else if (daysLeft < 30) return { backgroundColor: '#FFA07A' };
+  //   else if (daysLeft < 360) return { backgroundColor: '#FFFF00' };
+  //   else return { backgroundColor: '#F0FFFF' };
+  // };
 
   const classes = useStyles();
   const { attrs, schema_id, cred_def_id, referent } = props.credential;
   const schemaParts = schema_id.split(':');
   const schemaName = schemaParts[schemaParts.length - 2];
-  const schemaVersion = schemaParts[schemaParts.length - 1];
+  // const schemaVersion = schemaParts[schemaParts.length - 1];
   const credDefParts = cred_def_id.split(':');
   const issuer =
     credDefParts[credDefParts.length - 7] +

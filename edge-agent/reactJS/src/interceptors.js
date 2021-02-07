@@ -1,6 +1,6 @@
 import axios from 'axios';
 import config from './config';
-import apiAxios from './axiosInstances';
+// import apiAxios from './axiosInstances';
 
 export default {
   setupInterceptors: (store) => {

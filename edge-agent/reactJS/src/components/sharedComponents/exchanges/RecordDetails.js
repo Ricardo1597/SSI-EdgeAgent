@@ -1,10 +1,10 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import JSONPretty from 'react-json-pretty';
 import styled from 'styled-components';
-import PresentationCard from '../../pages/Presentations/components/PresentationCard';
+import PresentationCard from '../../pages/Exchanges/Presentations/components/PresentationCard';
 
 const ExchangeDetailsDiv = styled.div`
   margin: 10px !important;
@@ -25,7 +25,7 @@ function RecordDetails(props) {
     recordId,
     proposal,
     request,
-    credential,
+    // credential,
     presentation,
     verified,
   } = props.record;

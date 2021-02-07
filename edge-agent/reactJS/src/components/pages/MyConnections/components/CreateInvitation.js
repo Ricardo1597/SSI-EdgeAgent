@@ -13,8 +13,6 @@ import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import JSONPretty from 'react-json-pretty';
-import QRCode from 'qrcode.react';
 import { connect } from 'react-redux';
 import { withSnackbar } from 'notistack';
 

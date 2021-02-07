@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import JSONPretty from 'react-json-pretty';
-import { makeStyles } from '@material-ui/core/styles';
 
 import styled from 'styled-components';
 
@@ -16,7 +15,6 @@ const InvitationDetailsDiv = styled.div`
 `;
 
 function InvitationDetails(props) {
-  const classes = useStyles();
   const {
     alias,
     invitationId,
@@ -78,15 +76,6 @@ function InvitationDetails(props) {
 InvitationDetails.propTypes = {
   invitation: PropTypes.object.isRequired,
 };
-
-// Styles
-const useStyles = makeStyles((theme) => ({
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-}));
 
 const mapStateToProps = (state) => {
   return {

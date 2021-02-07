@@ -128,7 +128,7 @@ export default function RegistriesTable({
                       className="mr-3"
                       onClick={(event) => {
                         event.stopPropagation();
-                        row.pendingRevocations == 0
+                        row.pendingRevocations === 0
                           ? alert('The registry selected does not have pending Revocations.')
                           : onPublishPending(row.registry.revocRegid);
                       }}

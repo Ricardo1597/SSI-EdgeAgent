@@ -1,7 +1,6 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Button from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
 import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
@@ -207,15 +206,6 @@ function ConnectionActions({
 ConnectionActions.propTypes = {
   connection: PropTypes.object.isRequired,
 };
-
-// Styles
-const useStyles = makeStyles((theme) => ({
-  button: {
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-}));
 
 const mapStateToProps = (state) => {
   return {

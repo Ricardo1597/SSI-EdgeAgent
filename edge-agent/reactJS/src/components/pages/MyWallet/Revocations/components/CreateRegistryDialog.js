@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
@@ -13,7 +13,6 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-import uuid from 'uuid';
 import { connect } from 'react-redux';
 
 class CreateRegistryDialog extends Component {
@@ -41,14 +40,14 @@ class CreateRegistryDialog extends Component {
       case 'credDefId':
         if (value.length < 1) {
           errors['credDefId'] = 'Cannot be empty';
-        } else if (!value.match(/^[a-zA-Z0-9:_\-]+$/)) {
+        } else if (!value.match(/^[a-zA-Z0-9:_-]+$/)) {
           errors['credDefId'] = 'Invalid characters';
         }
         break;
       case 'name':
         if (value.length < 1) {
           errors['name'] = 'Cannot be empty';
-        } else if (!value.match(/^[a-zA-Z0-9:\ _\-.\u00C0-\u00ff]+$/)) {
+        } else if (!value.match(/^[a-zA-Z0-9: _\-.\u00C0-\u00ff]+$/)) {
           errors['name'] = 'Invalid characters';
         }
         break;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import axios from 'axios';
 import config from '../../../../../../config';
@@ -6,16 +6,11 @@ import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-import Container from '@material-ui/core/Container';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { withSnackbar } from 'notistack';
-
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
 
 //Redux
 import { useSelector } from 'react-redux';
@@ -72,7 +67,7 @@ const SendPresentationDialog = ({ record, enqueueSnackbar, closeSnackbar, classe
       variant,
       autoHideDuration: 5000,
       action: (key) => (
-        <Fragment>
+        <>
           <Button
             style={{ color: 'white' }}
             onClick={() => {
@@ -81,7 +76,7 @@ const SendPresentationDialog = ({ record, enqueueSnackbar, closeSnackbar, classe
           >
             <strong>Dismiss</strong>
           </Button>
-        </Fragment>
+        </>
       ),
     });
   };
@@ -92,23 +87,23 @@ const SendPresentationDialog = ({ record, enqueueSnackbar, closeSnackbar, classe
     setDinamicInputs(inputs);
   };
 
-  const isValid = () => {
-    let isValid = true;
-    Object.values(dinamicInputs.requested_attributes || {}).forEach((value) => {
-      console.log(value != null && value != '');
-      isValid = isValid && value != null && value != '';
-    });
-    Object.values(dinamicInputs.requested_predicates || {}).forEach((value) => {
-      console.log(value != null && value != '');
-      isValid = isValid && value != null && value != '';
-    });
-    Object.values(dinamicInputs.self_attested_attributes || {}).forEach((value) => {
-      console.log(value != null && value != '');
-      isValid = isValid && value != null && value != '';
-    });
+  // const isValid = () => {
+  //   let isValid = true;
+  //   Object.values(dinamicInputs.requested_attributes || {}).forEach((value) => {
+  //     console.log(value != null && value !== '');
+  //     isValid = isValid && value != null && value !== '';
+  //   });
+  //   Object.values(dinamicInputs.requested_predicates || {}).forEach((value) => {
+  //     console.log(value != null && value !== '');
+  //     isValid = isValid && value != null && value !== '';
+  //   });
+  //   Object.values(dinamicInputs.self_attested_attributes || {}).forEach((value) => {
+  //     console.log(value != null && value !== '');
+  //     isValid = isValid && value != null && value !== '';
+  //   });
 
-    return isValid;
-  };
+  //   return isValid;
+  // };
 
   const onSubmit = (e) => {
     e.preventDefault();

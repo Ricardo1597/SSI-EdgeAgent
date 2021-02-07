@@ -1,5 +1,4 @@
-import React, { Component, Fragment, useState, useEffect } from 'react';
-import { withStyles } from '@material-ui/core/styles';
+import React, { useState, useEffect } from 'react';
 
 import Button from '@material-ui/core/Button';
 import { connect } from 'react-redux';
@@ -8,7 +7,6 @@ import CustomPaginationTable from './DidTable/DidTable';
 import CreateDidDialog from './CreateDidDialog';
 import styled from 'styled-components';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import SearchIcon from '@material-ui/icons/Search';
@@ -60,21 +58,21 @@ const Dashboard = ({ enqueueSnackbar, closeSnackbar, accessToken }) => {
   const [dids, setDids] = useState([]);
   const [filteredDids, setFilteredDids] = useState([]);
   const [filter, setFilter] = useState('');
-  const [width, setWidth] = useState(window.innerWidth);
+  // const [width, setWidth] = useState(window.innerWidth);
   const [isCreateDidDialogOpen, setIsCreateDidDialogOpen] = useState(false);
 
-  const updateDimensions = () => {
-    setWidth(window.innerWidth);
-  };
+  // const updateDimensions = () => {
+  //   setWidth(window.innerWidth);
+  // };
 
-  useEffect(() => {
-    // subscribe event
-    window.addEventListener('resize', updateDimensions);
-    return () => {
-      // unsubscribe event
-      window.removeEventListener('resize', updateDimensions);
-    };
-  }, []);
+  // useEffect(() => {
+  //   // subscribe event
+  //   window.addEventListener('resize', updateDimensions);
+  //   return () => {
+  //     // unsubscribe event
+  //     window.removeEventListener('resize', updateDimensions);
+  //   };
+  // }, []);
 
   useEffect(() => {
     setDids(JSON.parse(localStorage.getItem('dids')));
@@ -89,7 +87,7 @@ const Dashboard = ({ enqueueSnackbar, closeSnackbar, accessToken }) => {
       variant,
       autoHideDuration: 5000,
       action: (key) => (
-        <Fragment>
+        <>
           <Button
             style={{ color: 'white' }}
             onClick={() => {
@@ -98,7 +96,7 @@ const Dashboard = ({ enqueueSnackbar, closeSnackbar, accessToken }) => {
           >
             <strong>Dismiss</strong>
           </Button>
-        </Fragment>
+        </>
       ),
     });
   };

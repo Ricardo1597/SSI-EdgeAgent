@@ -144,13 +144,13 @@ function RecordActions({
   };
 
   switch (state) {
-    case 'init' && role == 'holder':
+    case 'init' && role === 'holder':
       return (
         <Button size="small" color="primary" onClick={() => sendProposal(id)}>
           Send Proposal
         </Button>
       );
-    case 'init' && role == 'issuer':
+    case 'init' && role === 'issuer':
       return (
         <Button size="small" color="primary" onClick={() => acceptProposal(id)}>
           Send Offer

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, withRouter, useLocation } from 'react-router-dom';
 import { slide as Menu } from 'react-burger-menu';
 
@@ -9,7 +9,6 @@ import axios from 'axios';
 
 import Navbar from 'react-bootstrap/Navbar';
 import config from '../../config';
-import { Nav } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons';
 import { faAddressBook } from '@fortawesome/free-solid-svg-icons';
@@ -86,14 +85,14 @@ function MyNavbar(props) {
       });
   };
 
-  const getDIDPermissions = () => {
-    const dids = JSON.parse(localStorage.getItem('dids'));
-    return dids &&
-      dids.filter((did) => did.role !== null && did.role !== 'no role' && did.role !== '201')
-        .length > 0
-      ? true
-      : false;
-  };
+  // const getDIDPermissions = () => {
+  //   const dids = JSON.parse(localStorage.getItem('dids'));
+  //   return dids &&
+  //     dids.filter((did) => did.role !== null && did.role !== 'no role' && did.role !== '201')
+  //       .length > 0
+  //     ? true
+  //     : false;
+  // };
 
   console.log(urlPath);
   console.log('AccessToken: ', accessToken);

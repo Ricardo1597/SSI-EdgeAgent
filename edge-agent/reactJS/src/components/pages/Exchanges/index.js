@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 
 import Divider from '@material-ui/core/Divider';
@@ -55,7 +55,7 @@ const Exchanges = () => {
   useEffect(() => {
     const path = location.pathname.split('/')[2];
     if (!path) history.push('/exchanges/credentials');
-  }, [location.pathname]);
+  }, [location.pathname, history]);
 
   const renderSwitch = () => {
     const path = location.pathname.split('/')[2];

@@ -3,14 +3,10 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
 // Components
 import Nav from './components/Navbar';
-import Credentials from './components/pages/Credentials';
-import Presentations from './components/pages/Presentations';
 import Dashboard from './components/pages/Dashboard';
-import Connections from './components/pages/Connections';
 import Login from './components/pages/SignIn';
 import Register from './components/pages/SignUp';
 import Ledger from './components/pages/Ledger';
-import Revocations from './components/pages/Revocations';
 
 import Exchanges from './components/pages/Exchanges';
 import MyConnections from './components/pages/MyConnections';
@@ -43,10 +39,6 @@ function App() {
 
   const withNav = (MyComponent) => {
     return class extends Component {
-      constructor() {
-        super();
-      }
-
       render() {
         return (
           <>

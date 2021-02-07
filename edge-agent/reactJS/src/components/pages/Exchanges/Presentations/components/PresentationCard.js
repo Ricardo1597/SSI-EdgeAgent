@@ -1,6 +1,4 @@
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import React, { Fragment } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useState } from 'react';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
@@ -9,45 +7,39 @@ import Typography from '@material-ui/core/Typography';
 import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
-import config from '../../../../config';
+import config from '../../../../../config';
 
 import { connect } from 'react-redux';
+import styled from 'styled-components';
 
-const useStyles = makeStyles({
-  root: {
-    minWidth: 400,
-  },
-  title: {
-    fontSize: 14,
-  },
-  pos: {
-    marginBottom: 12,
-  },
-});
+const MyCard = styled(Card)`
+  width: 560px;
+`;
+
+// const transformDate = (string) => {
+//   return string.toISOString().replace('T', ' @ ');
+// };
 
 function PresentationCard(props) {
-  const classes = useStyles();
-
+  const [valid, setValid] = useState(null);
   const showSnackbarVariant = (message, variant) => {
     props.enqueueSnackbar(message, {
       variant,
       autoHideDuration: 5000,
-      action: action,
+      action: (key) => (
+        <>
+          <Button
+            style={{ color: 'white' }}
+            onClick={() => {
+              props.closeSnackbar(key);
+            }}
+          >
+            <strong>Dismiss</strong>
+          </Button>
+        </>
+      ),
     });
   };
-
-  const action = (key) => (
-    <Fragment>
-      <Button
-        style={{ color: 'white' }}
-        onClick={() => {
-          props.closeSnackbar(key);
-        }}
-      >
-        <strong>Dismiss</strong>
-      </Button>
-    </Fragment>
-  );
 
   const verifyPresentation = (recordId) => {
     const jwt = props.accessToken;
@@ -59,11 +51,18 @@ function PresentationCard(props) {
           headers: { Authorization: `Bearer ${jwt}` },
         }
       )
-      .then((res) => {
-        console.log(res.data);
+      .then(({ data: { verified } }) => {
+        if (verified) {
+          setValid(true);
+          showSnackbarVariant('Presentation is valid!', 'success');
+        } else {
+          setValid(false);
+          showSnackbarVariant('Presentation is invalid!', 'error');
+        }
       })
       .catch((err) => {
         console.error(err);
+        showSnackbarVariant('Error verifying the presentation. Please try again later.', 'error');
       });
   };
 
@@ -71,21 +70,21 @@ function PresentationCard(props) {
   console.log(props.request);
 
   return (
-    <Card className="p-2" variant="outlined">
+    <MyCard className="p-2" variant="outlined">
       <CardContent>
         <Typography style={{ marginBottom: '5px' }} variant="h6">
           {props.request.name}
         </Typography>
         {Object.entries(props.presentation.requested_proof.revealed_attrs).map(([key, value]) => {
           const nonRevoked = props.request.requested_attributes[key].non_revoked;
-          const startDate = nonRevoked
-            ? new Date(0).setSeconds(nonRevoked.from * 1000)
-            : new Date(0);
-          const endDate = nonRevoked
-            ? new Date(0).setSeconds(nonRevoked.to * 1000)
-            : props.request.date
-            ? new Date(props.request.date * 1000)
-            : new Date();
+          console.log(nonRevoked);
+          let startDate = new Date(0);
+          if (nonRevoked) startDate.setSeconds(nonRevoked.from);
+
+          let endDate = new Date(0);
+          if (nonRevoked) endDate.setSeconds(nonRevoked.to);
+          else if (props.request.date) endDate.setSeconds(props.request.date);
+
           return (
             <Typography key={key}>
               {props.request.requested_attributes[key].name}: {value.raw} <br />
@@ -95,14 +94,12 @@ function PresentationCard(props) {
         })}
         {Object.values(props.request.requested_predicates).map((attr) => {
           const nonRevoked = attr.non_revoked;
-          const startDate = nonRevoked
-            ? new Date(0).setSeconds(nonRevoked.from * 1000)
-            : new Date(0);
-          const endDate = nonRevoked
-            ? new Date(0).setSeconds(nonRevoked.to * 1000)
-            : props.request.date
-            ? new Date(props.request.date * 1000)
-            : new Date();
+          let startDate = new Date(0);
+          if (nonRevoked) startDate.setSeconds(nonRevoked.from);
+
+          let endDate = new Date(0);
+          if (nonRevoked) endDate.setSeconds(nonRevoked.to);
+          else if (props.request.date) endDate.setSeconds(props.request.date);
 
           return (
             <Typography key={attr.name}>
@@ -123,17 +120,17 @@ function PresentationCard(props) {
         )} */}
       </CardContent>
       <CardActions className="ml-2">
-        {props.verified == null ? (
+        {valid === true ? (
+          <p style={{ color: 'green' }}>Presentation is valid!</p>
+        ) : valid === false ? (
+          <p style={{ color: 'red' }}>Presentation is invalid!</p>
+        ) : (
           <Button size="small" color="primary" onClick={() => verifyPresentation(props.id)}>
             Verify Presentation
           </Button>
-        ) : props.verified === 'true' ? (
-          <p style={{ color: 'green' }}>Presentation verified</p>
-        ) : (
-          <p style={{ color: 'red' }}>Presentation invalid</p>
         )}
       </CardActions>
-    </Card>
+    </MyCard>
   );
 }
 

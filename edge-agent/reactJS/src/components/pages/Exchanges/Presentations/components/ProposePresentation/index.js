@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
@@ -12,8 +12,6 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import { withSnackbar } from 'notistack';
-import Paper from '@material-ui/core/Paper';
-import JSONPretty from 'react-json-pretty';
 import TabPanel from '../../../../../TabPanel';
 import styled from 'styled-components';
 
@@ -35,8 +33,8 @@ import { addPresExchange } from '../../../../../../redux/actions/presExchanges';
 import { getCompletedConnections, getToken } from '../../../../../../redux/selectors';
 
 // Text editor
-import Editor from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs/components/prism-core';
+// import Editor from 'react-simple-code-editor';
+// import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
 import '../../styles.css';
@@ -379,14 +377,14 @@ const ProposePresentation = ({
                   <MyFontAwesomeIcon
                     icon={faTable}
                     style={{
-                      color: tab == 0 ? '#3355cc' : 'black',
+                      color: tab === 0 ? '#3355cc' : 'black',
                     }}
                     onClick={() => setTab(0)}
                   />
                   <MyFontAwesomeIcon
                     icon={faCode}
                     style={{
-                      color: tab == 1 ? '#3355cc' : 'black',
+                      color: tab === 1 ? '#3355cc' : 'black',
                       marginRight: 3,
                     }}
                     onClick={() => setTab(1)}

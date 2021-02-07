@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from 'react';
+import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
@@ -6,7 +6,6 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import { withSnackbar } from 'notistack';
 
 import axios from 'axios';
@@ -61,7 +60,7 @@ const FirstStep = ({
   };
 
   return (
-    <Fragment>
+    <>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormControl style={{ width: '100%' }}>
@@ -122,7 +121,7 @@ const FirstStep = ({
           Next
         </Button>
       </div>
-    </Fragment>
+    </>
   );
 };
 

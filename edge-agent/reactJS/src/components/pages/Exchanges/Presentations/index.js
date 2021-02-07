@@ -1,5 +1,5 @@
-import React, { useState, useEffect, Fragment } from 'react';
-import { useLocation, useHistory } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 
 import axios from 'axios';
@@ -11,11 +11,7 @@ import { withSnackbar } from 'notistack';
 
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  setPresExchanges,
-  addPresExchange,
-  updatePresExchange,
-} from '../../../../redux/actions/presExchanges';
+import { setPresExchanges, updatePresExchange } from '../../../../redux/actions/presExchanges';
 import { getPresExchanges, getToken } from '../../../../redux/selectors';
 
 import io from 'socket.io-client';
@@ -29,7 +25,7 @@ function PresentationNotifications() {
       socket.emit('disconnect');
       socket.off();
     };
-  }, [config.agentEndpoint]);
+  }, []);
 
   useEffect(() => {
     socket.on('notification', (notification) => {
@@ -46,7 +42,6 @@ function PresentationNotifications() {
 const Presentations = ({ enqueueSnackbar, closeSnackbar, classes }) => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const history = useHistory();
 
   const [isLoading, setIsLoading] = useState(false);
   const exchanges = useSelector(getPresExchanges);
@@ -57,7 +52,7 @@ const Presentations = ({ enqueueSnackbar, closeSnackbar, classes }) => {
       variant,
       autoHideDuration: 5000,
       action: (key) => (
-        <Fragment>
+        <>
           <Button
             style={{ color: 'white' }}
             onClick={() => {
@@ -66,7 +61,7 @@ const Presentations = ({ enqueueSnackbar, closeSnackbar, classes }) => {
           >
             <strong>Dismiss</strong>
           </Button>
-        </Fragment>
+        </>
       ),
     });
   };
@@ -88,7 +83,7 @@ const Presentations = ({ enqueueSnackbar, closeSnackbar, classes }) => {
         );
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [accessToken]);
 
   const getExchange = (recordId) => {
     return exchanges.find((exchange) => exchange.presentationExchangeId === recordId);

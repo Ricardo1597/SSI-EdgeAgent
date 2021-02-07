@@ -56,7 +56,7 @@ const SignIn = ({ enqueueSnackbar, closeSnackbar, classes }) => {
     }
 
     setLoading(false);
-  }, []);
+  }, [accessToken]);
 
   const showSnackbarVariant = (message, variant) => {
     enqueueSnackbar(message, {

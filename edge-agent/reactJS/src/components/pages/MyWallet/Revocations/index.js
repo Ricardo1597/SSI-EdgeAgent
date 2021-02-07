@@ -32,7 +32,7 @@ const MyRevocations = ({ enqueueSnackbar, closeSnackbar }) => {
           'error'
         );
       });
-  }, []);
+  }, [accessToken]);
 
   const showSnackbarVariant = (message, variant) => {
     enqueueSnackbar(message, {
