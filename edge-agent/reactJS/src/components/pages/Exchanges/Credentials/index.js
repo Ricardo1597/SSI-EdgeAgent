@@ -1,3 +1,6 @@
+/* eslint-disable */
+/* eslint-disable react/no-direct-mutation-state */
+
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 

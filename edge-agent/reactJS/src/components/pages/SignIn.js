@@ -1,3 +1,6 @@
+/* eslint-disable */
+/* eslint-disable react/no-direct-mutation-state */
+
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import Avatar from '@material-ui/core/Avatar';

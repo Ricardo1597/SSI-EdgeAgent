@@ -14,7 +14,7 @@ const ExchangeDetailsDiv = styled.div`
 
 function RecordDetails(props) {
   const {
-    isCredentialExchange,
+    isCredentialExchange = false,
     initiator,
     role,
     state,

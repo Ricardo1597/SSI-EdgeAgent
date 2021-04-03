@@ -1,3 +1,6 @@
+/* eslint-disable */
+/* eslint-disable react/no-direct-mutation-state */
+
 import React, { useState, useEffect } from 'react';
 
 import axios from 'axios';

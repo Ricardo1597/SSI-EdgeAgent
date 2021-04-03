@@ -1,3 +1,6 @@
+/* eslint-disable */
+/* eslint-disable react/no-direct-mutation-state */
+
 import React, { Fragment, useEffect, useState } from 'react';
 
 import Grid from '@material-ui/core/Grid';

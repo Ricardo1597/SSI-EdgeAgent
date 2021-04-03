@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import React, { useEffect } from 'react';
 import io from 'socket.io-client';
 import config from '../config';

@@ -43,6 +43,7 @@ const ExchangeDetails = ({
       <Card>
         <RecordDetails
           record={{
+            isCredentialExchange: true,
             recordId: exchange.credentialExchangeId,
             initiator: exchange.initiator,
             role: exchange.role,
